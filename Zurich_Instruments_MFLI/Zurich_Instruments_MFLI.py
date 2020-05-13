@@ -5,7 +5,7 @@ from BaseDriver import LabberDriver, Error
 import zhinst.toolkit as tk
 
 
-HOST = "10.42.3.78"
+HOST = "localhost"
 
 
 class Driver(LabberDriver):

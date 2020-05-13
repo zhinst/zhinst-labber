@@ -6,7 +6,7 @@ import zhinst.toolkit as tk
 
 
 CLK_RATE = 1.8e9
-HOST = "10.42.0.226"
+HOST = "localhost"
 
 
 class Driver(LabberDriver):
