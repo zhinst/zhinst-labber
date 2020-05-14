@@ -6,7 +6,7 @@ import zhinst.toolkit as tk
 
 
 # change this value in case you are not using 'localhost'
-HOST = "10.42.0.226"
+HOST = "localhost"
 
 
 class Driver(LabberDriver):
