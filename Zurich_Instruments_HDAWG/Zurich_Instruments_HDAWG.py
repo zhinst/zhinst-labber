@@ -5,6 +5,7 @@ from BaseDriver import LabberDriver, Error
 import zhinst.toolkit as tk
 
 
+# change this value in case you are not using 'localhost'
 HOST = "localhost"
 
 
@@ -120,20 +121,17 @@ class Driver(LabberDriver):
         return the actual value set by the instrument"""
         if quant.get_cmd:
             return self.controller._get(quant.get_cmd)
-        # add get for values??
         else:
             return quant.getValue()
 
     def performArm(self, quant_names, options={}):
-        """Perform the instrument arm operation
-        """
+        """Perform the instrument arm operation"""
         for i in range(4):
             base_name = f"Sequencer {2*i + 1}-{2*i + 2} - "
             trigger = self.getValue(base_name + "Trigger Mode")
             sequence = self.getValue(base_name + "Sequence")
             if trigger == "External Trigger" and sequence != "None":
                 self.controller.awgs[i].run()
-                self.log(f"###       START SEQUENCER {i+1}")
 
     def set_node_value(self, quant, value):
         if quant.datatype == quant.COMBO:
@@ -150,7 +148,6 @@ class Driver(LabberDriver):
         i = map_name_to_awg(quant.name)
         if value:
             self.controller.awgs[i].run()
-            self.log(f"###       STARTED SEQUENCER {i+1}")
         else:
             self.controller.awgs[i].stop()
         if self.controller._get(f"awgs/{i}/single"):
@@ -202,10 +199,8 @@ class Driver(LabberDriver):
                 w2 = self.getValueArray(f"Waveform - {2*seq + 2}")
                 if all(self.replace_waveform[2 * seq : 2 * seq + 2]):
                     self.controller.awgs[seq].replace_waveform(w1, w2, i=loop_index)
-                    self.log(f"###       REPLACED WAVE {loop_index} ON AWG {seq+1}")
                 else:
                     self.controller.awgs[seq].queue_waveform(w1, w2)
-                    self.log(f"###       QUEUED WAVE ON AWG {seq+1}")
 
     def compile_sequencers(self):
         for seq in range(4):
@@ -219,13 +214,10 @@ class Driver(LabberDriver):
                     self.replace_waveform[2 * seq : 2 * seq + 2]
                 ):
                     self.controller.awgs[seq].compile()
-                    self.log(f"###       COMPILED SEQUENCER {seq+1}")
                 if sequence_type == "Simple":
                     self.controller.awgs[seq].upload_waveforms()
-                    self.log(f"###       UPLOADED WAVES ON SEQUENCER {seq+1}")
 
 
-#################################################################
 def map_name_to_awg(s):
     if "1-2" in s:
         return 0

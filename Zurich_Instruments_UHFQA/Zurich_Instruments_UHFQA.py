@@ -5,7 +5,7 @@ from BaseDriver import LabberDriver, Error
 import zhinst.toolkit as tk
 
 
-CLK_RATE = 1.8e9
+# change this value in case you are not using 'localhost'
 HOST = "localhost"
 
 
@@ -141,16 +141,12 @@ class Driver(LabberDriver):
             return quant.getValue()
 
     def performArm(self, quant_names, options={}):
-        """Perform the instrument arm operation
-        """
+        """Perform the instrument arm operation"""
         if self.getValue("QA Results - Enable"):
-            self.controller._set("/qas/0/result/enable", 0)
-            # add reset(0), reset(1) here?
-            self.controller._set("/qas/0/result/reset", 1)
             self.controller._set("/qas/0/result/enable", 1)
+            self.controller.arm()
         if self.getValue("Sequencer - Trigger Mode") == "External Trigger":
             self.controller.awg.run()
-            self.log(f"###       UHFQA: RUN SEQUENCER")
 
     def set_node_value(self, quant, value):
         if quant.datatype == quant.COMBO:
@@ -166,7 +162,6 @@ class Driver(LabberDriver):
     def awg_start_stop(self, quant, value):
         if value:
             self.controller.awg.run()
-            self.log(f"###       UHFQA: RUN SEQUENCER")
         else:
             self.controller.awg.stop()
         if self.controller._get("awgs/0/single"):
@@ -211,7 +206,6 @@ class Driver(LabberDriver):
             w2 = self.getValueArray("Waveform 1")
             if self.replace_waveform:
                 self.controller.awg.replace_waveform(w1, w2, i=loop_index)
-                self.log(f"###       UHFQA: REPLACED WAVE {loop_index+1}")
             else:
                 self.controller.awg.queue_waveform(w1, w2)
 
@@ -219,10 +213,8 @@ class Driver(LabberDriver):
         sequence_type = self.getValue("Sequencer - Sequence")
         if sequence_type != "None" and not self.replace_waveform:
             self.controller.awg.compile()
-            self.log(f"###       UHFQA: COMPILED SEQUENCER")
         if sequence_type == "Simple":
             self.controller.awg.upload_waveforms()
-            self.log(f"###       UHFQA: UPLOADED WAVES")
 
     def set_cosstalk_matrix(self, matrix):
         rows, cols = matrix.shape

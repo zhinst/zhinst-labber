@@ -5,6 +5,7 @@ from BaseDriver import LabberDriver, Error
 import zhinst.toolkit as tk
 
 
+# change this value in case you are not using 'localhost'
 HOST = "localhost"
 
 
@@ -36,8 +37,6 @@ class Driver(LabberDriver):
         """Perform the Set Value instrument operation. This function should
         return the actual value set by the instrument"""
         quant.setValue(value)
-
-        # daq module nodes
         if "DAQ" in quant.name:
             if quant.set_cmd:
                 value = self._set_daq_value(quant, value)
@@ -49,7 +48,6 @@ class Driver(LabberDriver):
                 if not self.controller.daq.signals:
                     self._get_daq_signals()
                 self._daq_measure()
-        # sweeper module nodes
         elif "Sweeper" in quant.name:
             if quant.set_cmd:
                 value = self._set_sweeper_value(quant, value)
@@ -61,7 +59,6 @@ class Driver(LabberDriver):
                 self._get_sweeper_signals()
             if quant.name == "Sweeper Control - Measure" and value:
                 self._sweeper_measure()
-        # regular device nodes
         elif quant.set_cmd:
             value = self._set_node_value(quant, value)
 
@@ -132,13 +129,10 @@ class Driver(LabberDriver):
         return param()
 
     def _daq_result_to_quant(self, quant, result):
-        # FFT quantity but result is not from FFT signal
         if "FFT" in quant.name and result.frequency is None:
             return self._daq_return_zeros(quant)
-        # time domain quantity but result is not from time domain signal
         elif "FFT" not in quant.name and result.time is None:
             return self._daq_return_zeros(quant)
-        # other cases, i.e. where signal and result match
         else:
             x = result.time if result.time is not None else result.frequency
             y = result.value[0]
@@ -149,7 +143,7 @@ class Driver(LabberDriver):
         return quant.getTraceDict(np.zeros(l), x=np.linspace(0, 1, l))
 
     def _sweeper_result_to_quant(self, quant, result):
-        base = quant.name[:19]  # i.e. 'Sweeper Signal {i} - '
+        base = quant.name[:19] 
         signal_source = self.getValue(base + "Source")
         if "demod" in signal_source:
             signal_type = self.getValue(base + "Type")
@@ -193,7 +187,6 @@ class Driver(LabberDriver):
                 fft=fft,
                 complex_selector=selector,
             )
-            self.log(f"####   DAQ:    added signal '{s}'")
 
     def _get_sweeper_signals(self):
         n_signals = int(self.getValue("Sweeper Signals - Number of Signals"))
@@ -202,7 +195,6 @@ class Driver(LabberDriver):
             base = f"Sweeper Signal {i+1} - "
             signal_source = self.getValue(base + "Source")
             s = self.controller.sweeper.signals_add(signal_source)
-            self.log(f"####   Sweeper:    added signal '{s}'")
 
     def _get_daq_trigger(self):
         base = "DAQ Trigger - Trigger "
@@ -213,22 +205,16 @@ class Driver(LabberDriver):
             trigger_type = self.getValue(base + "Type Aux")
         elif "imp" in trigger_source:
             trigger_type = self.getValue(base + "Type Imp")
-        self.log(f"#####            gridnode: {trigger_source}, {trigger_type}")
         self.controller.daq.trigger(trigger_source, trigger_type)
-        self.log(
-            f"#####            gridnode: {self.controller.daq._get('triggernode')}"
         )
 
     def _daq_measure(self):
         timeout = self.getValue("DAQ - Timeout")
         try:
             self.setValue("DAQ - Status", f"Busy ...")
-            self.log(f"###          Start Measurement!")
             self.controller.daq.measure(timeout=timeout)
             self.setValue("DAQ - Status", f"Ready for Measurement")
         except TimeoutError:
-            self.log(f"Measurement timed out!")
-            # reset results ...
             self.controller.daq._results = {}
 
     def _sweeper_measure(self):
@@ -238,10 +224,7 @@ class Driver(LabberDriver):
             self.setValue(
                 "Sweeper Control - Status", f"Sweeping Parameter '{node}'",
             )
-            self.log(f"###          Start Measurement!")
             self.controller.sweeper.measure(timeout=timeout)
             self.setValue("Sweeper Control - Status", "Ready for Measurement")
         except TimeoutError:
-            self.log(f"Measurement timed out!")
-            # reset results ...
             self.controller.sweeper._results = {}
