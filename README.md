@@ -2,7 +2,7 @@
 
 The Zurich Instruments Labber Drivers are a collection of instrument drivers for 
 the scientific measurement software [Labber](http://labber.org/). They provide
-a high-level interface of Zurich Instruemnts devices such as 
+a high-level interface of Zurich Instruments devices such as 
 
 * the HDAWG Arbitrary Waveform Generator
 * the UHFQA Quantum Analyzer
