@@ -74,6 +74,12 @@ class Driver(LabberDriver):
     def performGetValue(self, quant, options={}):
         """Perform the Set Value instrument operation. This function should
         return the actual value set by the instrument"""
+        # getting a demodulator sample value
+        if "Demodulator" in quant.name and "Value" in quant.name:
+            if self.getValue(quant.name.replace("Value", "Enable")):
+                return self.controller._get(quant.get_cmd)
+            else:
+                return 0 + 1j*0        
         # getting a value from the DAQ module
         if "DAQ" in quant.name:
             if quant.get_cmd:
