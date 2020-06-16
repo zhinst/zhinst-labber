@@ -134,8 +134,7 @@ class Driver(LabberDriver):
         return value
 
     def performGetValue(self, quant, options={}):
-        """Perform the Set Value instrument operation. This function should
-        return the actual value set by the instrument"""
+        """Perform the Get Value instrument operation"""
         if quant.get_cmd:
             # if a 'get_cmd' is defined, use it to return the node value
             return self.controller._get(quant.get_cmd)
@@ -156,6 +155,12 @@ class Driver(LabberDriver):
         elif quant.name == "Result Demod 1-2":
             # calculate 'demod 1-2' value
             return self.get_demod_12()
+        elif quant.name == 'QA Monitor - Input 1':
+            value = quant.getTraceDict(self.controller._get('/qas/0/monitor/inputs/0/wave'), dt=1/1.8e9)
+            return value
+        elif quant.name == 'QA Monitor - Input 2':
+            value = quant.getTraceDict(self.controller._get('/qas/0/monitor/inputs/1/wave'), dt=1/1.8e9)
+            return value
         else:
             return quant.getValue()
 
@@ -207,6 +212,8 @@ class Driver(LabberDriver):
             trigger_delay=self.getValue(base_name + "Trigger Delay"),
             readout_length=self.getValue(base_name + "Readout Length"),
             clock_rate=1.8e9,
+            latency=self.getValue(base_name + "Latency"),
+            dead_time=self.getValue(base_name + "Dead Time"),
         )
         if params["sequence_type"] == "Custom":
             params.update(path=self.getValue("Custom Sequence - Path"))
