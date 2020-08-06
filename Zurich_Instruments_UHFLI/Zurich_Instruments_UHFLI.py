@@ -23,8 +23,7 @@ class Driver(LabberDriver):
         )
         self.controller.setup()
         self.controller.connect_device()
-        if "AWG" in self.controller.options:
-            self.setInstalledOptions(["AWG"])
+        self.setInstalledOptions(self.controller.options)
         self.setValue("DAQ - Status", f"Ready for Measurement")
         self.setValue("Sweeper Control - Status", f"Ready for Measurement")
 
