@@ -243,6 +243,7 @@ class Driver(LabberDriver):
                 ):
                     self.controller.awgs[seq].compile()
                 if sequence_type == "Simple":
+                    self.controller.awgs[seq].compile()
                     self.controller.awgs[seq].upload_waveforms()
 
 
