@@ -182,7 +182,7 @@ class Driver(LabberDriver):
             self.controller.awg.run()
         else:
             self.controller.awg.stop()
-        if self.controller._get("awgs/0/single"):
+        if self.controller._get("awgs/0/single") and self.getValue("AWG - Wait"):
             self.controller.awg.wait_done()
         return self.controller.awg.is_running
 
