@@ -207,6 +207,8 @@ class Driver(LabberDriver):
             trigger_delay=self.getValue(base_name + "Trigger Delay"),
             readout_length=self.getValue(base_name + "Readout Length"),
             clock_rate=1.8e9,
+            latency=self.getValue(base_name + "Latency"),
+            dead_time=self.getValue(base_name + "Dead Time"),
         )
         if params["sequence_type"] == "Custom":
             params.update(path=self.getValue("Custom Sequence - Path"))
