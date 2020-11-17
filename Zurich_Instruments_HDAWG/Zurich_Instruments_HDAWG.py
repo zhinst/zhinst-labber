@@ -73,7 +73,11 @@ class Driver(LabberDriver):
             if value:
                 self.controller.awgs[i].enable_iq_modulation()
             else:
-                self.controller.awgs[i].disable_iq_modulation()
+                self.controller.awgs[i].disable_iq_modulation()    # overrides '.../system/awg/oscillatorcontrol' value for all channels
+                # fix '.../system/awg/oscillatorcontrol' value by calling enable_iq_modulation()
+                for value1 in range(4):
+                    if self.controller.awgs[value1]._iq_modulation:
+                        self.controller.awgs[value1].enable_iq_modulation()
 
         # sequencer modulation frequency
         if quant.name.endswith("Modulation Frequency"):
