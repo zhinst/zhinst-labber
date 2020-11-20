@@ -137,7 +137,14 @@ class Driver(LabberDriver):
                 # sequencer needs to be recompiled
                 if loop_index + 1 == n_HW_loop:
                     self.compile_sequencers()
-
+            # if any of AWGs is in the 'Send Trigger' mode, start this AWG and wait until it stops
+            for i in range(4):
+                base_name = f"Sequencer {2*i + 1}-{2*i + 2} - "
+                trigger = self.getValue(base_name + "Trigger Mode")
+                sequence = self.getValue(base_name + "Sequence")
+                if trigger == "Send Trigger" and sequence != "None":
+                    self.controller.awgs[i].run()
+                    self.controller.awgs[i].wait_done()
         return value
 
     def performGetValue(self, quant, options={}):
