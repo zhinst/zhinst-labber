@@ -73,7 +73,11 @@ class Driver(LabberDriver):
             if value:
                 self.controller.awgs[i].enable_iq_modulation()
             else:
-                self.controller.awgs[i].disable_iq_modulation()
+                self.controller.awgs[i].disable_iq_modulation()    # overrides '.../system/awg/oscillatorcontrol' value for all channels
+                # fix '.../system/awg/oscillatorcontrol' value by calling enable_iq_modulation()
+                for value1 in range(4):
+                    if self.controller.awgs[value1]._iq_modulation:
+                        self.controller.awgs[value1].enable_iq_modulation()
 
         # sequencer modulation frequency
         if quant.name.endswith("Modulation Frequency"):
@@ -133,7 +137,14 @@ class Driver(LabberDriver):
                 # sequencer needs to be recompiled
                 if loop_index + 1 == n_HW_loop:
                     self.compile_sequencers()
-
+            # if any of AWGs is in the 'Send Trigger' mode, start this AWG and wait until it stops
+            for i in range(4):
+                base_name = f"Sequencer {2*i + 1}-{2*i + 2} - "
+                trigger = self.getValue(base_name + "Trigger Mode")
+                sequence = self.getValue(base_name + "Sequence")
+                if trigger == "Send Trigger" and sequence != "None":
+                    self.controller.awgs[i].run()
+                    self.controller.awgs[i].wait_done()
         return value
 
     def performGetValue(self, quant, options={}):
@@ -243,8 +254,7 @@ class Driver(LabberDriver):
                 ):
                     self.controller.awgs[seq].compile()
                 if sequence_type == "Simple":
-                    self.controller.awgs[seq].compile()
-                    self.controller.awgs[seq].upload_waveforms()
+                    self.controller.awgs[seq].compile_and_upload_waveforms()
 
 
 """
