@@ -16,7 +16,7 @@ class Driver(LabberDriver):
         """Perform the operation of opening the instrument connection"""
         interface = self.comCfg.interface
         if not interface == "USB":
-            interface = "PCIE"
+            interface = "1GBE"
         # initialize controller and connect
         self.controller = tk.MFLI(
             self.comCfg.name, self.comCfg.address[:7], interface=interface, host=HOST
