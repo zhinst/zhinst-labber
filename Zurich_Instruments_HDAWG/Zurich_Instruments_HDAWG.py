@@ -10,7 +10,7 @@ HOST = "localhost"
 
 
 class Driver(LabberDriver):
-    """ This class implements a Labber driver"""
+    """This class implements a Labber driver"""
 
     def performOpen(self, options={}):
         """Perform the operation of opening the instrument connection"""
@@ -73,7 +73,9 @@ class Driver(LabberDriver):
             if value:
                 self.controller.awgs[i].enable_iq_modulation()
             else:
-                self.controller.awgs[i].disable_iq_modulation()    # overrides '.../system/awg/oscillatorcontrol' value for all channels
+                self.controller.awgs[
+                    i
+                ].disable_iq_modulation()  # overrides '.../system/awg/oscillatorcontrol' value for all channels
                 # fix '.../system/awg/oscillatorcontrol' value by calling enable_iq_modulation()
                 for value1 in range(4):
                     if self.controller.awgs[value1]._iq_modulation:
@@ -197,7 +199,7 @@ class Driver(LabberDriver):
                     self.controller.awgs[i].set_sequence_params(**params)
 
     def get_sequence_params(self, seq):
-        """Retrieves all sequence parameters from Labber quantities and returns 
+        """Retrieves all sequence parameters from Labber quantities and returns
         them as a dictionary, ready for `set_sequence_params(...)`."""
         base_name = f"Sequencer {2*seq + 1}-{2*seq + 2} - "
         params = dict(

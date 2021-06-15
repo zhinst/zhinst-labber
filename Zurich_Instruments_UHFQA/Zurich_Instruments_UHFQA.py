@@ -10,7 +10,7 @@ HOST = "localhost"
 
 
 class Driver(LabberDriver):
-    """ This class implements a Labber driver"""
+    """This class implements a Labber driver"""
 
     def performOpen(self, options={}):
         """Perform the operation of opening the instrument connection"""
@@ -155,11 +155,15 @@ class Driver(LabberDriver):
         elif quant.name == "Result Demod 1-2":
             # calculate 'demod 1-2' value
             return self.get_demod_12()
-        elif quant.name == 'QA Monitor - Input 1':
-            value = quant.getTraceDict(self.controller._get('/qas/0/monitor/inputs/0/wave'), dt=1/1.8e9)
+        elif quant.name == "QA Monitor - Input 1":
+            value = quant.getTraceDict(
+                self.controller._get("/qas/0/monitor/inputs/0/wave"), dt=1 / 1.8e9
+            )
             return value
-        elif quant.name == 'QA Monitor - Input 2':
-            value = quant.getTraceDict(self.controller._get('/qas/0/monitor/inputs/1/wave'), dt=1/1.8e9)
+        elif quant.name == "QA Monitor - Input 2":
+            value = quant.getTraceDict(
+                self.controller._get("/qas/0/monitor/inputs/1/wave"), dt=1 / 1.8e9
+            )
             return value
         else:
             return quant.getValue()
@@ -201,7 +205,7 @@ class Driver(LabberDriver):
                 self.controller.awg.set_sequence_params(**params)
 
     def get_sequence_params(self):
-        """Retrieves all sequence parameters from Labber quantities and returns 
+        """Retrieves all sequence parameters from Labber quantities and returns
         them as a dictionary, ready for `set_sequence_params(...)`."""
         base_name = f"Sequencer - "
         params = dict(
@@ -257,7 +261,7 @@ class Driver(LabberDriver):
         self.controller.crosstalk_matrix(matrix)
 
     def get_demod_12(self):
-        """Assembles a complex value from real valued data on channel 1 and 2. 
+        """Assembles a complex value from real valued data on channel 1 and 2.
         The returned data will be (channel 1) + i * (channel 2).
         """
         data1 = self.controller.channels[0].result()
