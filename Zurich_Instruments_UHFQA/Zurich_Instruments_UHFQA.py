@@ -1,19 +1,39 @@
-import time
+# Copyright (C) 2020 Zurich Instruments
+#
+# This software may be modified and distributed under the terms
+# of the MIT license. See the LICENSE file for details.
+"""Labber Driver for the Zurich Instruments UHFQA Quantum Analyzer.
+
+This driver provides a high-level interface of the Zurich Instruments
+UHFQA Quantum Analyzer for the scientific measurement software Labber.
+It is based on the Zurich Instruments Toolkit (zhinst-toolkit), an
+extension of our Python API ziPython for high-level instrument control.
+"""
+
 import numpy as np
 from BaseDriver import LabberDriver, Error
 
 import zhinst.toolkit as tk
-
 
 # change this value in case you are not using 'localhost'
 HOST = "localhost"
 
 
 class Driver(LabberDriver):
-    """This class implements a Labber driver"""
+    """Implement a Labber Driver for the Zurich Instruments UHFQA."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.controller = None
+        self.last_length = []
+        self.sequencer_updated = False
+        self.waveforms_updated = []
+        self.replace_waveform = False
 
     def performOpen(self, options={}):
-        """Perform the operation of opening the instrument connection"""
+        """Perform the operation of opening the instrument connection."""
+        # Get the interface selected in UI,
+        # restrict to either 'USB' or '1GbE'
         interface = self.comCfg.interface
         if not interface == "USB":
             interface = "1GbE"
@@ -23,32 +43,53 @@ class Driver(LabberDriver):
         )
         self.controller.setup()
         self.controller.connect_device()
-        self.last_length = [0] * 2
+        # Read the revision numbers after the connection
+        # and update Labber controller.
+        self.update_labber_controller("Revisions - Data Server")
+        self.update_labber_controller("Revisions - Firmware")
+        self.update_labber_controller("Revisions - FPGA")
+        # Initialize last waveform lengths as 0
+        self.last_length = [0] * 8
 
     def performClose(self, bError=False, options={}):
-        """Perform the close instrument connection operation"""
+        """Perform the close instrument connection operation."""
         pass
 
     def initSetConfig(self):
-        """This function is run before setting values in Set Config"""
+        """Run before setting values in Set Config."""
         pass
 
     def performSetValue(self, quant, value, sweepRate=0.0, options={}):
-        """Perform the Set Value instrument operation. This function should
-        return the actual value set by the instrument"""
+        """Perform the Set Value instrument operation.
 
+        For numerical quantities, this function returns the
+        actual value set by the instrument.
+        """
+        if quant.set_cmd:
+            # if a 'set_cmd' is defined, just set the node
+            self.set_node_value(quant, value)
+            if quant.datatype == quant.DOUBLE:
+                # If the quantity is numerical,
+                # read the actual value from the device
+                value = self.get_node_value(quant)
+        # Update the current local value of the quantity of the driver
         quant.setValue(value)
-
+        # Get the current hardware loop index and total number of
+        # points of the hardware loop.
+        loop_index, n_HW_loop = self.getHardwareLoopIndex(options)
+        # Reset all updated flags to `False`
         if self.isFirstCall(options):
             self.sequencer_updated = False
             self.waveforms_updated = [False] * 2
             self.replace_waveform = False
 
-        loop_index, n_HW_loop = self.getHardwareLoopIndex(options)
-
-        # if a 'set_cmd' is defined, just set the node
-        if quant.set_cmd:
-            value = self.set_node_value(quant, value)
+        # Setup tab
+        if quant.name == "Preset - Factory Reset":
+            # Load factory preset
+            self.controller.factory_reset(sync=True)
+        if quant.name == "PQSC - Connect to PQSC":
+            # Establish connection to PQSC
+            self.connect_to_pqsc(value)
 
         # sequencer outputs
         if quant.name == "Control - Output 1":
@@ -66,7 +107,7 @@ class Driver(LabberDriver):
 
         # crosstalk - reset button
         if quant.name == "Crosstalk - Reset":
-            self.set_cosstalk_matrix(np.eye(10))
+            self.set_crosstalk_matrix(np.eye(10))
 
         # integration time
         if quant.name == "Integration - Time":
@@ -134,62 +175,93 @@ class Driver(LabberDriver):
         return value
 
     def performGetValue(self, quant, options={}):
-        """Perform the Get Value instrument operation"""
+        """Perform the Get Value instrument operation."""
         if quant.get_cmd:
             # if a 'get_cmd' is defined, use it to return the node value
-            return self.controller._get(quant.get_cmd)
-        elif quant.name.startswith("Result Vector - QB"):
+            value = self.get_node_value(quant)
+            # Update the current local value of the quantity of the driver
+            quant.setValue(value)
+        else:
+            # for other quantities, just return current value of control
+            value = quant.getValue()
+
+        # Get the current hardware loop index and total number of
+        # points of the hardware loop.
+        loop_index, n_HW_loop = self.getHardwareLoopIndex(options)
+
+        if quant.name.startswith("Result Vector - QB"):
             # get the result vector
             i = int(quant.name[-2:]) - 1
-            value = self.controller.channels[i].result()
-            return quant.getTraceDict(value, x0=0, dx=1)
-        elif quant.name.startswith("Result Avg - QB"):
+            data = self.controller.channels[i].result()
+            value = quant.getTraceDict(data, x0=0, dx=1)
+        if quant.name.startswith("Result Avg - QB"):
             # get the _averaged_ result vector
             i = int(quant.name[-2:]) - 1
-            value = self.controller.channels[i].result()
+            data = self.controller.channels[i].result()
             if self.isHardwareLoop(options):
-                index, _ = self.getHardwareLoopIndex(options)
-                return value[index]
+                value = data[loop_index]
             else:
-                return np.mean(value)
-        elif quant.name == "Result Demod 1-2":
+                value = np.mean(data)
+        if quant.name == "Result Demod 1-2":
             # calculate 'demod 1-2' value
-            return self.get_demod_12()
-        elif quant.name == "QA Monitor - Input 1":
-            value = quant.getTraceDict(
-                self.controller._get("/qas/0/monitor/inputs/0/wave"), dt=1 / 1.8e9
-            )
-            return value
-        elif quant.name == "QA Monitor - Input 2":
-            value = quant.getTraceDict(
-                self.controller._get("/qas/0/monitor/inputs/1/wave"), dt=1 / 1.8e9
-            )
-            return value
-        else:
-            return quant.getValue()
+            value = self.get_demod_12()
+        if quant.name == "QA Monitor - Input 1":
+            data = self.controller._get("/qas/0/monitor/inputs/0/wave")
+            value = quant.getTraceDict(data, dt=1 / 1.8e9)
+        if quant.name == "QA Monitor - Input 2":
+            data = self.controller._get("/qas/0/monitor/inputs/1/wave")
+            value = quant.getTraceDict(data, dt=1 / 1.8e9)
+
+        return value
 
     def performArm(self, quant_names, options={}):
         """Perform the instrument arm operation"""
         if self.getValue("QA Results - Enable"):
             self.controller._set("/qas/0/result/enable", 1)
             self.controller.arm()
-        if self.getValue("Sequencer - Trigger Mode") == "External Trigger":
+        if self.getValue("Sequencer - Trigger Mode") in [
+            "Receive Trigger",
+            "ZSync Trigger",
+        ]:
             self.controller.awg.run()
 
+    def update_labber_controller(self, quant_name):
+        """Read the quantity from device and update the Labber controller."""
+        value = self.readValueFromOther(quant_name)
+        self.setValue(quant_name, str(value))
+
     def set_node_value(self, quant, value):
+        """Perform node and parameter set
+
+        This method uses the zhinst-toolkit setter to set the node
+        and parameter values.
+        """
         if quant.datatype == quant.COMBO:
+            # If the quantity type is combo, extract the index and
+            # check if a list of command strings is defined
             i = quant.getValueIndex(value)
             if len(quant.cmd_def) == 0:
                 self.controller._set(quant.set_cmd, i)
             else:
                 self.controller._set(quant.set_cmd, quant.cmd_def[i])
         else:
+            # Otherwise, just send the value to the device
             self.controller._set(quant.set_cmd, value)
-        return self.controller._get(quant.get_cmd)
+        return value
+
+    def get_node_value(self, quant):
+        """Perform node get
+
+        This method uses the zhinst-toolkit getter to get the node
+        and parameter values.
+        """
+        # Read the value from device
+        value = self.controller._get(quant.get_cmd)
+        return value
 
     def awg_start_stop(self, quant, value):
         """Handles setting of nodes with 'set_cmd'."""
-        if value:
+        if not self.controller.awg.is_running and value:
             self.controller.awg.run()
         else:
             self.controller.awg.stop()
@@ -203,6 +275,16 @@ class Driver(LabberDriver):
             params = self.get_sequence_params()
             if params["sequence_type"] != "None":
                 self.controller.awg.set_sequence_params(**params)
+            if params["trigger_mode"] == "ZSync Trigger":
+                if params["sequence_type"] == "None":
+                    self.controller.awg.set_sequence_params(
+                        trigger_mode="ZSync Trigger"
+                    )
+                # read the relevant settings from the device and update
+                # the Labber controller
+                self.update_labber_controller("Sequencer - Strobe Slope")
+                self.update_labber_controller("Sequencer - Valid Polarity")
+                self.update_labber_controller("Sequencer - Valid Index")
 
     def get_sequence_params(self):
         """Retrieves all sequence parameters from Labber quantities and returns
@@ -252,7 +334,7 @@ class Driver(LabberDriver):
         if sequence_type == "Simple":
             self.controller.awg.upload_waveforms()
 
-    def set_cosstalk_matrix(self, matrix):
+    def set_crosstalk_matrix(self, matrix):
         """Set the crosstalk matrix as a 2D numpy array."""
         rows, cols = matrix.shape
         for r in range(rows):
@@ -269,3 +351,11 @@ class Driver(LabberDriver):
         real = np.mean(np.real(data1))
         imag = np.mean(np.real(data2))
         return real + 1j * imag
+
+    def connect_to_pqsc(self, value):
+        if value:
+            self.controller.enable_qccs_mode()
+            self.update_labber_controller("Device - Reference Clock")
+            self.update_labber_controller("Digital I/O - Ext Clock")
+            self.update_labber_controller("Digital I/O - Mode")
+            self.update_labber_controller("Digital I/O - Drive")
