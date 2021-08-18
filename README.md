@@ -4,8 +4,9 @@ The Zurich Instruments Labber Drivers are a collection of instrument drivers for
 the scientific measurement software [Labber](http://labber.org/). They provide
 a high-level interface of Zurich Instruments devices such as 
 
+* the PQSC Programmable Quantum System Controller
 * the HDAWG Arbitrary Waveform Generator
-* the UHFQA Quantum Analyzer
+* the UHFQA and SHFQA Quantum Analyzers
 * the MFLI and UHFLI Lock-In Amplifiers
 
 The Labber drivers are based on the 
