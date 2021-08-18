@@ -10,7 +10,7 @@ HOST = "localhost"
 
 
 class Driver(LabberDriver):
-    """ This class implements a Labber driver"""
+    """This class implements a Labber driver"""
 
     def performOpen(self, options={}):
         """Perform the operation of opening the instrument connection"""
@@ -194,11 +194,12 @@ class Driver(LabberDriver):
                 self.controller.awg.set_sequence_params(**params)
 
     def get_sequence_params(self):
-        """Retrieves all sequence parameters from Labber quantities and returns 
+        """Retrieves all sequence parameters from Labber quantities and returns
         them as a dictionary, ready for `set_sequence_params(...)`."""
         base_name = f"Sequencer - "
         params = dict(
-            sequence_type=self.getValue(base_name + "Sequence"), clock_rate=1.8e9,
+            sequence_type=self.getValue(base_name + "Sequence"),
+            clock_rate=1.8e9,
         )
         if params["sequence_type"] == "Pulse Train":
             params.update(repetitions=int(self.getValue(base_name + "Repetitions")))
@@ -351,7 +352,8 @@ class Driver(LabberDriver):
         try:
             node = self.controller.sweeper._get("gridnode")
             self.setValue(
-                "Sweeper Control - Status", f"Sweeping Parameter '{node}'",
+                "Sweeper Control - Status",
+                f"Sweeping Parameter '{node}'",
             )
             self.controller.sweeper.measure(timeout=timeout)
             self.setValue("Sweeper Control - Status", "Ready for Measurement")

@@ -10,7 +10,7 @@ HOST = "localhost"
 
 
 class Driver(LabberDriver):
-    """ This class implements a Labber driver"""
+    """This class implements a Labber driver"""
 
     def performOpen(self, options={}):
         """Perform the operation of opening the instrument connection"""
@@ -241,7 +241,8 @@ class Driver(LabberDriver):
         try:
             node = self.controller.sweeper._get("gridnode")
             self.setValue(
-                "Sweeper Control - Status", f"Sweeping Parameter '{node}'",
+                "Sweeper Control - Status",
+                f"Sweeping Parameter '{node}'",
             )
             self.controller.sweeper.measure(timeout=timeout)
             self.setValue("Sweeper Control - Status", "Ready for Measurement")
