@@ -176,7 +176,7 @@ class Driver(LabberDriver):
     def performArm(self, quant_names, options={}):
         """Perform the instrument arm operation"""
         for i in range(8):
-            base_name = f"Sequencer {i} - Sequencer Program - "
+            base_name = f"Sequencer {i+1} - Sequencer Program - "
             trigger = self.getValue(base_name + "Trigger Mode")
             sequence = self.getValue(base_name + "Sequence")
             # only start AWG if used as slave and if a sequence is selected
@@ -290,19 +290,17 @@ class Driver(LabberDriver):
                         sequence_type=self.getValue(prefix_string + "Sequence"),
                         pulse_width=self.getValue(prefix_string + "Pulse Width"),
                         pulse_amplitudes=np.linspace(
-                            int(self.getValue(prefix_string + "Pulse Amplitude Start")),
-                            int(self.getValue(prefix_string + "Pulse Amplitude Stop")),
-                            int(
-                                self.getValue(prefix_string + "Pulse Amplitude Number")
-                            ),
+                            self.getValue(prefix_string + "Pulse Amplitude Start"),
+                            self.getValue(prefix_string + "Pulse Amplitude Stop"),
+                            self.getValue(prefix_string + "Pulse Amplitude Number"),
                         ),
                         pulse_amplitude=self.getValue(
                             prefix_string + "Pulse Amplitude"
                         ),
                         delay_times=np.linspace(
-                            int(self.getValue(prefix_string + "Delay Time Start")),
-                            int(self.getValue(prefix_string + "Delay Time Stop")),
-                            int(self.getValue(prefix_string + "Delay Time Number")),
+                            self.getValue(prefix_string + "Delay Time Start"),
+                            self.getValue(prefix_string + "Delay Time Stop"),
+                            self.getValue(prefix_string + "Delay Time Number"),
                         ),
                         path=self.getValue(prefix_string + "Sequence Path"),
                         custom_params=self.getValue(prefix_string + "Custom Params"),
@@ -339,8 +337,8 @@ class Driver(LabberDriver):
                 prefix_string = f"Sequencer {i+1} - Sequencer Program - "
                 ct_path = self.getValue(prefix_string + "Command Table Path")
                 if updated and ct_path:
-                    with open(ct_path) as f:
-                        ct = json.loads(f.read().decode())
+                    with open(ct_path, "r", encoding="UTF-8") as f:
+                        ct = json.loads(f.read())
                         self.controller.sgchannels[i].awg.ct.load(ct)
 
     def compile_sequences(self):
