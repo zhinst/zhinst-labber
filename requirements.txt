@@ -1,0 +1,2 @@
+zhinst-toolkit >= 0.2.3
+numpy >= 1.20.0
