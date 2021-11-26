@@ -486,7 +486,7 @@ class SHFQA(BaseInstrument):
                     "COMBO",
                     group,
                     section,
-                    def_value=0,
+                    def_value="cyclic",
                     state_quant=f"Readout {qachannel+1} - Enable Readout",
                     state_values=[True],
                     combo_defs=list(("cyclic", "sequential")),
@@ -742,6 +742,36 @@ class SHFQA(BaseInstrument):
                     model_values=model_values,
                 )
             )
+            num_user_regs = 16
+            self.add_element(
+                Element(
+                    None,
+                    "SHOW User registers",
+                    "COMBO",
+                    group,
+                    section,
+                    def_value=1,
+                    combo_defs=list(range(1, num_user_regs + 1)),
+                    cmd_defs=list(range(num_user_regs)),
+                    model_values=model_values,
+                    show_in_measurement_dlg="False",
+                )
+            )
+            for reg in range(num_user_regs):
+                self.add_element(
+                    Element(
+                        f"qachannels[{qachannel}].generator.user_registers[{reg}]",
+                        f"User Register {reg+1}",
+                        "DOUBLE",
+                        group,
+                        section,
+                        unit="Hz",
+                        def_value=0,
+                        state_quant=f"{group} - SHOW User registers",
+                        show_in_measurement_dlg="True",
+                        model_values=model_values,
+                    )
+                )
             self.add_element(
                 Element(
                     None,
@@ -1086,5 +1116,5 @@ class SHFQA(BaseInstrument):
 
 
 
-# test = SHFQA()
-# test.generate("DEV12020")
+test = SHFQA()
+test.generate("DEV12047")
