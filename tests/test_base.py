@@ -1,10 +1,10 @@
 import pytest
 from unittest.mock import MagicMock, patch, PropertyMock
 import sys
+from pathlib import Path
 
-
-sys.path.insert(0, "/Users/tobiasa/git/zhinst-labber/tests/labber")
-from zhinst.labber.base_instrument import BaseDevice
+sys.path.insert(0, str(Path(__file__).resolve().parent / "labber"))
+import zhinst.labber.base_instrument as labber_driver
 
 
 @pytest.fixture()
@@ -24,7 +24,9 @@ def device_driver():
         },
         "instrument": {"base_type": "device", "type": "SHFQA"},
     }
-    instrument = BaseDevice(settings=settings)
+    # reset session cache
+    labber_driver.created_sessions = {}
+    instrument = labber_driver.BaseDevice(settings=settings)
     instrument.comCfg = MagicMock()
     instrument.instrCfg = MagicMock()
     return instrument
@@ -41,7 +43,9 @@ def module_driver():
         },
         "instrument": {"base_type": "module", "type": "AWG"},
     }
-    instrument = BaseDevice(settings=settings)
+    # reset session cache
+    labber_driver.created_sessions = {}
+    instrument = labber_driver.BaseDevice(settings=settings)
     instrument.comCfg = MagicMock()
     instrument.instrCfg = MagicMock()
     return instrument
@@ -58,7 +62,9 @@ def session_driver():
         },
         "instrument": {"base_type": "session"},
     }
-    instrument = BaseDevice(settings=settings)
+    # reset session cache
+    labber_driver.created_sessions = {}
+    instrument = labber_driver.BaseDevice(settings=settings)
     instrument.comCfg = MagicMock()
     instrument.instrCfg = MagicMock()
     return instrument
