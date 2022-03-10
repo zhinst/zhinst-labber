@@ -24,7 +24,7 @@ class QuantType(Enum):
     WAVEFORM = 2
 
 
-def _csv_row_to_vector(csv_row: list[str]) -> t.Optional[NumpyArray]:
+def _csv_row_to_vector(csv_row: t.List[str]) -> t.Optional[NumpyArray]:
     """Convert a csv row into a numpy array.
 
     Args:
