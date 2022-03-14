@@ -85,7 +85,7 @@
             "/scopes/2/*": "Scope 2",
             "/scopes/3/*": "Scope 3"
         },
-        "items": {
+        "quants": {
             "/qachannels/*/generator/waveforms/*/wave": {
                 "indexes": [
                     "dev",
