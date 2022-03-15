@@ -469,7 +469,7 @@
                     "datatype": "VECTOR",
                     "x_name": "Length",
                     "x_unit": "Sample",
-                    "permission": "Read",
+                    "permission": "READ",
                     "show_in_measurement_dlg": "True"
                 },
                 "extend": {}
