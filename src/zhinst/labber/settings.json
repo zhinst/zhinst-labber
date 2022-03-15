@@ -1,6 +1,17 @@
 {
     "misc": {
-        "labberDelimiter": " - "
+        "labberDelimiter": " - ",
+        "ziModules": [
+            "daq",
+            "scope",
+            "sweeper",
+            "qa",
+            "shfqa_sweeper",
+            "precompensation_advisor",
+            "pid_advisor",
+            "mds",
+            "impedance"
+        ]
     },
     "common": {
         "ignoredNodes": {
@@ -13,38 +24,169 @@
                 "/system/nics/*",
                 "/system/properties/*"
             ],
-            "advanced": []
+            "advanced": [
+                "/features/*"
+            ]
         },
-        "items": {
+        "sections": {},
+        "groups": {},
+        "quants": {
             "/clearhistory": {
-                "update": {
+                "add": false,
+                "conf": {
                     "datatype": "BOOLEAN"
                 },
                 "extend": {}
             },
             "*/imp50": {
-                "update": {
+                "add": false,
+                "conf": {
                     "datatype": "BOOLEAN"
                 },
                 "extend": {}
             },
             "/save/save": {
-                "update": {
+                "add": false,
+                "conf": {
                     "datatype": "BOOLEAN"
                 },
                 "extend": {}
             },
             "/clockbase": {
-                "update": {
-                    "section": "BOOLEAN"
+                "add": false,
+                "conf": {
+                    "section": "SYSTEM"
                 },
                 "extend": {}
             },
             "*/commandtable/data": {
-                "update": {
+                "add": false,
+                "conf": {
                     "datatype": "PATH",
                     "set_cmd": "*.json"
                 }
+            },
+            "*/sequencer_program": {
+                "add": true,
+                "mapping": {
+                    "SHFQA": {
+                        "path": "/qachannels/*/generator/sequencer_program",
+                        "indexes": [
+                            "dev"
+                        ]
+                    },
+                    "HDAWG": {
+                        "path": "/awgs/*/sequencer_program",
+                        "indexes": [
+                            "dev"
+                        ]
+                    },
+                    "UHFQA": {
+                        "path": "/awgs/*/sequencer_program",
+                        "indexes": [
+                            "dev"
+                        ]
+                    }
+                },
+                "conf": {
+                    "datatype": "PATH",
+                    "set_cmd": "*.json"
+                },
+                "driver": {}
+            },
+            "*/waves1": {
+                "add": true,
+                "mapping": {
+                    "HDAWG": {
+                        "path": "/awgs/*/waves1",
+                        "indexes": [
+                            "dev"
+                        ]
+                    },
+                    "UHFLI": {
+                        "path": "/awgs/*/waves1",
+                        "indexes": [
+                            "dev"
+                        ]
+                    }
+                },
+                "conf": {
+                    "datatype": "PATH",
+                    "set_cmd": "*.csv"
+                },
+                "driver": {}
+            },
+            "*/waves2": {
+                "add": true,
+                "mapping": {
+                    "HDAWG": {
+                        "path": "/awgs/*/waves2",
+                        "indexes": [
+                            "dev"
+                        ]
+                    },
+                    "UHFLI": {
+                        "path": "/awgs/*/waves2",
+                        "indexes": [
+                            "dev"
+                        ]
+                    }
+                },
+                "conf": {
+                    "datatype": "PATH",
+                    "set_cmd": "*.csv"
+                },
+                "driver": {}
+            },
+            "*/markers": {
+                "add": true,
+                "mapping": {
+                    "HDAWG": {
+                        "path": "/awgs/*/markers",
+                        "indexes": [
+                            "dev"
+                        ]
+                    },
+                    "UHFLI": {
+                        "path": "/awgs/*/markers",
+                        "indexes": [
+                            "dev"
+                        ]
+                    }
+                },
+                "conf": {
+                    "datatype": "PATH",
+                    "set_cmd": "*.csv"
+                },
+                "driver": {}
+            },
+            "*/generator/pulses": {
+                "add": true,
+                "mapping": {
+                    "SHFQA": {
+                        "path": "/qachannels/*/generator/pulses",
+                        "indexes": [
+                            "dev"
+                        ]
+                    },
+                    "HDAWG": {
+                        "path": "/awgs/*/pulses",
+                        "indexes": [
+                            "dev"
+                        ]
+                    },
+                    "UHFQA": {
+                        "path": "/awgs/*/pulses",
+                        "indexes": [
+                            "dev"
+                        ]
+                    }
+                },
+                "conf": {
+                    "datatype": "PATH",
+                    "set_cmd": "*.csv"
+                },
+                "driver": {}
             }
         }
     },
@@ -72,6 +214,22 @@
             "/system/clocks/*": "Input - Output"
         },
         "groups": {
+            "/qachannels/0/readout/*": "QA Channel 0 Readout 0",
+            "/qachannels/1/readout/*": "QA Channel 1 Readout 1",
+            "/qachannels/2/readout/*": "QA Channel 2 Readout 2",
+            "/qachannels/3/readout/*": "QA Channel 3 Readout 3",
+            "/qachannels/4/readout/*": "QA Channel 4 Readout 4",
+            "/qachannels/5/readout/*": "QA Channel 5 Readout 5",
+            "/qachannels/6/readout/*": "QA Channel 6 Readout 6",
+            "/qachannels/7/readout/*": "QA Channel 7 Readout 7",
+            "/qachannels/0/spectroscopy/*": "QA Channel 0 Spectroscopy 0",
+            "/qachannels/1/spectroscopy/*": "QA Channel 1 Spectroscopy 1",
+            "/qachannels/2/spectroscopy/*": "QA Channel 2 Spectroscopy 2",
+            "/qachannels/3/spectroscopy/*": "QA Channel 3 Spectroscopy 3",
+            "/qachannels/4/spectroscopy/*": "QA Channel 4 Spectroscopy 4",
+            "/qachannels/5/spectroscopy/*": "QA Channel 5 Spectroscopy 5",
+            "/qachannels/6/spectroscopy/*": "QA Channel 6 Spectroscopy 6",
+            "/qachannels/7/spectroscopy/*": "QA Channel 7 Spectroscopy 7",
             "/qachannels/0/*": "QA Channel 0",
             "/qachannels/1/*": "QA Channel 1",
             "/qachannels/2/*": "QA Channel 2",
@@ -86,30 +244,22 @@
             "/scopes/3/*": "Scope 3"
         },
         "quants": {
-            "/qachannels/*/generator/waveforms/*/wave": {
+            "qachannels/*/generator/waveforms/*/wave": {
+                "add": false,
                 "indexes": [
                     "dev",
                     "dev"
                 ],
-                "update": {
-                    "datatype": "VECTOR_COMPLEX"
+                "conf": {
+                    "datatype": "VECTOR_COMPLEX",
+                    "x_name": "Length",
+                    "x_unit": "Sample"
                 },
                 "extend": {},
                 "driver": {}
             },
-            "/qachannels/*/generator/sequencer_program": {
-                "indexes": [
-                    "dev"
-                ],
-                "conf": {
-                    "datatype": "PATH",
-                    "set_cmd": "*.csv"
-                },
-                "driver": {
-                    "function": "qachannels[*].generator.sequencer_program"
-                }
-            },
-            "/scopes/*/result_0": {
+            "scopes/*/result_0": {
+                "add": true,
                 "indexes": [
                     "dev"
                 ],
@@ -125,7 +275,8 @@
                     "args": "args[0][0]"
                 }
             },
-            "/scopes/*/result_1": {
+            "scopes/*/result_1": {
+                "add": true,
                 "indexes": [
                     "dev"
                 ],
@@ -141,8 +292,11 @@
                     "args": "args[0][1]"
                 }
             },
-            "/scopes/*/result_2": {
-                "dev_type": ["SHFQA4"],
+            "scopes/*/result_2": {
+                "add": true,
+                "dev_type": [
+                    "SHFQA4"
+                ],
                 "indexes": [
                     "dev"
                 ],
@@ -158,8 +312,11 @@
                     "args": "args[0][2]"
                 }
             },
-            "/scopes/*/result_3": {
-                "dev_type": ["SHFQA4"],
+            "scopes/*/result_3": {
+                "add": true,
+                "dev_type": [
+                    "SHFQA4"
+                ],
                 "indexes": [
                     "dev"
                 ],
@@ -176,7 +333,10 @@
                 }
             },
             "qachannels/*/generator/wait_done": {
-                "indexes": ["dev"],
+                "add": true,
+                "indexes": [
+                    "dev"
+                ],
                 "conf": {
                     "datatype": "BOOLEAN"
                 },
@@ -184,18 +344,12 @@
                     "function": "qachannels/*/generator/wait_done"
                 }
             },
-            "qachannels/*/generator/pulses": {
+            "qachannels/*/readout/result/enable": {
+                "add": true,
                 "indexes": [],
                 "conf": {
-                    "datatype": "PATH"
+                    "datatype": "BOOLEAN"
                 },
-                "driver": {
-                    "function": "qachannels/*/generator/pulses"
-                }
-            },
-            "qachannels/*/readout/result/enable": {
-                "indexes": [],
-                "conf": {},
                 "driver": {
                     "driver": {
                         "wait_for": true
@@ -203,13 +357,17 @@
                 }
             },
             "qachannels/*/readout/wait_done": {
+                "add": true,
                 "indexes": [],
-                "conf": {},
+                "conf": {
+                    "datatype": "BOOLEAN"
+                },
                 "driver": {
                     "wait_for": true
                 }
             },
             "qachannels/*/readout/integration_weights": {
+                "add": true,
                 "indexes": [],
                 "conf": {
                     "datatype": "PATH",
@@ -220,8 +378,11 @@
                 }
             },
             "qachannels/*/spectroscopy/result/enable": {
+                "add": true,
                 "indexes": [],
-                "conf": {},
+                "conf": {
+                    "datatype": "BOOLEAN"
+                },
                 "driver": {
                     "driver": {
                         "wait_for": true
@@ -229,15 +390,21 @@
                 }
             },
             "qachannels/*/spectroscopy/wait_done": {
+                "add": true,
                 "indexes": [],
-                "conf": {},
+                "conf": {
+                    "datatype": "BOOLEAN"
+                },
                 "driver": {
                     "wait_for": true
                 }
             },
             "scopes/*/enable": {
+                "add": true,
                 "indexes": [],
-                "conf": {},
+                "conf": {
+                    "datatype": "BOOLEAN"
+                },
                 "driver": {
                     "driver": {
                         "wait_for": true
@@ -245,8 +412,11 @@
                 }
             },
             "scopes/*/wait_done": {
+                "add": true,
                 "indexes": [],
-                "conf": {},
+                "conf": {
+                    "datatype": "BOOLEAN"
+                },
                 "driver": {
                     "wait_for": true
                 }
@@ -254,9 +424,43 @@
         }
     },
     "HDAWG": {
-        "ignoredNodes": [],
-        "items": {
-            "/awgs/*/waveform/waves/*": {
+        "ignoredNodes": {
+            "normal": [
+                "/awgs/*/elf/*",
+                "/awgs/*/sequencer/memoryusage",
+                "/awgs/*/sequencer/status",
+                "/awgs/*/sequencer/triggered",
+                "/awgs/*/waveform/waves/*"
+            ],
+            "advanced": []
+        },
+        "sections": {
+            "/awgs/*/dio/*": "DIO",
+            "/dios/*": "DIO",
+            "/oscs/*": "Oscillators",
+            "/awgs/*/outputs/*": "Outputs",
+            "/awgs/*": "AWG Sequencer",
+            "/sines/*": "Sine Generator"
+        },
+        "groups": {
+            "/oscs/0/*": "OSCS 0",
+            "/oscs/1/*": "OSCS 1",
+            "/oscs/2/*": "OSCS 2",
+            "/oscs/3/*": "OSCS 3",
+            "/oscs/4/*": "OSCS 4",
+            "/oscs/5/*": "OSCS 5",
+            "/oscs/6/*": "OSCS 6",
+            "/awgs/0/*": "AWGS 0",
+            "/awgs/1/*": "AWGS 1",
+            "/awgs/2/*": "AWGS 2",
+            "/awgs/3/*": "AWGS 3",
+            "/awgs/4/*": "AWGS 4",
+            "/awgs/5/*": "AWGS 5",
+            "/awgs/6/*": "AWGS 6"
+        },
+        "quants": {
+            "awgs/*/waveform/waves/*": {
+                "add": true,
                 "indexes": [
                     "dev",
                     16
@@ -269,6 +473,86 @@
                     "show_in_measurement_dlg": "True"
                 },
                 "extend": {}
+            }
+        }
+    },
+    "SHFQA_Sweeper": {
+        "ignoredNodes": {
+            "normal": [
+                "/plot/*"
+            ],
+            "advanced": []
+        },
+        "sections": {},
+        "groups": {},
+        "quants": {
+            "/envelope/waveform": {
+                "add": true,
+                "extend": {
+                    "suffix": "File",
+                    "datatype": "PATH",
+                    "set_cmd": ".csv",
+                    "label": "File",
+                    "tooltip": "Complex waveform from a file.",
+                    "permission": "WRITE"
+                },
+                "conf": {
+                    "datatype": "VECTOR_COMPLEX"
+                },
+                "driver": {}
+            },
+            "/get_offset_freq_vector": {
+                "add": true,
+                "indexes": [],
+                "conf": {
+                    "datatype": "BOOLEAN",
+                    "label": "Result",
+                    "permission": "WRITE"
+                }
+            },
+            "/get_offset_freq_vector/result": {
+                "add": true,
+                "indexes": [],
+                "conf": {
+                    "datatype": "VECTOR",
+                    "label": "Result",
+                    "permission": "READ"
+                }
+            }
+        }
+    },
+    "DataServer": {
+        "ignoredNodes": {
+            "normal": [
+                "/zi/about/commit",
+                "/zi/about/fwrevision",
+                "/zi/debug/level",
+                "/zi/devices/connected",
+                "/zi/devices/visible",
+                "/zi/devices/discover",
+                "/zi/system/usagedata"
+            ],
+            "advanced": []
+        },
+        "sections": {},
+        "groups": {}
+    },
+    "impedance": {
+        "ignoredNodes": {},
+        "sections": {},
+        "groups": {},
+        "quants": {
+            "/calibrate": {
+                "add": false,
+                "conf": {
+                    "datatype": "BOOLEAN"
+                }
+            },
+            "/todevice": {
+                "add": false,
+                "conf": {
+                    "datatype": "BOOLEAN"
+                }
             }
         }
     }
