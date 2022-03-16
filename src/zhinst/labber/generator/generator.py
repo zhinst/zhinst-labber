@@ -1,7 +1,6 @@
 from collections import OrderedDict
 import configparser
 from copy import deepcopy
-from functools import cached_property
 import re
 import typing as t
 from pathlib import Path
@@ -14,40 +13,36 @@ from .quants import NodeQuant, Quant
 from zhinst.toolkit.nodetree import Node
 from zhinst.labber.generator.helpers import (
     delete_device_from_node_path,
-    remove_leading_trailing_slashes
+    remove_leading_trailing_slashes,
 )
 from zhinst.labber.code_generator.drivers import generate_labber_device_driver_code
-from .conf import (
-    LabberConfiguration
-)
+from .conf import LabberConfiguration
+
 
 class LabberConfig:
     """Base class for generating Labber configuration."""
+
     def __init__(self, root: Node, session: Session, env_settings: dict, mode="NORMAL"):
         self.root = root
         self.session = session
         self._mode = mode
-        self._env_settings = env_settings
+        self._env_settings_json = env_settings
+        self._env_settings: t.Optional[LabberConfiguration] = None
         self._base_dir = "Zurich_Instruments_"
         self._name = ""
         self._settings_path = "settings.json"
         self._general_settings = {}
         self._settings = {}
-        self._tk_name = ""
 
-    def _match_key(
-        self, 
-        target: str, 
-        data: dict
-        ) -> t.Optional[t.Tuple[str, dict]]:
+    def _match_key(self, target: str, data: dict) -> t.Optional[t.Tuple[str, dict]]:
         """Find matches for target in data."""
         if isinstance(data, dict):
             for k, v in data.items():
                 k_ = k
-                if not k.startswith('/'):
-                    k_ = '/' + k
-                if not target.startswith('/'):
-                    target = '/' + target
+                if not k.startswith("/"):
+                    k_ = "/" + k
+                if not target.startswith("/"):
+                    target = "/" + target
                 r = fnmatch.filter([target.lower()], f"{k_.lower()}*")
                 if r:
                     return k, v
@@ -65,7 +60,7 @@ class LabberConfig:
         for k in quants.copy().keys():
             _, sec = self._match_key(k, self.env_settings.quant_sections)
             if sec:
-                quants[k]['section'] = sec
+                quants[k]["section"] = sec
         return quants
 
     def _update_groups(self, quants: dict) -> dict:
@@ -73,7 +68,7 @@ class LabberConfig:
         for k in quants.copy().keys():
             _, sec = self._match_key(k, self.env_settings.quant_groups)
             if sec:
-                quants[k]['group'] = sec
+                quants[k]["group"] = sec
         return quants
 
     def _find_nth_occurence(self, s: str, target: str, idx: int) -> int:
@@ -86,22 +81,26 @@ class LabberConfig:
             return True
         return False
 
-    def _generate_quants_from_indexes(self, quant: str, index: int, indexes: t.List[int]) -> list:
+    def _generate_quants_from_indexes(
+        self, quant: str, index: int, indexes: t.List[int]
+    ) -> list:
         """Quants based on their indexes."""
         qts = []
         if not indexes:
             indexes = ["dev" for _ in range(quant.count("*"))]
             if not indexes:
                 return [quant]
+
         def find_indexes(quant, i, idxs):
             for x in range(idxs[i]):
                 s = list(quant)
-                idx = self._find_nth_occurence("".join(s), '*', i)
+                idx = self._find_nth_occurence("".join(s), "*", i)
                 s[idx] = str(x)
                 try:
-                    find_indexes(s, i+1, idxs)
+                    find_indexes(s, i + 1, idxs)
                 except IndexError:
                     qts.append("".join(s))
+
         find_indexes(quant, index, indexes)
         return qts
 
@@ -109,20 +108,19 @@ class LabberConfig:
         """Find all quant indexes."""
         idxs = []
         if not indexes:
-            index_places = quant.count("*")
             indexes = ["dev" for _ in range(quant.count("*"))]
             if not indexes:
                 return []
 
         for enum, idx in enumerate(indexes):
-            bar = self._find_nth_occurence(quant, '*', enum)
-            if idx ==  'dev':
+            bar = self._find_nth_occurence(quant, "*", enum)
+            if idx == "dev":
                 stop = list(quant)[:bar]
-                stop = ''.join(stop).replace('//', '/')
-                if stop[-1] == '/':
+                stop = "".join(stop).replace("//", "/")
+                if stop[-1] == "/":
                     stop = stop[:-1]
-                if not stop.startswith('/'):
-                    stop = '/' + stop
+                if not stop.startswith("/"):
+                    stop = "/" + stop
                 idxs.append(len(self.root[stop]))
             else:
                 idxs.append(idx)
@@ -135,8 +133,8 @@ class LabberConfig:
         for _, info in self.root:
             if self._match_key(
                 delete_device_from_node_path(info["Node"]),
-                self.env_settings.ignored_nodes
-                ):
+                self.env_settings.ignored_nodes,
+            ):
                 continue
             sec = NodeQuant(info)
 
@@ -148,14 +146,14 @@ class LabberConfig:
         for k, v in nodes.copy().items():
             kk, vv = self._match_key(k, self.env_settings.quants)
             if kk:
-                for _, conf in vv['conf'].items():
+                for _, conf in vv["conf"].items():
                     if not conf:
                         nodes[k].pop(v, None)
-                v.update(vv['conf'])
+                v.update(vv["conf"])
                 nodes[k] = v
                 # If the quant is extended
-                if vv.get('extend', None):
-                    idxs = self._quant_indexes(kk, v.get('indexes', []))
+                if vv.get("extend", None):
+                    idxs = self._quant_indexes(kk, v.get("indexes", []))
                     paths = self._generate_quants_from_indexes(kk, 0, idxs)
                     for p in paths:
                         s = Quant(p, vv["extend"])
@@ -164,8 +162,8 @@ class LabberConfig:
 
         # Manually added quants from configuration
         for k, v in missing.items():
-            if v.get('add', False):
-                idxs = self._quant_indexes(k, v.get('indexes', []))
+            if v.get("add", False):
+                idxs = self._quant_indexes(k, v.get("indexes", []))
                 paths = self._generate_quants_from_indexes(k, 0, idxs)
                 for p in paths:
                     s = Quant(p, v["conf"])
@@ -185,10 +183,10 @@ class LabberConfig:
         general.update(nodes)
         return general
 
-    @cached_property
+    @property
     def env_settings(self) -> LabberConfiguration:
         """Labber environment settings."""
-        return LabberConfiguration(self._tk_name, self._mode, self._env_settings)
+        return self._env_settings
 
     @property
     def settings_path(self) -> str:
@@ -217,6 +215,7 @@ class DeviceConfig(LabberConfig):
         self.device = device
         self._name = self.device.device_type.upper()
         self._tk_name = self.device.device_type.upper()
+        self._env_settings = LabberConfiguration(self._tk_name, self._mode, env_settings)
         self._settings = {
             "data_server": {
                 "host": self.session.server_host,
@@ -241,6 +240,7 @@ class DataServerConfig(LabberConfig):
     def __init__(self, session: Session, env_settings: dict, mode: str):
         super().__init__(session, session, env_settings, mode)
         self._tk_name = "DataServer"
+        self._env_settings = LabberConfiguration(self._tk_name, self._mode, env_settings)
         self._name = "DataServer"
         self._settings = {
             "data_server": {
@@ -269,7 +269,8 @@ class ModuleConfig(LabberConfig):
         self.module = getattr(session.modules, name)
         super().__init__(self.module, session, env_settings, mode)
         self._tk_name = name
-        if 'MODULE' not in name.upper():
+        self._env_settings = LabberConfiguration(self._tk_name, self._mode, env_settings)
+        if "MODULE" not in name.upper():
             self._name = name.upper() + "_Module"
         else:
             self._name = name.upper()
@@ -296,12 +297,12 @@ class ModuleConfig(LabberConfig):
 def _path_to_labber_section(path: str, delim: str) -> str:
     """Path to Labber format. Delete slashes from start and end."""
     path = remove_leading_trailing_slashes(path)
-    return path.replace('/', delim)
+    return path.replace("/", delim)
 
 
 def dict_to_config(config: configparser.ConfigParser, data: dict, delim: str) -> None:
     """Turn Python dictionary into ConfigParser.
-    
+
     Also sorts the keys naturally and titles them."""
     sorted_keys = natsort.natsorted(list(data.keys()))
     data = OrderedDict({k: data[k] for k in sorted_keys}.items())
@@ -311,7 +312,7 @@ def dict_to_config(config: configparser.ConfigParser, data: dict, delim: str) ->
         title_ = _path_to_labber_section(title, delim)
         config.add_section(title_)
         for name, value in items.items():
-            if name not in ['set_cmd', 'get_cmd', 'tooltip', 'datatype']:
+            if name not in ["set_cmd", "get_cmd", "tooltip", "datatype"]:
                 name = _path_to_labber_section(name, delim)
                 value = _path_to_labber_section(value, delim)
             if name.lower() in ["label", "group", "section"]:
@@ -338,9 +339,9 @@ def generate_labber_files(
 
     # Settings file
     settings_file = Path(__file__).parent.parent / "settings.json"
-    with open(settings_file, 'r') as json_f:
+    with open(settings_file, "r") as json_f:
         json_settings = json.load(json_f)
-    labber_delim = json_settings['misc']['labberDelimiter']
+    labber_delim = json_settings["misc"]["labberDelimiter"]
 
     def write_to_json(path: Path, data, upgrade):
         if upgrade:
@@ -398,7 +399,7 @@ def generate_labber_files(
     write_to_file(c_path, obj.generated_code(), upgrade)
 
     # Modules
-    modules: t.List[str] = json_settings['misc']['ziModules']
+    modules: t.List[str] = json_settings["misc"]["ziModules"]
 
     for module in modules:
         obj = ModuleConfig(module, session, json_settings, mode)
