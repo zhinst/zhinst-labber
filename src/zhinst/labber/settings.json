@@ -245,33 +245,29 @@
                     "SHFSG": {
                         "path": "/sgchannels/*/awg/waveform/waves/*",
                         "indexes": [
-                            "dev"
+                            "dev", 16
                         ]
                     },
                     "HDAWG": {
                         "path": "/awgs/*/waveform/waves/*",
                         "indexes": [
-                            "dev"
+                            "dev", 16
                         ]
                     },
                     "UHFQA": {
                         "path": "/awgs/*/waveform/waves/*",
                         "indexes": [
-                            "dev"
+                            "dev", 16
                         ]
                     },
                     "UHFLI": {
                         "path": "/awgs/*/waveform/waves/*",
                         "indexes": [
-                            "dev"
+                            "dev", 16
                         ],
                         "// TODO only with AWG option":""
                     }
                 },
-                "indexes": [
-                    "dev",
-                    16
-                ],
                 "conf": {
                     "datatype": "VECTOR",
                     "x_name": "Length",
