@@ -70,6 +70,11 @@
                 "conf": {
                     "datatype": "PATH",
                     "set_cmd": "*.json"
+                },
+                "driver": {
+                    "function": "commandtable/upload_to_device",
+                    "function_path": "../upload_to_device",
+                    "type": "JSON"
                 }
             },
             "*/sequencer_program": {
@@ -87,7 +92,20 @@
                             "dev"
                         ]
                     },
+                    "SHFSG": {
+                        "path": "/sgchannels/*/awg/sequencer_program",
+                        "indexes": [
+                            "dev"
+                        ]
+                    },
                     "UHFQA": {
+                        "path": "/awgs/*/sequencer_program",
+                        "indexes": [
+                            "dev"
+                        ]
+                    },
+                    // TODO only with AWG option
+                    "UHFLI": {
                         "path": "/awgs/*/sequencer_program",
                         "indexes": [
                             "dev"
@@ -96,93 +114,38 @@
                 },
                 "conf": {
                     "datatype": "PATH",
-                    "set_cmd": "*.json"
+                    "set_cmd": "*.seqc"
                 },
-                "driver": {}
+                "driver": {
+                    "function": "sequencer_program",
+                    "function_path": "../load_sequencer_program",
+                    "type": "TEXT"
+                }
             },
             "*/waves1": {
                 "add": true,
                 "mapping": {
+                    "SHFSG": {
+                        "path": "/sgchannels/*/awg/waves1",
+                        "indexes": [
+                            "dev"
+                        ]
+                    },
                     "HDAWG": {
                         "path": "/awgs/*/waves1",
-                        "indexes": [
-                            "dev"
-                        ]
-                    },
-                    "UHFLI": {
-                        "path": "/awgs/*/waves1",
-                        "indexes": [
-                            "dev"
-                        ]
-                    }
-                },
-                "conf": {
-                    "datatype": "PATH",
-                    "set_cmd": "*.csv"
-                },
-                "driver": {}
-            },
-            "*/waves2": {
-                "add": true,
-                "mapping": {
-                    "HDAWG": {
-                        "path": "/awgs/*/waves2",
-                        "indexes": [
-                            "dev"
-                        ]
-                    },
-                    "UHFLI": {
-                        "path": "/awgs/*/waves2",
-                        "indexes": [
-                            "dev"
-                        ]
-                    }
-                },
-                "conf": {
-                    "datatype": "PATH",
-                    "set_cmd": "*.csv"
-                },
-                "driver": {}
-            },
-            "*/markers": {
-                "add": true,
-                "mapping": {
-                    "HDAWG": {
-                        "path": "/awgs/*/markers",
-                        "indexes": [
-                            "dev"
-                        ]
-                    },
-                    "UHFLI": {
-                        "path": "/awgs/*/markers",
-                        "indexes": [
-                            "dev"
-                        ]
-                    }
-                },
-                "conf": {
-                    "datatype": "PATH",
-                    "set_cmd": "*.csv"
-                },
-                "driver": {}
-            },
-            "*/generator/pulses": {
-                "add": true,
-                "mapping": {
-                    "SHFQA": {
-                        "path": "/qachannels/*/generator/pulses",
-                        "indexes": [
-                            "dev"
-                        ]
-                    },
-                    "HDAWG": {
-                        "path": "/awgs/*/pulses",
                         "indexes": [
                             "dev"
                         ]
                     },
                     "UHFQA": {
-                        "path": "/awgs/*/pulses",
+                        "path": "/awgs/*/waves1",
+                        "indexes": [
+                            "dev"
+                        ]
+                    },
+                    // TODO only with AWG option
+                    "UHFLI": {
+                        "path": "/awgs/*/waves1",
                         "indexes": [
                             "dev"
                         ]
@@ -192,7 +155,131 @@
                     "datatype": "PATH",
                     "set_cmd": "*.csv"
                 },
-                "driver": {}
+                "driver": {
+                    "function": "awg/write_to_waveform_memory",
+                    "function_path": "../write_to_waveform_memory",
+                    "type": "CSV"
+                }
+            },
+            "*/waves2": {
+                "add": true,
+                "mapping": {
+                    "SHFSG": {
+                        "path": "/sgchannels/*/awg/waves2",
+                        "indexes": [
+                            "dev"
+                        ]
+                    },
+                    "HDAWG": {
+                        "path": "/awgs/*/waves2",
+                        "indexes": [
+                            "dev"
+                        ]
+                    },
+                    "UHFQA": {
+                        "path": "/awgs/*/waves2",
+                        "indexes": [
+                            "dev"
+                        ]
+                    },
+                    // TODO only with AWG option
+                    "UHFLI": {
+                        "path": "/awgs/*/waves2",
+                        "indexes": [
+                            "dev"
+                        ]
+                    }
+                },
+                "conf": {
+                    "datatype": "PATH",
+                    "set_cmd": "*.csv"
+                },
+                "driver": {
+                    "function": "awg/write_to_waveform_memory",
+                    "function_path": "../write_to_waveform_memory",
+                    "type": "CSV"
+                }
+            },
+            "*/markers": {
+                "add": true,
+                "mapping": {
+                    "SHFSG": {
+                        "path": "/sgchannels/*/awg/markers",
+                        "indexes": [
+                            "dev"
+                        ]
+                    },
+                    "HDAWG": {
+                        "path": "/awgs/*/markers",
+                        "indexes": [
+                            "dev"
+                        ]
+                    },
+                    "UHFQA": {
+                        "path": "/awgs/*/markers",
+                        "indexes": [
+                            "dev"
+                        ]
+                    },
+                    // TODO only with AWG option
+                    "UHFLI": {
+                        "path": "/awgs/*/markers",
+                        "indexes": [
+                            "dev"
+                        ]
+                    }
+                },
+                "conf": {
+                    "datatype": "PATH",
+                    "set_cmd": "*.csv"
+                },
+                "driver": {
+                    "function": "awg/write_to_waveform_memory",
+                    "function_path": "../write_to_waveform_memory",
+                    "type": "CSV"
+                }
+            },
+            "*/waveform/waves/*": {
+                "add": true,
+                "mapping": {
+                    "SHFSG": {
+                        "path": "/sgchannels/*/awg/waveform/waves/*",
+                        "indexes": [
+                            "dev"
+                        ]
+                    },
+                    "HDAWG": {
+                        "path": "/awgs/*/waveform/waves/*",
+                        "indexes": [
+                            "dev"
+                        ]
+                    },
+                    "UHFQA": {
+                        "path": "/awgs/*/waveform/waves/*",
+                        "indexes": [
+                            "dev"
+                        ]
+                    },
+                    // TODO only with AWG option
+                    "UHFLI": {
+                        "path": "/awgs/*/waveform/waves/*",
+                        "indexes": [
+                            "dev"
+                        ]
+                    }
+                },
+                "indexes": [
+                    "dev",
+                    16
+                ],
+                "conf": {
+                    "datatype": "VECTOR",
+                    "x_name": "Length",
+                    "x_unit": "Sample",
+                    "permission": "READ",
+                    "show_in_measurement_dlg": "True"
+                },
+                "extend": {}
             }
         }
     },
@@ -270,6 +357,18 @@
                 "extend": {},
                 "driver": {}
             },
+            "/qachannels/*/generator/pulses": {
+                "add": true,
+                "conf": {
+                    "datatype": "PATH",
+                    "set_cmd": "*.csv"
+                },
+                "driver": {
+                    "function": "generator/write_to_waveform_memory",
+                    "function_path": "../write_to_waveform_memory",
+                    "type": "CSV"
+                }
+            },
             "scopes/*/result_0": {
                 "add": true,
                 "indexes": [
@@ -283,8 +382,9 @@
                     "x_unit": "Sample"
                 },
                 "driver": {
-                    "function": "scopes[*].read",
-                    "args": "args[0][0]"
+                    "function": "scopes/read",
+                    "function_path": "../read",
+                    "return_value": "[0][0]"
                 }
             },
             "scopes/*/result_1": {
@@ -300,8 +400,9 @@
                     "x_unit": "Sample"
                 },
                 "driver": {
-                    "function": "scopes[*].read",
-                    "args": "args[0][1]"
+                    "function": "scopes/read",
+                    "function_path": "../read",
+                    "return_value": "[0][1]"
                 }
             },
             "scopes/*/result_2": {
@@ -320,8 +421,9 @@
                     "x_unit": "Sample"
                 },
                 "driver": {
-                    "function": "scopes[*].read",
-                    "args": "args[0][2]"
+                    "function": "scopes/read",
+                    "function_path": "../read",
+                    "return_value": "[0][2]"
                 }
             },
             "scopes/*/result_3": {
@@ -340,8 +442,9 @@
                     "x_unit": "Sample"
                 },
                 "driver": {
-                    "function": "scopes[*].read",
-                    "args": "args[0][3]"
+                    "function": "scopes/read",
+                    "function_path": "../read",
+                    "return_value": "[0][3]"
                 }
             },
             "qachannels/*/generator/wait_done": {
@@ -353,7 +456,8 @@
                     "datatype": "BOOLEAN"
                 },
                 "driver": {
-                    "function": "qachannels/*/generator/wait_done"
+                    "function": "wait_done",
+                    "function_path": "../wait_done"
                 }
             },
             "qachannels/*/readout/result/enable": {
@@ -375,7 +479,8 @@
                     "datatype": "BOOLEAN"
                 },
                 "driver": {
-                    "wait_for": true
+                    "function": "wait_done",
+                    "function_path": "../wait_done"
                 }
             },
             "qachannels/*/readout/integration_weights": {
@@ -386,7 +491,8 @@
                     "set_cmd": "*.csv"
                 },
                 "driver": {
-                    "function": "qachannels/*/readout/write_integration_weights"
+                    "function": "generator/write_integration_weights",
+                    "function_path": "../write_integration_weights"
                 }
             },
             "qachannels/*/spectroscopy/result/enable": {
@@ -408,7 +514,8 @@
                     "datatype": "BOOLEAN"
                 },
                 "driver": {
-                    "wait_for": true
+                    "function": "wait_done",
+                    "function_path": "../wait_done"
                 }
             },
             "scopes/*/enable": {
@@ -430,7 +537,8 @@
                     "datatype": "BOOLEAN"
                 },
                 "driver": {
-                    "wait_for": true
+                    "function": "wait_done",
+                    "function_path": "../wait_done"
                 }
             }
         }
@@ -447,8 +555,7 @@
                 "/awgs/*/elf/*",
                 "/awgs/*/sequencer/memoryusage",
                 "/awgs/*/sequencer/status",
-                "/awgs/*/sequencer/triggered",
-                "/awgs/*/waveform/waves/*"
+                "/awgs/*/sequencer/triggered"
             ],
             "advanced": []
         },
@@ -476,23 +583,7 @@
             "/awgs/5/*": "AWGS 5",
             "/awgs/6/*": "AWGS 6"
         },
-        "quants": {
-            "awgs/*/waveform/waves/*": {
-                "add": true,
-                "indexes": [
-                    "dev",
-                    16
-                ],
-                "conf": {
-                    "datatype": "VECTOR",
-                    "x_name": "Length",
-                    "x_unit": "Sample",
-                    "permission": "READ",
-                    "show_in_measurement_dlg": "True"
-                },
-                "extend": {}
-            }
-        }
+        "quants": {}
     },
     "SHFQA_Sweeper": {
         "generalSettings": {
@@ -522,25 +613,21 @@
                 },
                 "conf": {
                     "datatype": "VECTOR_COMPLEX"
-                },
-                "driver": {}
-            },
-            "/get_offset_freq_vector": {
-                "add": true,
-                "indexes": [],
-                "conf": {
-                    "datatype": "BOOLEAN",
-                    "label": "Result",
-                    "permission": "WRITE"
                 }
             },
-            "/get_offset_freq_vector/result": {
+            // TODO add envelop/waveform csv upload option
+            "/offset_freq_vector": {
                 "add": true,
                 "indexes": [],
                 "conf": {
                     "datatype": "VECTOR",
                     "label": "Result",
                     "permission": "READ"
+                },
+                "driver": {
+                    "function": "shfqa/sweeper/get_offset_freq_vector",
+                    "function_path": "../get_offset_freq_vector",
+                    "return_value": "[0]"
                 }
             }
         }
@@ -632,5 +719,47 @@
         },
         "groups": {},
         "quants": {}
+    },
+    "functions": {
+        "commandtable/upload_to_device":{
+            "Args": {"ct": "../data"},
+            "Returns": [],
+            "call_type": "Immediately"
+        },
+        "sequencer_program":{
+            "Args": {"sequencer_program": "../sequencer_program"},
+            "Returns": [],
+            "call_type": "Immediately"
+        },
+        "scopes/read":{
+            "Args": {},
+            "Returns": ["result_0", "result_1", "result_2", "result_3"],
+            "call_type": "Immediately"
+        },
+        "wait_done":{
+            "Args": {},
+            "Returns": [],
+            "call_type": "Immediately"
+        },
+        "generator/write_to_waveform_memory":{
+            "Args": {"pulses": "../pulses"},
+            "Returns": [],
+            "call_type": "Immediately"
+        },
+        "awg/write_to_waveform_memory":{
+            "Args": {"waveforms": ["../wave1", "../wave2", "../marker"]},
+            "Returns": [],
+            "call_type": "Bundle"
+        },
+        "generator/write_integration_weights":{
+            "Args": {"weights": "../integration_weights"},
+            "Returns": [],
+            "call_type": "Immediately"
+        },
+        "shfqa/sweeper/get_offset_freq_vector":{
+            "Args": {},
+            "Returns": ["../offset_freq_vector"],
+            "call_type": "Immediately"
+        }
     }
 }
