@@ -34,8 +34,8 @@
                 "/features/*"
             ]
         },
-        "sections": {},
         "groups": {},
+        "sections": {},
         "quants": {
             "/clearhistory": {
                 "add": false,
@@ -274,8 +274,7 @@
                     "x_unit": "Sample",
                     "permission": "READ",
                     "show_in_measurement_dlg": "True"
-                },
-                "extend": {}
+                }
             }
         }
     },
@@ -349,9 +348,7 @@
                     "datatype": "VECTOR_COMPLEX",
                     "x_name": "Length",
                     "x_unit": "Sample"
-                },
-                "extend": {},
-                "driver": {}
+                }
             },
             "/qachannels/*/generator/pulses": {
                 "add": true,
@@ -458,7 +455,6 @@
             },
             "/qachannels/*/readout/result/enable": {
                 "add": true,
-                "indexes": [],
                 "conf": {
                     "datatype": "BOOLEAN"
                 },
@@ -468,7 +464,6 @@
             },
             "/qachannels/*/readout/wait_done": {
                 "add": true,
-                "indexes": [],
                 "conf": {
                     "datatype": "BOOLEAN"
                 },
@@ -479,7 +474,6 @@
             },
             "/qachannels/*/readout/integration_weights": {
                 "add": true,
-                "indexes": [],
                 "conf": {
                     "datatype": "PATH",
                     "set_cmd": "*.csv"
@@ -491,7 +485,6 @@
             },
             "/qachannels/*/spectroscopy/result/enable": {
                 "add": true,
-                "indexes": [],
                 "conf": {
                     "datatype": "BOOLEAN"
                 },
@@ -501,7 +494,6 @@
             },
             "/qachannels/*/spectroscopy/wait_done": {
                 "add": true,
-                "indexes": [],
                 "conf": {
                     "datatype": "BOOLEAN"
                 },
@@ -512,7 +504,6 @@
             },
             "/scopes/*/enable": {
                 "add": true,
-                "indexes": [],
                 "conf": {
                     "datatype": "BOOLEAN"
                 },
@@ -522,7 +513,6 @@
             },
             "/scopes/*/wait_done": {
                 "add": true,
-                "indexes": [],
                 "conf": {
                     "datatype": "BOOLEAN"
                 },
@@ -572,8 +562,7 @@
             "/awgs/4/*": "AWGS 4",
             "/awgs/5/*": "AWGS 5",
             "/awgs/6/*": "AWGS 6"
-        },
-        "quants": {}
+        }
     },
     "SHFQA_Sweeper": {
         "generalSettings": {
@@ -588,8 +577,6 @@
             ],
             "advanced": []
         },
-        "sections": {},
-        "groups": {},
         "quants": {
             "/envelope/waveform": {
                 "add": true,
@@ -603,12 +590,10 @@
                 },
                 "conf": {
                     "datatype": "VECTOR_COMPLEX"
-                },
-                "// TODO add envelop/waveform csv upload option":""
+                }
             },
             "/offset_freq_vector": {
                 "add": true,
-                "indexes": [],
                 "conf": {
                     "datatype": "VECTOR",
                     "label": "Result",
@@ -640,9 +625,7 @@
                 "/zi/system/usagedata"
             ],
             "advanced": []
-        },
-        "sections": {},
-        "groups": {}
+        }
     },
     "impedance": {
         "generalSettings": {
@@ -651,9 +634,6 @@
             "interface": "Other",
             "startup": "Do nothing"
         },
-        "ignoredNodes": {},
-        "sections": {},
-        "groups": {},
         "quants": {
             "/calibrate": {
                 "add": false,
@@ -675,11 +655,7 @@
             "support_hardware_loop": true,
             "interface": "Other",
             "startup": "Do nothing"
-        },
-        "ignoredNodes": {},
-        "sections": {},
-        "groups": {},
-        "quants": {}
+        }
     },
     "scope": {
         "generalSettings": {
@@ -687,11 +663,7 @@
             "support_arm": true,
             "startup": "Do nothing",
             "interface": "Other"
-        },
-        "ignoredNodes": {},
-        "sections": {},
-        "groups": {},
-        "quants": {}
+        }
     },
     "SHFSG": {
         "generalSettings": {
@@ -700,15 +672,12 @@
             "interface": "Other",
             "startup": "Do nothing"
         },
-        "ignoredNodes": {},
         "sections": {
             "/sgchannels/*/awg/*": "AWG",
             "/sgchannels/*/oscs/*": "MOD",
             "/sgchannels/*/sines/*": "MOD",
             "/sgchannels/*": "Output"
-        },
-        "groups": {},
-        "quants": {}
+        }
     },
     "functions": {
         "commandtable/upload_to_device":{

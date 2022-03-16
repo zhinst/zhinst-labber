@@ -1,0 +1,234 @@
+{
+    "$schema":"http://json-schema.org/draft-04/schema#",
+    "title":"Labber configuration",
+    "description":"Labber configuration JSON",
+    "definitions": {
+        "misc": {
+            "properties": {
+                "labberDelimiter": {
+                    "type": "string",
+                    "description": "Labber delimiter between words."
+                },
+                "ziModules": {
+                    "description": "Array of ZIPython modules",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            },
+            "required": [
+                "labberDelimiter", "ziModules"
+            ]
+        },
+        "common": {
+            "properties": {
+                "generalSettings": {
+                    "$ref": "#/definitions/generalSettings"
+                },
+                "ignoredNodes": {
+                    "$ref": "#/definitions/ignoredNodes"
+                },
+                "groups": {
+                    "type": "object"
+                },
+                "sections": {
+                    "type": "object"
+                },
+                "quants": {
+                    "type": "object",
+                    "additionalProperties" : {
+                        "$ref": "#/definitions/commonQuants"
+                    } 
+                }
+            },
+            "required": [
+                "generalSettings", "ignoredNodes", "groups", "sections", "quants"
+            ]
+        },
+        "commonQuants": {
+            "type": "object",
+            "properties": {
+                "add": {
+                    "type": "boolean"
+                },
+                "conf": {
+                    "type": "object"
+                },
+                "extend": {},
+                "mapping": {
+                    "$ref": "#/definitions/mapping"
+                },
+                "driver": {
+                    "$ref": "#/definitions/driver"
+                }
+            },
+            "required": ["add", "conf"]
+        },
+        "driver": {
+            "type": "object",
+            "properties": {
+                "function": {
+                    "type": "string"
+                },
+                "function_path": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "return_value": {
+                    "type": "string"
+                },
+                "wait_for": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "commonTKQuant": {
+            "properties": {
+                "generalSettings": {
+                    "$ref": "#/definitions/generalSettings"
+                },
+                "ignoredNodes": {
+                    "$ref": "#/definitions/ignoredNodes"
+                },
+                "groups": {
+                    "$ref": "#/definitions/sections"
+                },
+                "sections": {
+                    "$ref": "#/definitions/sections"
+                },
+                "quants": {
+                    "type": "object",
+                    "additionalProperties" : {
+                        "$ref": "#/definitions/commonQuants"
+                    } 
+                }
+            },
+            "required": [
+                "generalSettings", "ignoredNodes", "groups", "sections", "quants"
+            ]
+        },
+        "sections": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
+        },
+        "generalSettings": {
+            "type": "object",
+            "additionalProperties": {
+                "type": ["string", "boolean"]
+            }
+        },
+        "indexes": {
+            "type": "array",
+            "items": {
+                "oneOf": [
+                    {
+                        "type": "number"
+                    },
+                    {
+                        "type": "string",
+                        "enum": ["dev"]
+                    }
+                ]
+            }
+        },
+        "TKQuant": {
+            "type": "object",
+            "properties": {
+                "add": {
+                    "type": "boolean"
+                },
+                "indexes": {
+                    "$ref": "#/definitions/indexes"
+                },
+                "conf": {
+                    "type": "object"
+                },
+                "extend": {
+                    "type": "object"
+                },
+                "driver": {
+                    "$ref": "#/definitions/driver"
+                }
+            },
+            "required": ["add", "conf"]
+        },
+        "mapping": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "string"
+                },
+                "indexes": {
+                    "$ref": "#/definitions/indexes"
+                }
+            }
+        },
+        "ignoredNodes": {
+            "type": "object",
+            "properties": {
+                "normal": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "advanced": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            },
+            "required": ["normal"]
+        },
+        "deviceProperty": {
+            "type": "object",
+            "properties": {
+                "ignoredNodes": {
+                    "$ref": "#/definitions/ignoredNodes"
+                },
+                "generalSettings": {
+                    "$ref": "#/definitions/generalSettings"
+                },
+                "groups": {
+                    "$ref": "#/definitions/sections"
+                },
+                "sections": {
+                    "$ref": "#/definitions/sections"
+                },
+                "quants": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/TKQuant"
+                    }
+                }
+            },
+            "required": ["generalSettings"]
+        }
+    },
+    "properties": {
+        "$schema": {
+            "type": "string"
+        },
+        "misc": {
+            "$ref": "#/definitions/misc"
+        },
+        "common": {
+            "$ref": "#/definitions/common"
+        },
+        "functions": {
+            "type": "object"
+        }
+    },
+    "additionalProperties": {
+        "$ref": "#/definitions/deviceProperty"
+    },
+    "required": [
+        "misc", "common", "functions"
+    ]
+}

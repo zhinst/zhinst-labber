@@ -5,3 +5,4 @@ Jinja2 >= 3.0
 natsort >= 8.1
 black>=22.1
 autoflake>=1.4
+jsonschema
