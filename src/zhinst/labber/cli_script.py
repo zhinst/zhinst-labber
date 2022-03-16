@@ -35,7 +35,7 @@ def main():
 @click.option(
     "--hf2",
     required=False,
-    type=bool,
+    is_flag=True,
     help='HF2 Dataserver'
 )
 @click.option(
