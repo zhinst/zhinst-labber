@@ -1,8 +1,17 @@
 import typing as t
 import pytest
-
 from zhinst.labber.generator import helpers
 
+
+@pytest.mark.parametrize("inp, out", (
+    ("/foo/0/bar/", "foo/0/bar"),
+    ("foo/0/bar/", "foo/0/bar"),
+    ("foo", "foo"),
+    ("", ""),
+    ("/", ""),
+))
+def test_remove_leading_trailing_slashes(inp, out):
+    assert helpers.remove_leading_trailing_slashes(inp) == out
 
 def test_matching_name():
     def find_nth_occurence(s, target, idx):

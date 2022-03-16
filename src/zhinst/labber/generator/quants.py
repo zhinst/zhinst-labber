@@ -1,10 +1,91 @@
 import typing as t
+import re
 
 from . import helpers
 
 
-class NodeSection:
-    """Zurich instrument node information in a labber format."""
+class Quant:
+    """Quant representation of a node-like path.
+
+    quant: Quant node-like path.
+    defs: Quant definitions
+    """
+    def __init__(self, quant: str, defs: dict):
+        self._quant = quant
+        self._defs = defs
+        self._quant_no_slash = helpers.remove_leading_trailing_slashes(quant)
+
+    def _suffix(self) -> str:
+        """Suffix for the quant."""
+        return self._defs.get('suffix', '').lower()
+
+    @property
+    def title(self) -> str:
+        """Quant title."""
+        return self._quant_no_slash
+
+    @property
+    def label(self) -> str:
+        """Quant labe."""
+        s = self._quant_no_slash.split('/')
+        if len(self._quant) == 1:
+            return self._quant
+        elif s[-1].isnumeric():
+            return "/".join(s[-2:])
+        return s[-1]
+
+    @property
+    def group(self) -> str:
+        """Quant group"""
+        s = self._quant_no_slash.split('/')
+        if len(s) == 1:
+            return "SYSTEM"
+        if s[-1].isnumeric():
+            return "/".join(s[:-2])
+        return "/".join(s[:-1]) + "/"
+
+    @property
+    def set_cmd(self) -> str:
+        """Quant set command."""
+        return self.title
+
+    @property
+    def get_cmd(self) -> str:
+        """Quant get command."""
+        return self.title
+
+    @property
+    def section(self) -> str:
+        """Quant section."""
+        dig = re.search(r"\d", self._quant_no_slash)
+        if dig is not None:
+            dig = int(dig.group(0))
+            return "".join(list(self._quant_no_slash)[:self._quant_no_slash.find(str(dig))+1])
+        else:
+            return self.title.split('/')[0]
+
+    def as_dict(self) -> dict:
+        """Python dictionary representation of the quant in a Labber format."""
+        defs = self._defs.copy()
+        defs.pop('suffix', None)
+        if self._suffix():
+            label = self.title + "/" + self._suffix()
+        else:
+            label = self.title
+        res = {
+            "label": label,
+            "group": self.group,
+            "section": self.section,
+            "set_cmd": self.set_cmd,
+            "get_cmd": self.get_cmd,
+            "permission": "WRITE"
+        }
+        res.update(defs)
+        return {label: res}
+
+
+class NodeQuant:
+    """Zurich instrument node information as a Labber quant."""
     def __init__(self, node: t.Dict):
         self.node = node
         self.node.setdefault("Options", {})

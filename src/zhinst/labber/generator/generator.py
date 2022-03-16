@@ -10,67 +10,16 @@ import fnmatch
 import natsort
 
 from zhinst.toolkit import Session
-from .node_section import NodeSection
+from .quants import NodeQuant, Quant
 from zhinst.toolkit.nodetree import Node
 from zhinst.labber.generator.helpers import (
     delete_device_from_node_path,
+    remove_leading_trailing_slashes
 )
 from zhinst.labber.code_generator.drivers import generate_labber_device_driver_code
 from .conf import (
     LabberConfiguration
 )
-
-
-class QuantPath:
-    def __init__(self, quant: str):
-        self._quant = quant
-        self._quant_no_slash = self._remove_slashes(quant)
-
-    def _remove_slashes(self, s: str) -> str:
-        if s.startswith('/'):
-            s = "".join(list(s)[1:])
-        if s[-1] == '/':
-            s = "".join(list(s)[:-1])
-        return s
-
-    @property
-    def title(self) -> str:
-        return self._quant_no_slash
-
-    @property
-    def label(self) -> str:
-        if len(self._quant) == 1:
-            return self._quant
-        s = self._quant_no_slash.split('/')
-        if s[-1].isnumeric():
-            return "/".join(s[-2:])
-        return s[-1]
-
-    @property
-    def group(self) -> str:
-        s = self._quant_no_slash.split('/')
-        if len(s) == 1:
-            return "SYSTEM"
-        if s[-1].isnumeric():
-            return "/".join(s[:-2])
-        return "/".join(s[:-1]) + "/"
-
-    @property
-    def set_cmd(self) -> str:
-        return self.title
-
-    @property
-    def get_cmd(self) -> str:
-        return self.title
-
-    @property
-    def section(self) -> str:
-        dig = re.search(r"\d", self._quant_no_slash)
-        if dig is not None:
-            dig = int(dig.group(0))
-            return "".join(list(self._quant_no_slash)[:self._quant_no_slash.find(str(dig))+1])
-        else:
-            return self.title.split('/')[0]
 
 class LabberConfig:
     """Base class for generating Labber configuration."""
@@ -85,11 +34,6 @@ class LabberConfig:
         self._general_settings = {}
         self._settings = {}
         self._tk_name = ""
-
-    def _natural_sort(self, config: dict) -> dict:
-        """Natural sort for dictionary keys."""
-        sorted_keys = natsort.natsorted(list(config.keys()))
-        return OrderedDict({k: config[k] for k in sorted_keys}.items())
 
     def _match_key(
         self, 
@@ -117,7 +61,7 @@ class LabberConfig:
         return None, None
 
     def _update_sections(self, quants: dict) -> dict:
-        """Update sections."""
+        """Update quant sections."""
         for k in quants.copy().keys():
             _, sec = self._match_key(k, self.env_settings.quant_sections)
             if sec:
@@ -125,7 +69,7 @@ class LabberConfig:
         return quants
 
     def _update_groups(self, quants: dict) -> dict:
-        """Update groups"""
+        """Update quant groups"""
         for k in quants.copy().keys():
             _, sec = self._match_key(k, self.env_settings.quant_groups)
             if sec:
@@ -133,7 +77,7 @@ class LabberConfig:
         return quants
 
     def _find_nth_occurence(self, s: str, target: str, idx: int) -> int:
-        """Find nth occurence of the target in a string"""
+        """Find nth occurrence of the target in a string"""
         return s.find(target, s.find(target) + idx)
 
     def _matching_name(self, s: str) -> bool:
@@ -165,12 +109,13 @@ class LabberConfig:
         """Find all quant indexes."""
         idxs = []
         if not indexes:
+            index_places = quant.count("*")
             indexes = ["dev" for _ in range(quant.count("*"))]
             if not indexes:
                 return []
 
-        for enumm, idx in enumerate(indexes):
-            bar = self._find_nth_occurence(quant, '*', enumm)
+        for enum, idx in enumerate(indexes):
+            bar = self._find_nth_occurence(quant, '*', enum)
             if idx ==  'dev':
                 stop = list(quant)[:bar]
                 stop = ''.join(stop).replace('//', '/')
@@ -193,7 +138,7 @@ class LabberConfig:
                 self.env_settings.ignored_nodes
                 ):
                 continue
-            sec = NodeSection(info)
+            sec = NodeQuant(info)
 
             sec_dict = sec.as_dict(flat=True)
             filtr_path = sec.filtered_node_path
@@ -213,18 +158,8 @@ class LabberConfig:
                     idxs = self._quant_indexes(kk, v.get('indexes', []))
                     paths = self._generate_quants_from_indexes(kk, 0, idxs)
                     for p in paths:
-                        d = {}
-                        s = QuantPath(p)
-                        suffix = vv["extend"].get('suffix', '')
-                        vv.pop('suffix', None)
-                        d['label'] = s.title + "/" + suffix
-                        d['group'] = s.group
-                        d['section'] = s.section
-                        d['set_cmd'] = s.set_cmd
-                        d['get_cmd'] = s.get_cmd
-                        d['permission'] = 'WRITE'
-                        d.update(vv["extend"])
-                        nodes[s.title + "/" + suffix] = d
+                        s = Quant(p, vv["extend"])
+                        nodes.update(s.as_dict())
                 missing.pop(kk, None)
 
         # Manually added quants from configuration
@@ -233,16 +168,8 @@ class LabberConfig:
                 idxs = self._quant_indexes(k, v.get('indexes', []))
                 paths = self._generate_quants_from_indexes(k, 0, idxs)
                 for p in paths:
-                    d = {}
-                    s = QuantPath(p)
-                    d['label'] = s.title
-                    d['group'] = s.group
-                    d['section'] = s.section
-                    d['set_cmd'] = s.set_cmd
-                    d['get_cmd'] = s.get_cmd
-                    d['permission'] = 'WRITE'
-                    d.update(v["conf"])
-                    nodes[s.title] = d
+                    s = Quant(p, v["conf"])
+                    nodes.update(s.as_dict())
         return nodes
 
     def generated_code(self) -> str:
@@ -368,13 +295,8 @@ class ModuleConfig(LabberConfig):
 
 def _path_to_labber_section(path: str, delim: str) -> str:
     """Path to Labber format. Delete slashes from start and end."""
-    path = list(path)
-    if path[0] == '/':
-        path = path[1:]
-    if path[-1] == '/':
-        path = path[0:-1]
-    p = "".join(path)
-    return p.replace('/', delim)
+    path = remove_leading_trailing_slashes(path)
+    return path.replace('/', delim)
 
 
 def dict_to_config(config: configparser.ConfigParser, data: dict, delim: str) -> None:

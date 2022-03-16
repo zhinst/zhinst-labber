@@ -1,6 +1,4 @@
-import pytest
-
-from zhinst.labber.generator.node_section import NodeSection
+from zhinst.labber.generator.quants import Quant, NodeQuant
 
 
 node_dict = {
@@ -26,8 +24,8 @@ node_dict_enum = {
 }
 
 
-def test_node_section_no_enum():
-    obj = NodeSection(node_dict)
+def test_node_quant_no_enum():
+    obj = NodeQuant(node_dict)
     assert obj.as_dict(flat=False) == {
         "QACHANNELS/0/CENTERFREQ": {
             "section": "QACHANNELS/0",
@@ -43,8 +41,8 @@ def test_node_section_no_enum():
     }
 
 
-def test_node_section_enum():
-    obj = NodeSection(node_dict_enum)
+def test_node_quant_enum():
+    obj = NodeQuant(node_dict_enum)
     assert obj.as_dict(flat=False) == {
         "QACHANNELS/0/OUTPUT/FILTER": {
             "section": "QACHANNELS/0",
@@ -56,3 +54,53 @@ def test_node_section_enum():
             "get_cmd": "QACHANNELS/0/OUTPUT/FILTER",
         }
     }
+
+
+
+class TestQuantSuffix:
+    conf = {"datatype": "BOO", "suffix": "File", "permission": "READ"}
+    path = "/qachannels/0/generator/arm/"
+    obj = Quant(path, conf)
+
+    def test_title(self):
+        assert self.obj.title == "qachannels/0/generator/arm"
+
+    def test_label(self):
+        assert self.obj.label == "arm"
+
+    def test_as_dict(self):
+        assert self.obj.as_dict() == {
+            "qachannels/0/generator/arm/file": {
+                "label": "qachannels/0/generator/arm/file",
+                "group": "qachannels/0/generator/",
+                "section": "qachannels/0",
+                "set_cmd": "qachannels/0/generator/arm",
+                "get_cmd": "qachannels/0/generator/arm",
+                "permission": "READ",
+                "datatype": "BOO",
+            }
+        }
+
+class TestQuant:
+    conf = {"datatype": "boo"}
+    path = "/qachannels/0/generator/arm"
+    obj = Quant(path, conf)
+
+    def test_title(self):
+        assert self.obj.title == "qachannels/0/generator/arm"
+
+    def test_label(self):
+        assert self.obj.label == "arm"
+
+    def test_as_dict(self):
+        assert self.obj.as_dict() == {
+            "qachannels/0/generator/arm": {
+                "label": "qachannels/0/generator/arm",
+                "group": "qachannels/0/generator/",
+                "section": "qachannels/0",
+                "set_cmd": "qachannels/0/generator/arm",
+                "get_cmd": "qachannels/0/generator/arm",
+                "permission": "WRITE",
+                "datatype": "boo",
+            }
+        }

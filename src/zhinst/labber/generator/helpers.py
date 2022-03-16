@@ -5,6 +5,16 @@ from enum import Enum, IntEnum
 from zhinst.toolkit.nodetree import Node
 
 
+def remove_leading_trailing_slashes(string: str) -> str:
+    if len(string.split('/')) <= 1:
+        return string.replace('/', '')
+    str_l = list(string)
+    if str_l[0] == '/':
+        str_l[0] = ''
+    if str_l[-1] == '/':
+        str_l[-1] = ''
+    return  "".join(str_l)
+
 def enum_description(value: str) -> t.Tuple[str, str]:
     v = value.split(": ")
     if len(v) > 1:
