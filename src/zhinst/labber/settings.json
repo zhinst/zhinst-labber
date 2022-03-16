@@ -723,7 +723,7 @@
         },
         "scopes/read":{
             "Args": {},
-            "Returns": ["result_0", "result_1", "result_2", "result_3"],
+            "Returns": ["../result_0", "../result_1", "../result_2", "../result_3"],
             "call_type": "Immediately"
         },
         "wait_done":{
@@ -737,7 +737,7 @@
             "call_type": "Immediately"
         },
         "awg/write_to_waveform_memory":{
-            "Args": {"waveforms": ["../wave1", "../wave2", "../marker"]},
+            "Args": {"waveforms": ["../waves1", "../waves2", "../markers"]},
             "Returns": [],
             "call_type": "Bundle"
         },
