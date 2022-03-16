@@ -5,7 +5,6 @@ import re
 import typing as t
 from pathlib import Path
 import json
-import fnmatch
 import natsort
 
 from zhinst.toolkit import Session
@@ -64,8 +63,10 @@ class LabberConfig:
         """Quants based on their indexes."""
         qts = []
         if not indexes:
-            indexes = ["dev" for _ in range(quant.count("*"))]
-            if not indexes:
+            idx_count = quant.count("*")
+            if idx_count > 0:
+                indexes = ["dev" for _ in range(idx_count)]
+            else:
                 return [quant]
 
         def find_indexes(quant, i, idxs):
@@ -78,7 +79,6 @@ class LabberConfig:
                         find_indexes(s, i + 1, idxs)
                     except IndexError:
                         qts.append("".join(s))
-
         find_indexes(quant, index, indexes)
         return qts
 
