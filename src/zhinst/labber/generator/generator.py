@@ -14,6 +14,9 @@ from zhinst.toolkit.nodetree import Node
 from zhinst.labber.generator.helpers import (
     delete_device_from_node_path,
     remove_leading_trailing_slashes,
+    match_in_dict_keys,
+    match_in_list,
+    find_nth_occurence
 )
 from zhinst.labber.code_generator.drivers import generate_labber_device_driver_code
 from .conf import LabberConfiguration
@@ -21,44 +24,22 @@ from .conf import LabberConfiguration
 
 class LabberConfig:
     """Base class for generating Labber configuration."""
-
-    def __init__(self, root: Node, session: Session, env_settings: dict, mode="NORMAL"):
+    def __init__(self, root: Node, name: str, env_settings: dict, mode="NORMAL"):
         self.root = root
-        self.session = session
         self._mode = mode
         self._env_settings_json = env_settings
-        self._env_settings: t.Optional[LabberConfiguration] = None
+        self._env_settings = LabberConfiguration(name, mode, env_settings)
+        self._tk_name = name
         self._base_dir = "Zurich_Instruments_"
         self._name = ""
         self._settings_path = "settings.json"
         self._general_settings = {}
         self._settings = {}
 
-    def _match_key(self, target: str, data: dict) -> t.Optional[t.Tuple[str, dict]]:
-        """Find matches for target in data."""
-        if isinstance(data, dict):
-            for k, v in data.items():
-                k_ = k
-                if not k.startswith("/"):
-                    k_ = "/" + k
-                if not target.startswith("/"):
-                    target = "/" + target
-                r = fnmatch.filter([target.lower()], f"{k_.lower()}*")
-                if r:
-                    return k, v
-            return None, None
-        if isinstance(data, list):
-            for item in data:
-                r = fnmatch.filter([target.lower()], f"{item.lower()}*")
-                if r:
-                    return item
-            return None
-        return None, None
-
     def _update_sections(self, quants: dict) -> dict:
         """Update quant sections."""
         for k in quants.copy().keys():
-            _, sec = self._match_key(k, self.env_settings.quant_sections)
+            _, sec = match_in_dict_keys(k, self.env_settings.quant_sections)
             if sec:
                 quants[k]["section"] = sec
         return quants
@@ -66,14 +47,10 @@ class LabberConfig:
     def _update_groups(self, quants: dict) -> dict:
         """Update quant groups"""
         for k in quants.copy().keys():
-            _, sec = self._match_key(k, self.env_settings.quant_groups)
+            _, sec = match_in_dict_keys(k, self.env_settings.quant_groups)
             if sec:
                 quants[k]["group"] = sec
         return quants
-
-    def _find_nth_occurence(self, s: str, target: str, idx: int) -> int:
-        """Find nth occurrence of the target in a string"""
-        return s.find(target, s.find(target) + idx)
 
     def _matching_name(self, s: str) -> bool:
         """Check if value matches name"""
@@ -94,12 +71,13 @@ class LabberConfig:
         def find_indexes(quant, i, idxs):
             for x in range(idxs[i]):
                 s = list(quant)
-                idx = self._find_nth_occurence("".join(s), "*", i)
-                s[idx] = str(x)
-                try:
-                    find_indexes(s, i + 1, idxs)
-                except IndexError:
-                    qts.append("".join(s))
+                idx = find_nth_occurence("".join(s), "*", i)
+                if idx != -1:
+                    s[idx] = str(x)
+                    try:
+                        find_indexes(s, i + 1, idxs)
+                    except IndexError:
+                        qts.append("".join(s))
 
         find_indexes(quant, index, indexes)
         return qts
@@ -113,38 +91,51 @@ class LabberConfig:
                 return []
 
         for enum, idx in enumerate(indexes):
-            bar = self._find_nth_occurence(quant, "*", enum)
+            bar = find_nth_occurence(quant, "*", enum)
             if idx == "dev":
-                stop = list(quant)[:bar]
-                stop = "".join(stop).replace("//", "/")
-                if stop[-1] == "/":
-                    stop = stop[:-1]
-                if not stop.startswith("/"):
-                    stop = "/" + stop
-                idxs.append(len(self.root[stop]))
+                bar = find_nth_occurence(quant, "*", enum)
+                if bar != -1:
+                    stop = list(quant)[:bar]
+                    stop = "".join(stop).replace("//", "/")
+                    if stop[-1] == "/":
+                        stop = stop[:-1]
+                    if not stop.startswith("/"):
+                        stop = "/" + stop
+                    idxs.append(len(self.root[stop]))
             else:
                 idxs.append(idx)
         return idxs
+
+    def _generate_node_quants(self):
+        quants = {}
+        for _, info in self.root:
+            if match_in_list(
+                delete_device_from_node_path(info["Node"]),
+                self.env_settings.ignored_nodes,
+            ):
+                continue
+            sec = NodeQuant(info)
+            quants.update(sec.as_dict())
+        return quants
 
     def _generate_quants(self) -> t.Dict[str, dict]:
         """Generate Labber quants."""
         nodes = {}
         # Existing nodes to quants
         for _, info in self.root:
-            if self._match_key(
+            if match_in_list(
                 delete_device_from_node_path(info["Node"]),
                 self.env_settings.ignored_nodes,
             ):
                 continue
             sec = NodeQuant(info)
-
             sec_dict = sec.as_dict(flat=True)
             filtr_path = sec.filtered_node_path
             nodes[filtr_path.lower()] = sec_dict
         # Added nodes from configuration if the node exists but is not available
         missing = deepcopy(self.env_settings.quants)
         for k, v in nodes.copy().items():
-            kk, vv = self._match_key(k, self.env_settings.quants)
+            kk, vv = match_in_dict_keys(k, self.env_settings.quants)
             if kk:
                 for _, conf in vv["conf"].items():
                     if not conf:
@@ -211,11 +202,11 @@ class LabberConfig:
 
 class DeviceConfig(LabberConfig):
     def __init__(self, device: Node, session: Session, env_settings: dict, mode: str):
-        super().__init__(device, session, env_settings, mode)
+        self._name = device.device_type.upper()
+        self._tk_name = device.device_type.upper()
+        super().__init__(device, self._tk_name, env_settings, mode)
+        self.session = session
         self.device = device
-        self._name = self.device.device_type.upper()
-        self._tk_name = self.device.device_type.upper()
-        self._env_settings = LabberConfiguration(self._tk_name, self._mode, env_settings)
         self._settings = {
             "data_server": {
                 "host": self.session.server_host,
@@ -238,9 +229,9 @@ class DeviceConfig(LabberConfig):
 
 class DataServerConfig(LabberConfig):
     def __init__(self, session: Session, env_settings: dict, mode: str):
-        super().__init__(session, session, env_settings, mode)
         self._tk_name = "DataServer"
-        self._env_settings = LabberConfiguration(self._tk_name, self._mode, env_settings)
+        super().__init__(session, self._tk_name, env_settings, mode)
+        self.session = session
         self._name = "DataServer"
         self._settings = {
             "data_server": {
@@ -267,9 +258,9 @@ class DataServerConfig(LabberConfig):
 class ModuleConfig(LabberConfig):
     def __init__(self, name: str, session: Session, env_settings: dict, mode: str):
         self.module = getattr(session.modules, name)
-        super().__init__(self.module, session, env_settings, mode)
         self._tk_name = name
-        self._env_settings = LabberConfiguration(self._tk_name, self._mode, env_settings)
+        super().__init__(self.module, self._tk_name, env_settings, mode)
+        self.session = session
         if "MODULE" not in name.upper():
             self._name = name.upper() + "_Module"
         else:

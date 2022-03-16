@@ -10,6 +10,7 @@ class Quant:
     quant: Quant node-like path.
     defs: Quant definitions
     """
+
     def __init__(self, quant: str, defs: dict):
         self._quant = quant
         self._defs = defs
@@ -17,7 +18,7 @@ class Quant:
 
     def _suffix(self) -> str:
         """Suffix for the quant."""
-        return self._defs.get('suffix', '').lower()
+        return self._defs.get("suffix", "").lower()
 
     @property
     def title(self) -> str:
@@ -27,7 +28,7 @@ class Quant:
     @property
     def label(self) -> str:
         """Quant labe."""
-        s = self._quant_no_slash.split('/')
+        s = self._quant_no_slash.split("/")
         if len(self._quant) == 1:
             return self._quant
         elif s[-1].isnumeric():
@@ -37,7 +38,7 @@ class Quant:
     @property
     def group(self) -> str:
         """Quant group"""
-        s = self._quant_no_slash.split('/')
+        s = self._quant_no_slash.split("/")
         if len(s) == 1:
             return "SYSTEM"
         if s[-1].isnumeric():
@@ -60,14 +61,16 @@ class Quant:
         dig = re.search(r"\d", self._quant_no_slash)
         if dig is not None:
             dig = int(dig.group(0))
-            return "".join(list(self._quant_no_slash)[:self._quant_no_slash.find(str(dig))+1])
+            return "".join(
+                list(self._quant_no_slash)[: self._quant_no_slash.find(str(dig)) + 1]
+            )
         else:
-            return self.title.split('/')[0]
+            return self.title.split("/")[0]
 
     def as_dict(self) -> dict:
         """Python dictionary representation of the quant in a Labber format."""
         defs = self._defs.copy()
-        defs.pop('suffix', None)
+        defs.pop("suffix", None)
         if self._suffix():
             label = self.title + "/" + self._suffix()
         else:
@@ -78,7 +81,7 @@ class Quant:
             "section": self.section,
             "set_cmd": self.set_cmd,
             "get_cmd": self.get_cmd,
-            "permission": "WRITE"
+            "permission": "WRITE",
         }
         res.update(defs)
         return {label: res}
@@ -86,12 +89,13 @@ class Quant:
 
 class NodeQuant:
     """Zurich instrument node information as a Labber quant."""
+
     def __init__(self, node: t.Dict):
         self.node = node
         self.node.setdefault("Options", {})
         self._node_path = helpers.delete_device_from_node_path(node["Node"].upper())
         self._node_path_no_prefix = self._node_path
-        if self._node_path.startswith('/'):
+        if self._node_path.startswith("/"):
             self._node_path_no_prefix = self._node_path[1:]
         self._properties = self.node["Properties"].lower()
 
@@ -146,7 +150,7 @@ class NodeQuant:
     @property
     def combo_def(self) -> t.List[dict]:
         """Combo definition.
-        
+
         Turns enumerated options into Labber combo.
         """
         if "enumerated" in self.node["Type"].lower():
@@ -255,9 +259,9 @@ class NodeQuant:
             d["get_cmd"] = self.get_cmd
         if self.show_in_measurement_dlg:
             d["show_in_measurement_dlg"] = self.show_in_measurement_dlg
-        if self.datatype in ['VECTOR', 'VECTOR_COMPLEX']:
+        if self.datatype in ["VECTOR", "VECTOR_COMPLEX"]:
             d["x_name"] = "Length"
             d["x_unit"] = "Sample"
         if flat:
             return d
-        return {self.title: d}
+        return {self.filtered_node_path: d}

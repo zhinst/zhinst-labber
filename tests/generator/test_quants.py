@@ -27,7 +27,7 @@ node_dict_enum = {
 def test_node_quant_no_enum():
     obj = NodeQuant(node_dict)
     assert obj.as_dict(flat=False) == {
-        "QACHANNELS/0/CENTERFREQ": {
+        "/QACHANNELS/0/CENTERFREQ": {
             "section": "QACHANNELS/0",
             "group": "QACHANNELS",
             "label": "QACHANNELS/0/CENTERFREQ",
@@ -44,7 +44,7 @@ def test_node_quant_no_enum():
 def test_node_quant_enum():
     obj = NodeQuant(node_dict_enum)
     assert obj.as_dict(flat=False) == {
-        "QACHANNELS/0/OUTPUT/FILTER": {
+        "/QACHANNELS/0/OUTPUT/FILTER": {
             "section": "QACHANNELS/0",
             "group": "QACHANNELS/OUTPUT",
             "label": "QACHANNELS/0/OUTPUT/FILTER",

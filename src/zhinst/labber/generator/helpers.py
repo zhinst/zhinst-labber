@@ -1,19 +1,20 @@
 import typing as t
 import re
 from enum import Enum, IntEnum
-
+import fnmatch
 from zhinst.toolkit.nodetree import Node
 
 
 def remove_leading_trailing_slashes(string: str) -> str:
-    if len(string.split('/')) <= 1:
-        return string.replace('/', '')
+    if len(string.split("/")) <= 1:
+        return string.replace("/", "")
     str_l = list(string)
-    if str_l[0] == '/':
-        str_l[0] = ''
-    if str_l[-1] == '/':
-        str_l[-1] = ''
-    return  "".join(str_l)
+    if str_l[0] == "/":
+        str_l[0] = ""
+    if str_l[-1] == "/":
+        str_l[-1] = ""
+    return "".join(str_l)
+
 
 def enum_description(value: str) -> t.Tuple[str, str]:
     v = value.split(": ")
@@ -101,3 +102,29 @@ def to_labber_combo_def(
             enums[f"cmd_def_{idx}"] = str(enum.value)
             enums[f"combo_def_{idx}"] = str(enum.name)
     return enums
+
+
+def match_in_dict_keys(target: str, data: dict) -> t.Tuple[str, dict]:
+    """Find matches for target in data."""
+    for k, v in data.items():
+        k_ = remove_leading_trailing_slashes(k)
+        target = remove_leading_trailing_slashes(target)
+        r = fnmatch.filter([target.lower()], f"{k_.lower()}*")
+        if r:
+            return k, v
+    return "", {}
+
+def match_in_list(target: str, data: list) -> t.List[str]:
+    for item in data:
+        k_ = remove_leading_trailing_slashes(item)
+        target = remove_leading_trailing_slashes(target)
+        r = fnmatch.filter([target.lower()], f"{k_.lower()}*")
+        if r:
+            return item
+    return []
+
+def find_nth_occurence(s: str, target: str, n: int) -> int:
+    """Find nth occurrence of the target in a string"""
+    if s.count(target) < n + 1:
+        return -1
+    return s.find(target, s.find(target) + n)
