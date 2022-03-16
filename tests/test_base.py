@@ -207,7 +207,7 @@ class TestBase:
 
         actual = device_driver._instrument.qachannels[
             0
-        ].generator.write_to_waveform_memory.call_args.kwargs["pulses"]
+        ].generator.write_to_waveform_memory.call_args[1]["pulses"]
         compare_waveforms(target, actual)
 
         input = Path(".")
@@ -241,7 +241,7 @@ class TestBase:
         )
         actual = device_driver._instrument.awgs[
             0
-        ].write_to_waveform_memory.call_args.kwargs["waveforms"]
+        ].write_to_waveform_memory.call_args[1]["waveforms"]
         compare_waveforms(target, actual)
 
         # AWG Wave without marker
@@ -269,7 +269,7 @@ class TestBase:
         )
         actual = device_driver._instrument.awgs[
             0
-        ].write_to_waveform_memory.call_args.kwargs["waveforms"]
+        ].write_to_waveform_memory.call_args[1]["waveforms"]
         compare_waveforms(target, actual)
 
     def test_performSet_function_delayed(self, mock_toolkit_session, device_driver):
@@ -316,7 +316,7 @@ class TestBase:
         )
         actual = device_driver._instrument.awgs[
             0
-        ].write_to_waveform_memory.call_args.kwargs["waveforms"]
+        ].write_to_waveform_memory.call_args[1]["waveforms"]
         compare_waveforms(target, actual)
 
     def test_performSet_json(self, mock_toolkit_session, device_driver):
