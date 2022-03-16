@@ -4,7 +4,10 @@ from zhinst.labber import generate_labber_files
 
 @click.group()
 def main():
-    """Fancy zhinst-labber cli script"""
+    """A command line application to generate Zurich Instruments Labber drivers.
+
+    The drivers include a settings file, configuration file (.ini) and a generated
+    Python driver code for Zurich Instruments devices and modules."""
     pass
 
 @main.command()
@@ -56,13 +59,19 @@ def main():
     "--upgrade",
     required=False,
     is_flag=True,
-    help='Upgrade existing drives',
+    help="""Upgrade existing drivers.
+
+    It is recommended to use this option when Zurich instruments LabOne or device
+    has it's version, option or any other configuration changed, that can affect the device
+    functionality or nodes.
+    """,
 )
 def setup(filepath, device, server_host, server_port, hf2, mode, upgrade):
     """Generate Zurich Instruments Labber drivers.
 
     This script generates the necessary files to control Zurich Instruments 
-    devices with Labber.
+    devices with Labber. The script generates a Labber driver based on the current 
+    status of the selected Zurich Instruments DataServer, device and modules.
 
     FILEPATH: Filepath where the files are saved. Usually in the Labber Driver-directory.
 
