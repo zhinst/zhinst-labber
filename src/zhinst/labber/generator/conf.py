@@ -23,6 +23,13 @@ class LabberConfiguration:
         return False
 
     @property
+    def general_settings(self) -> dict:
+        """Labber configuration file `General settings`-section."""
+        if self.dev_settings:
+            return self.dev_settings['generalSettings']
+        return self.json_settings['common']['generalSettings']
+
+    @property
     def ignored_nodes(self) -> t.List[str]:
         """Ignored nodes."""
         common_norm = self.json_settings['common']['ignoredNodes']['normal']

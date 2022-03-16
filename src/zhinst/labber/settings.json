@@ -14,6 +14,12 @@
         ]
     },
     "common": {
+        "generalSettings": {
+            "support_arm": false,
+            "support_hardware_loop": false,
+            "interface": "Other",
+            "startup": "Do nothing"
+        },
         "ignoredNodes": {
             "normal": [
                 "/stats/*",
@@ -191,6 +197,12 @@
         }
     },
     "SHFQA": {
+        "generalSettings": {
+            "support_arm": true,
+            "support_hardware_loop": true,
+            "interface": "Other",
+            "startup": "Do nothing"
+        },
         "ignoredNodes": {
             "normal": [
                 "/qachannels/*/generator/waveforms/*/length",
@@ -424,6 +436,12 @@
         }
     },
     "HDAWG": {
+        "generalSettings": {
+            "support_arm": true,
+            "support_hardware_loop": true,
+            "interface": "Other",
+            "startup": "Do nothing"
+        },
         "ignoredNodes": {
             "normal": [
                 "/awgs/*/elf/*",
@@ -477,6 +495,12 @@
         }
     },
     "SHFQA_Sweeper": {
+        "generalSettings": {
+            "support_arm": true,
+            "support_hardware_loop": true,
+            "interface": "Other",
+            "startup": "Do nothing"
+        },
         "ignoredNodes": {
             "normal": [
                 "/plot/*"
@@ -522,6 +546,12 @@
         }
     },
     "DataServer": {
+        "generalSettings": {
+            "support_arm": true,
+            "support_hardware_loop": true,
+            "interface": "Other",
+            "startup": "Do nothing"
+        },
         "ignoredNodes": {
             "normal": [
                 "/zi/about/commit",
@@ -538,6 +568,12 @@
         "groups": {}
     },
     "impedance": {
+        "generalSettings": {
+            "support_arm": true,
+            "support_hardware_loop": true,
+            "interface": "Other",
+            "startup": "Do nothing"
+        },
         "ignoredNodes": {},
         "sections": {},
         "groups": {},
@@ -555,5 +591,46 @@
                 }
             }
         }
+    },
+    "daq": {
+        "generalSettings": {
+            "support_arm": true,
+            "support_hardware_loop": true,
+            "interface": "Other",
+            "startup": "Do nothing"
+        },
+        "ignoredNodes": {},
+        "sections": {},
+        "groups": {},
+        "quants": {}
+    },
+    "scope": {
+        "generalSettings": {
+            "support_hardware_loop": true,
+            "support_arm": true,
+            "startup": "Do nothing",
+            "interface": "Other"
+        },
+        "ignoredNodes": {},
+        "sections": {},
+        "groups": {},
+        "quants": {}
+    },
+    "SHFSG": {
+        "generalSettings": {
+            "support_arm": true,
+            "support_hardware_loop": true,
+            "interface": "Other",
+            "startup": "Do nothing"
+        },
+        "ignoredNodes": {},
+        "sections": {
+            "/sgchannels/*/awg/*": "AWG",
+            "/sgchannels/*/oscs/*": "MOD",
+            "/sgchannels/*/sines/*": "MOD",
+            "/sgchannels/*": "Output"
+        },
+        "groups": {},
+        "quants": {}
     }
 }
