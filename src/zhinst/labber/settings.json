@@ -102,9 +102,9 @@
                         "path": "/awgs/*/sequencer_program",
                         "indexes": [
                             "dev"
-                        ]
+                        ],
+                        "//TODO only with AWG option":""
                     },
-                    // TODO only with AWG option
                     "UHFLI": {
                         "path": "/awgs/*/sequencer_program",
                         "indexes": [
@@ -143,12 +143,12 @@
                             "dev"
                         ]
                     },
-                    // TODO only with AWG option
                     "UHFLI": {
                         "path": "/awgs/*/waves1",
                         "indexes": [
                             "dev"
-                        ]
+                        ],
+                        "// TODO only with AWG option":""
                     }
                 },
                 "conf": {
@@ -182,12 +182,12 @@
                             "dev"
                         ]
                     },
-                    // TODO only with AWG option
                     "UHFLI": {
                         "path": "/awgs/*/waves2",
                         "indexes": [
                             "dev"
-                        ]
+                        ],
+                        "// TODO only with AWG option":""
                     }
                 },
                 "conf": {
@@ -221,12 +221,12 @@
                             "dev"
                         ]
                     },
-                    // TODO only with AWG option
                     "UHFLI": {
                         "path": "/awgs/*/markers",
                         "indexes": [
                             "dev"
-                        ]
+                        ],
+                        "// TODO only with AWG option":""
                     }
                 },
                 "conf": {
@@ -260,12 +260,12 @@
                             "dev"
                         ]
                     },
-                    // TODO only with AWG option
                     "UHFLI": {
                         "path": "/awgs/*/waveform/waves/*",
                         "indexes": [
                             "dev"
-                        ]
+                        ],
+                        "// TODO only with AWG option":""
                     }
                 },
                 "indexes": [
@@ -613,9 +613,9 @@
                 },
                 "conf": {
                     "datatype": "VECTOR_COMPLEX"
-                }
+                },
+                "// TODO add envelop/waveform csv upload option":""
             },
-            // TODO add envelop/waveform csv upload option
             "/offset_freq_vector": {
                 "add": true,
                 "indexes": [],
