@@ -1,9 +1,16 @@
-from copy import deepcopy
 import typing as t
 import re
 
 
 class LabberConfiguration:
+    """Labber JSON configuration handler.
+    
+    Args:
+        name: Name of the Zurich Instrument object.
+        mode: What parts to read from the settings file
+            'normal' | 'advanced'
+        settings: Settings for the given object
+    """
     def __init__(self, name: str, mode: str, settings: dict):
         self._name = name.upper()
         self._mode = mode.lower()
@@ -52,10 +59,11 @@ class LabberConfiguration:
     @property
     def quants(self) -> dict:
         """Replaced nodes."""
-        b = deepcopy(self.json_settings["common"]["quants"])
+        b = self.json_settings["common"]["quants"].copy()
         if self.dev_settings:
             b.update(self.dev_settings.get("quants", {}))
-        for k, v in deepcopy(b).items():
+        d = {}
+        for k, v in b.copy().items():
             if "mapping" in v.keys():
                 map_ = v["mapping"].get(self._set_name, {})
                 if not map_:
@@ -74,6 +82,7 @@ class LabberConfiguration:
 
     @property
     def quant_sections(self) -> dict:
+        """Quant sections."""
         common = self.json_settings["common"]["sections"]
         if self.dev_settings:
             dev = self.dev_settings.get('sections', {})
@@ -83,6 +92,7 @@ class LabberConfiguration:
 
     @property
     def quant_groups(self) -> dict:
+        """Quant groups"""
         common = self.json_settings["common"]["groups"]
         if self.dev_settings:
             dev = self.dev_settings.get('groups', {})
