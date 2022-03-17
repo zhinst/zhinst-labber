@@ -399,17 +399,20 @@ def generate_labber_files(
     write_to_file(c_path, obj.generated_code(), upgrade)
 
     # Modules
-    modules: t.List[str] = json_settings["misc"]["ziModules"]
+    # TODO: When hf2 option enabled:
+    #   RuntimeError: Unsupported API level for specified server 
+    if not hf2:
+        modules: t.List[str] = json_settings["misc"]["ziModules"]
 
-    for module in modules:
-        obj = ModuleConfig(module, session, json_settings, mode)
-        dev_dir = root_path / obj.name
-        dev_dir.mkdir(exist_ok=True)
-        config = configparser.ConfigParser()
-        dict_to_config(config, obj.config(), delim=labber_delim)
-        path = dev_dir / f"{obj.name}.ini"
-        write_to_config(path, config, upgrade)
-        s_path = dev_dir / obj.settings_path
-        write_to_json(s_path, obj.settings, upgrade)
-        c_path = dev_dir / f"{obj.name}.py"
-        write_to_file(c_path, obj.generated_code(), upgrade)
+        for module in modules:
+            obj = ModuleConfig(module, session, json_settings, mode)
+            dev_dir = root_path / obj.name
+            dev_dir.mkdir(exist_ok=True)
+            config = configparser.ConfigParser()
+            dict_to_config(config, obj.config(), delim=labber_delim)
+            path = dev_dir / f"{obj.name}.ini"
+            write_to_config(path, config, upgrade)
+            s_path = dev_dir / obj.settings_path
+            write_to_json(s_path, obj.settings, upgrade)
+            c_path = dev_dir / f"{obj.name}.py"
+            write_to_file(c_path, obj.generated_code(), upgrade)

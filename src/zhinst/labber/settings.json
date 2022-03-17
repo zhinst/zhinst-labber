@@ -273,21 +273,29 @@
                 }
             },
             "/system/identify": {
+                "add": false,
+                "conf": {},
                 "driver": {
                     "transaction": false
                 }
             },
             "/system/shutdown": {
+                "add": false,
+                "conf": {},
                 "driver": {
                     "transaction": false
                 }
             },
             "/system/stall": {
+                "add": false,
+                "conf": {},
                 "driver": {
                     "transaction": false
                 }
             },
             "/system/update": {
+                "add": false,
+                "conf": {},
                 "driver": {
                     "transaction": false
                 }

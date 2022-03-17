@@ -62,8 +62,11 @@ class LabberConfiguration:
         b = self.json_settings["common"]["quants"].copy()
         if self.dev_settings:
             b.update(self.dev_settings.get("quants", {}))
-        d = {}
+
         for k, v in b.copy().items():
+            if not v.get('conf', {}) or v.get('add', None) is None:
+                b.pop(k)
+                continue
             if "mapping" in v.keys():
                 map_ = v["mapping"].get(self._set_name, {})
                 if not map_:

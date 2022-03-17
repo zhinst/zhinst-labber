@@ -180,9 +180,11 @@ class NodeQuant:
     @property
     def unit(self) -> t.Optional[str]:
         """Node unit to Labber units"""
-        if self.node["Unit"].lower() == "none":
+        # HF2 does not have Unit.
+        unit = self.node.get("Unit", None)
+        if not unit:
             return None
-        if self.node["Unit"].lower() == "dependent":
+        if unit.lower() in ["none", "dependent"]:
             return None
         unit = self.node["Unit"].replace("%", " percent").replace("'", "")
         # Remove degree signs etc.
