@@ -102,8 +102,7 @@
                         "path": "/awgs/*/sequencer_program",
                         "indexes": [
                             "dev"
-                        ],
-                        "//TODO only with AWG option":""
+                        ]
                     },
                     "UHFLI": {
                         "path": "/awgs/*/sequencer_program",
@@ -147,8 +146,7 @@
                         "path": "/awgs/*/waves1",
                         "indexes": [
                             "dev"
-                        ],
-                        "// TODO only with AWG option":""
+                        ]
                     }
                 },
                 "conf": {
@@ -186,8 +184,7 @@
                         "path": "/awgs/*/waves2",
                         "indexes": [
                             "dev"
-                        ],
-                        "// TODO only with AWG option":""
+                        ]
                     }
                 },
                 "conf": {
@@ -225,8 +222,7 @@
                         "path": "/awgs/*/markers",
                         "indexes": [
                             "dev"
-                        ],
-                        "// TODO only with AWG option":""
+                        ]
                     }
                 },
                 "conf": {
@@ -264,8 +260,7 @@
                         "path": "/awgs/*/waveform/waves/*",
                         "indexes": [
                             "dev", 16
-                        ],
-                        "// TODO only with AWG option":""
+                        ]
                     }
                 },
                 "conf": {

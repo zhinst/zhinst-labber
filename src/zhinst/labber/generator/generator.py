@@ -82,8 +82,8 @@ class LabberConfig:
         find_indexes(quant, index, indexes)
         return qts
 
-    def _quant_indexes(self, quant: str, indexes: t.List[str]) -> t.List[int]:
-        """Find all quant indexes."""
+    def _quant_paths(self, quant: str, indexes: t.List[str]) -> t.List[str]:
+        """Quant paths."""
         idxs = []
         if not indexes:
             indexes = ["dev" for _ in range(quant.count("*"))]
@@ -101,10 +101,14 @@ class LabberConfig:
                         stop = stop[:-1]
                     if not stop.startswith("/"):
                         stop = "/" + stop
-                    idxs.append(len(self.root[stop]))
+                    try:
+                        idxs.append(len(self.root[stop]))
+                    except TypeError:
+                        return []
             else:
                 idxs.append(idx)
-        return idxs
+        paths = self._generate_quants_from_indexes(quant, 0, idxs)
+        return paths
 
     def _generate_node_quants(self):
         quants = {}
@@ -134,8 +138,7 @@ class LabberConfig:
                 nodes[k] = v
                 # If the quant is extended
                 if vv.get("extend", None):
-                    idxs = self._quant_indexes(kk, v.get("indexes", []))
-                    paths = self._generate_quants_from_indexes(kk, 0, idxs)
+                    paths = self._quant_paths(kk, v.get("indexes", []))
                     for p in paths:
                         s = Quant(p, vv["extend"])
                         nodes.update(s.as_dict())
@@ -144,8 +147,7 @@ class LabberConfig:
         # Manually added quants from configuration
         for k, v in missing.items():
             if v.get("add", False):
-                idxs = self._quant_indexes(k, v.get("indexes", []))
-                paths = self._generate_quants_from_indexes(k, 0, idxs)
+                paths = self._quant_paths(k, v.get("indexes", []))
                 for p in paths:
                     s = Quant(p, v["conf"])
                     nodes.update(s.as_dict())
