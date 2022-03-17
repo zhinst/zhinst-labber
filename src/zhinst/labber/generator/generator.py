@@ -30,7 +30,7 @@ class LabberConfig:
         self._env_settings = LabberConfiguration(name, mode, env_settings)
         self._tk_name = name
         self._base_dir = "Zurich_Instruments_"
-        self._name = ""
+        self._name = name
         self._settings_path = "settings.json"
         self._general_settings = {}
         self._settings = {}
@@ -115,23 +115,12 @@ class LabberConfig:
             ):
                 continue
             sec = NodeQuant(info)
-            quants.update(sec.as_dict())
+            quants.update(sec.as_dict(flat=False))
         return quants
 
     def _generate_quants(self) -> t.Dict[str, dict]:
         """Generate Labber quants."""
-        nodes = {}
-        # Existing nodes to quants
-        for _, info in self.root:
-            if match_in_list(
-                delete_device_from_node_path(info["Node"]),
-                self.env_settings.ignored_nodes,
-            ):
-                continue
-            sec = NodeQuant(info)
-            sec_dict = sec.as_dict(flat=True)
-            filtr_path = sec.filtered_node_path
-            nodes[filtr_path.lower()] = sec_dict
+        nodes = self._generate_node_quants()
         # Added nodes from configuration if the node exists but is not available
         missing = deepcopy(self.env_settings.quants)
         for k, v in nodes.copy().items():
@@ -139,6 +128,7 @@ class LabberConfig:
             if kk:
                 for _, conf in vv["conf"].items():
                     if not conf:
+                        # Delete key if it is set to None
                         nodes[k].pop(v, None)
                 v.update(vv["conf"])
                 nodes[k] = v
@@ -202,8 +192,8 @@ class LabberConfig:
 
 class DeviceConfig(LabberConfig):
     def __init__(self, device: Node, session: Session, env_settings: dict, mode: str):
-        self._name = device.device_type.upper()
         self._tk_name = device.device_type.upper()
+        self._name = device.device_type.upper()
         super().__init__(device, self._tk_name, env_settings, mode)
         self.session = session
         self.device = device
@@ -291,25 +281,41 @@ def _path_to_labber_section(path: str, delim: str) -> str:
     return path.replace("/", delim)
 
 
-def dict_to_config(config: configparser.ConfigParser, data: dict, delim: str) -> None:
-    """Turn Python dictionary into ConfigParser.
-
-    Also sorts the keys naturally and titles them."""
+def conf_to_labber_format(data: dict, delim: str) -> dict:
+    """Transform data into Labber format.
+    
+    * Natural sort dictionary keys
+    * Replace slashes with delimiter
+    * Title sections
+    """
     sorted_keys = natsort.natsorted(list(data.keys()))
     data = OrderedDict({k: data[k] for k in sorted_keys}.items())
-    for title, items in data.items():
+
+    for title, quant in data.copy().items():
+        title_ = str(title)
         if not title == "General settings":
-            title = title.title()
-        title_ = _path_to_labber_section(title, delim)
-        config.add_section(title_)
-        for name, value in items.items():
-            if name not in ["set_cmd", "get_cmd", "tooltip", "datatype"]:
-                name = _path_to_labber_section(name, delim)
+            title_ = title_.title()
+        title_ = _path_to_labber_section(title_, delim)
+
+        data.pop(title, None)
+        data[title_] = {}
+        for key, value in quant.items():
+            if key not in ["set_cmd", "get_cmd", "tooltip", "datatype"]:
+                key = _path_to_labber_section(key, delim)
                 value = _path_to_labber_section(value, delim)
-            if name.lower() in ["label", "group", "section"]:
-                config.set(title_, name.title(), value.title())
-            else:
-                config.set(title_, name, value)
+            if key.lower() in ["label", "group", "section"]:
+                key = key.title()
+                value = value.title()
+            data[title_].update({key: value})
+    return data
+
+def dict_to_config(config: configparser.ConfigParser, data: dict, delim: str) -> None:
+    """Turn Python dictionary into ConfigParser."""
+    data = conf_to_labber_format(data, delim)
+    for title, items in data.items():
+        config.add_section(title)
+        for name, value in items.items():
+            config.set(title, name, value)
 
 
 def generate_labber_files(
@@ -366,6 +372,7 @@ def generate_labber_files(
     dev_dir = root_path / obj.name
     dev_dir.mkdir(exist_ok=True)
 
+    # .ini-file
     config = configparser.ConfigParser()
     dict_to_config(config, obj.config(), delim=labber_delim)
     path = dev_dir / f"{obj.name}.ini"
