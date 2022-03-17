@@ -14,13 +14,17 @@
         },
         "ignoredNodes": {
             "normal": [
+                "/preset/*",
                 "/stats/*",
-                "/status/*",
                 "/system/activeinterface*",
                 "/system/boardrevisions/*",
                 "/system/fpgarevision",
                 "/system/nics/*",
-                "/system/properties/*"
+                "/system/properties/*",
+                "/awgs/*/elf/*",
+                "/awgs/*/sequencer/*",
+                "/awgs/*/waveform/memoryusage*",
+                "/awgs/*/waveform/descriptors"
             ],
             "advanced": [
                 "/features/*"
@@ -29,6 +33,27 @@
         "groups": {},
         "sections": {},
         "quants": {
+            "/scopes/*/wave": {
+                "add": false,
+                "indexes": ["dev"],
+                "conf": {
+                    "datatype": "VECTOR_COMPLEX"
+                }
+            },
+            "/dios/*/input": {
+                "add": true,
+                "indexes": ["dev"],
+                "conf": {
+                    "datatype": "VECTOR_COMPLEX"
+                }
+            },
+            "/demopds/*/sample": {
+                "add": true,
+                "indexes": ["dev"],
+                "conf": {
+                    "datatype": "VECTOR_COMPLEX"
+                }
+            },
             "/clearhistory": {
                 "add": false,
                 "conf": {
@@ -546,7 +571,7 @@
             }
         }
     },
-    "HDAWG": {
+    "UHFLI": {
         "generalSettings": {
             "support_arm": true,
             "support_hardware_loop": true,
@@ -555,11 +580,50 @@
         },
         "ignoredNodes": {
             "normal": [
-                "/awgs/*/elf/*",
-                "/awgs/*/sequencer/memoryusage",
-                "/awgs/*/sequencer/status",
-                "/awgs/*/sequencer/triggered"
+                "/awgs/*/elf/*"
             ],
+            "advanced": []
+        },
+        "sections": {
+            "/sigins/*": "Input - Output",
+            "/sigouts/*": "Input - Output",
+            "/aux/*": "AUX",
+            "/aucarts/*": "AU",
+            "/aupolars/*": "AU",
+            "/awgs/*": "AWG",
+            "/boxcars/*": "Boxcars",
+            "/awg/channelgrouping": "AWG",
+            "/cnts/*": "Pulse Counter",
+            "/extrefs/*": "EXT Refs",
+            "/mods/*": "MOD",
+            "/inputspwas/*": "PWA",
+            "/outputpwas/*": "PWA",
+            "/oscs/*": "OSC",
+            "/pids/*": "PID",
+            "/scopes/*": "Scope"
+        },
+        "groups": {
+
+        },
+        "quants": {
+            "/demods/*/sample": {
+                "add": true,
+                "indexes": ["dev"],
+                "conf": {
+                    "datatype": "VECTOR_COMPLEX"
+                }
+            }
+        }
+    },
+    "HDAWG": {
+        "generalSettings": {
+            "support_arm": true,
+            "support_hardware_loop": true,
+            "interface": "Other",
+            "startup": "Do nothing"
+        },
+        "ignoredNodes": {
+            "normal": [],
             "advanced": []
         },
         "sections": {

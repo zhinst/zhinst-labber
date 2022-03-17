@@ -88,7 +88,7 @@ class LabberConfig:
         if not indexes:
             indexes = ["dev" for _ in range(quant.count("*"))]
             if not indexes:
-                return []
+                return [quant]
 
         for enum, idx in enumerate(indexes):
             bar = find_nth_occurence(quant, "*", enum)
