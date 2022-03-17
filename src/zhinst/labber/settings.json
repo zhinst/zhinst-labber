@@ -118,7 +118,8 @@
                 "driver": {
                     "function": "sequencer_program",
                     "function_path": "../load_sequencer_program",
-                    "type": "TEXT"
+                    "type": "TEXT",
+                    "call_empty": false
                 }
             },
             "/*/waves1": {
@@ -270,7 +271,28 @@
                     "permission": "READ",
                     "show_in_measurement_dlg": "True"
                 }
+            },
+            "/system/identify": {
+                "driver": {
+                    "transaction": false
+                }
+            },
+            "/system/shutdown": {
+                "driver": {
+                    "transaction": false
+                }
+            },
+            "/system/stall": {
+                "driver": {
+                    "transaction": false
+                }
+            },
+            "/system/update": {
+                "driver": {
+                    "transaction": false
+                }
             }
+
         }
     },
     "SHFQA": {
@@ -445,7 +467,8 @@
                 },
                 "driver": {
                     "function": "wait_done",
-                    "function_path": "../wait_done"
+                    "function_path": "../wait_done",
+                    "trigger": true
                 }
             },
             "/qachannels/*/readout/result/enable": {
@@ -464,7 +487,8 @@
                 },
                 "driver": {
                     "function": "wait_done",
-                    "function_path": "../wait_done"
+                    "function_path": "../wait_done",
+                    "trigger": true
                 }
             },
             "/qachannels/*/readout/integration_weights": {
@@ -475,7 +499,9 @@
                 },
                 "driver": {
                     "function": "generator/write_integration_weights",
-                    "function_path": "../write_integration_weights"
+                    "function_path": "../write_integration_weights",
+                    "type": "CSV",
+                    "call_empty": false
                 }
             },
             "/qachannels/*/spectroscopy/result/enable": {
@@ -494,7 +520,8 @@
                 },
                 "driver": {
                     "function": "wait_done",
-                    "function_path": "../wait_done"
+                    "function_path": "../wait_done",
+                    "trigger": true
                 }
             },
             "/scopes/*/enable": {
@@ -513,7 +540,8 @@
                 },
                 "driver": {
                     "function": "wait_done",
-                    "function_path": "../wait_done"
+                    "function_path": "../wait_done",
+                    "trigger": true
                 }
             }
         }
@@ -688,12 +716,14 @@
         "scopes/read":{
             "Args": {},
             "Returns": ["../result_0", "../result_1", "../result_2", "../result_3"],
-            "call_type": "Immediately"
+            "call_type": "Immediately",
+            "is_setting": false
         },
         "wait_done":{
             "Args": {},
             "Returns": [],
-            "call_type": "Immediately"
+            "call_type": "Immediately",
+            "is_setting": false
         },
         "generator/write_to_waveform_memory":{
             "Args": {"pulses": "../pulses"},
@@ -713,7 +743,8 @@
         "shfqa/sweeper/get_offset_freq_vector":{
             "Args": {},
             "Returns": ["../offset_freq_vector"],
-            "call_type": "Immediately"
+            "call_type": "Immediately",
+            "is_setting": false
         }
     }
 }

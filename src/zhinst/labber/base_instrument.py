@@ -8,6 +8,7 @@ import logging
 import os
 import sys
 import json
+import time
 
 import numpy as np
 import csv
@@ -68,6 +69,9 @@ class BaseDevice(LabberDriver):
         self._snapshot = SnapshotManager(self._instrument.root)
         self._transaction = TransactionManager(self._instrument, self)
         self._path_seperator = self._settings.get("path_seperator", " - ")
+        self._node_quant_map = {
+            self._quant_to_path(quant): quant for quant in self.dQuantities
+        }
 
         settings_file = Path(__file__).parent / "settings.json"
         self._node_info = {}
@@ -136,8 +140,16 @@ class BaseDevice(LabberDriver):
                 return value
             if quant.set_cmd:
                 info = self._get_node_info(quant.name)
+                if "call_no" in options and not info.get("transaction", True):
+                    logger.info(
+                        f"{quant.name}: Transaction is not supported for this node. Please set value manually"
+                    )
+                    return value
                 if info.get("function", ""):
-                    quant.setValue(value)
+                    if not info.get("trigger", False):
+                        quant.setValue(value)
+                    else:
+                        quant.setValue(False)
                     self.call_toolkit_function(
                         info["function"],
                         (
@@ -145,7 +157,7 @@ class BaseDevice(LabberDriver):
                             / info.get("function_path", ".")
                         ).resolve(),
                     )
-                    return value
+                    return False if info.get("trigger", False) else value
                 return self._set_value_toolkit(
                     quant, value, options=options, wait_for=info.get("wait_for", False)
                 )
@@ -265,7 +277,7 @@ class BaseDevice(LabberDriver):
         logger.info(f"Created Instrument for Device {self.comCfg.getAddressString()}")
         return self._session.connect_device(self.comCfg.getAddressString())
 
-    def _quant_to_path(self, quant_name: str) -> str:
+    def _quant_to_path(self, quant_name: str) -> Path:
         """Convert Quantity name into its path representation
 
         Args:
@@ -275,7 +287,17 @@ class BaseDevice(LabberDriver):
             Path (/ seperated string)
         """
 
-        return Path("/" + "/".join(quant_name.split(self._path_seperator)))
+        return Path(
+            "/" + "/".join(quant_name.lower().split(self._path_seperator))
+        ).resolve()
+
+    def _path_to_quant(self, quant_path: Path) -> str:
+        try:
+            return self._node_quant_map[quant_path.resolve()]
+        except KeyError:
+            name = self._path_seperator.join(quant_path.parts[1:])
+            self._node_quant_map[name] = name
+            return name
 
     def _get_node_info(self, quant_name: t.Union[str, Path]) -> t.Dict[str, t.Any]:
         """Get the node info for a Quantity
@@ -293,6 +315,7 @@ class BaseDevice(LabberDriver):
             if isinstance(quant_name, Path)
             else self._quant_to_path(quant_name)
         )
+        node_path = "/" + "/".join(node_path.parts[1:]).lower()
         for parent_node, node_info in self._node_info.items():
             if fnmatch.fnmatch(node_path, parent_node):
                 return node_info.get("driver", {})
@@ -396,25 +419,31 @@ class BaseDevice(LabberDriver):
         """
         quant_info = self._get_node_info(quant_path)
         quant_type = quant_info.get("type", "default")
-        quant_name = self._path_seperator.join(str(quant_path).split("/")[1:])
+        quant_name = self._path_to_quant(quant_path)
         quant_value = self.getValue(quant_name)
         if quant_type == "JSON":
-            if str(quant_value) == ".":
-                return None
-            with open(quant_value, "r") as file:
-                return json.loads(file.read())
+            try:
+                with open(quant_value, "r") as file:
+                    return json.loads(file.read()), False
+            except IOError as error:
+                logger.error(error)
+                return {}, not quant_info.get("call_empty", True)
         if quant_type == "TEXT":
-            if str(quant_value) == ".":
-                return None
-            with open(quant_value, "r") as file:
-                return file.read()
+            try:
+                with open(quant_value, "r") as file:
+                    return file.read(), False
+            except IOError as error:
+                logger.error(error)
+                return "", not quant_info.get("call_empty", True)
         if quant_type == "CSV":
-            if str(quant_value) == ".":
-                return None
-            return self._import_waveforms(quant_value)
-        return quant_value
+            try:
+                return self._import_waveforms(Path(quant_value)), False
+            except IOError as error:
+                logger.error(error)
+                return Waveforms(), not quant_info.get("call_empty", True)
+        return quant_value, False
 
-    def _get_toolkit_function(self, path: str) -> t.Callable:
+    def _get_toolkit_function(self, path_list: t.List[str]) -> t.Callable:
         """Convert a function path into a toolkit function object.
 
         Args:
@@ -425,11 +454,11 @@ class BaseDevice(LabberDriver):
         """
         # get function object
         function = self._instrument
-        for name in path.split("/")[1:]:
+        for name in path_list:
             if name.isnumeric():
                 function = function[int(name)]
             else:
-                function = getattr(function, name)
+                function = getattr(function, name.lower())
         return function
 
     def call_toolkit_function(
@@ -447,6 +476,11 @@ class BaseDevice(LabberDriver):
 
         func_info = self._function_info[name]
 
+        if self.dOp["operation"] == Interface.SET_CFG and not func_info.get(
+            "is_setting", True
+        ):
+            return
+
         if (
             self._transaction.is_running()
             and func_info.get("call_type", "") == "Bundle"
@@ -460,19 +494,28 @@ class BaseDevice(LabberDriver):
                 waveform_paths = {}
                 for relative_quant_name_el in relative_quant_name:
                     quant_path = (path / relative_quant_name_el).resolve()
-                    quant_name = self._path_seperator.join(
-                        str(quant_path).split("/")[1:]
-                    )
+                    quant_name = self._path_to_quant(quant_path)
                     path_value = self.getValue(quant_name)
                     waveform_paths[quant_path.stem] = (
                         None if str(path_value) == "." else path_value
                     )
-                kwargs[arg_name] = self._import_waveforms(**waveform_paths)
+                try:
+                    kwargs[arg_name] = self._import_waveforms(**waveform_paths)
+                except IOError as error:
+                    logger.error(error)
+                    kwargs[arg_name] = Waveforms()
             else:
                 quant_name = (path / relative_quant_name).resolve()
-                kwargs[arg_name] = self._get_quant_value(quant_name)
+                kwargs[arg_name], error = self._get_quant_value(quant_name)
+                if error:
+                    logger.warning(
+                        f"{self._path_to_quant(path)}: {quant_name} must not be empty"
+                    )
+                    return
 
-        function = self._get_toolkit_function(str(path))
+        function = self._get_toolkit_function(path.parts[1:])
+
+        logger.debug(f"{self._path_to_quant(path)}: call with {kwargs}")
         try:
             return_values = function(**kwargs)
         except Exception as error:
@@ -480,13 +523,12 @@ class BaseDevice(LabberDriver):
             if raise_error:
                 raise
             return
+        logger.debug(f"{self._path_to_quant(path)}: returned {return_values}")
 
         for relative_quant_name in func_info.get("Returns"):
             quant_path = (path / relative_quant_name).resolve()
-            quant_name = self._path_seperator.join(
-                    str(quant_path).split("/")[1:]
-                )
-            info = self._get_node_info(quant_path).get("return_value","")
+            quant_name = self._path_to_quant(quant_path)
+            info = self._get_node_info(quant_path).get("return_value", "")
             try:
                 value = eval("return_values" + info)
             except Exception as error:

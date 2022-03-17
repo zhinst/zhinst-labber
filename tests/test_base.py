@@ -78,11 +78,12 @@ def session_driver():
     return instrument
 
 
-def create_quant_mock(name, set_cmd, get_cmd):
+def create_quant_mock(name, instrument, set_cmd, get_cmd):
     quant = MagicMock()
     quant.name = name
     quant.set_cmd = set_cmd
     quant.get_cmd = get_cmd
+    instrument._node_quant_map[instrument._quant_to_path(name)] = name
     return quant
 
 
@@ -129,13 +130,14 @@ class TestBase:
         device_driver.performOpen()
 
         # Standart node set
-        quant = create_quant_mock("Test - Name", "test/node", "")
+        quant = create_quant_mock("Test - Name", device_driver, "test/node", "")
         device_driver.performSetValue(quant, 0)
         device_driver._instrument[quant.set_cmd].assert_called_with(0)
 
         # Wait for node
         quant = create_quant_mock(
             "qachannels - 0 - readout - result - enable",
+            device_driver,
             "qachannels/0/readout/result/enable",
             "qachannels/0/readout/result/enable",
         )
@@ -156,7 +158,7 @@ class TestBase:
         )
 
         # Without set command
-        quant = create_quant_mock("Test - Name", "", "")
+        quant = create_quant_mock("Test - Name", device_driver, "", "")
         assert device_driver.performSetValue(quant, 0) == 0
 
     def test_performSet_transaction_node(self, mock_toolkit_session, device_driver):
@@ -164,15 +166,15 @@ class TestBase:
         device_driver.performOpen()
 
         # Standart node set
-        quant = create_quant_mock("Test - Name", "test/node", "")
+        quant = create_quant_mock("Test - Name", device_driver, "test/node", "")
         device_driver.performSetValue(quant, 0, options={"call_no": 0, "n_calls": 3})
         device_driver._instrument[quant.set_cmd].assert_called_with(0)
 
-        quant = create_quant_mock("Test - 2", "test/2", "")
+        quant = create_quant_mock("Test - 2", device_driver, "test/2", "")
         device_driver.performSetValue(quant, 5.0, options={"call_no": 1, "n_calls": 3})
         device_driver._instrument[quant.set_cmd].assert_called_with(5.0)
 
-        quant = create_quant_mock("Test - 3", "test/3", "")
+        quant = create_quant_mock("Test - 3", device_driver, "test/3", "")
         device_driver.performSetValue(
             quant, "Test", options={"call_no": 2, "n_calls": 3}
         )
@@ -185,7 +187,7 @@ class TestBase:
         device_driver.comCfg.getAddressString.return_value = "DEV1234"
         device_driver.performOpen()
 
-        quant = create_quant_mock("Test - Name", "test/node", "")
+        quant = create_quant_mock("Test - Name", device_driver, "test/node", "")
         with patch("zhinst.labber.base_instrument.logger") as logger:
             assert 1.0 == device_driver.performSetValue(quant, 1.0, sweepRate=1)
         logger.error.assert_called_with("Test - Name: Sweeping not supported")
@@ -198,7 +200,9 @@ class TestBase:
         input = Path("tests/data/pulses.csv")
         device_driver.instrCfg.getQuantity.return_value.getValue.return_value = input
 
-        quant = create_quant_mock("qachannels - 0 - generator - pulses", "*.csv", "")
+        quant = create_quant_mock(
+            "qachannels - 0 - generator - pulses", device_driver, "*.csv", ""
+        )
         assert input == device_driver.performSetValue(quant, input)
         target = Waveforms()
         target[0] = np.array([1.0 + 5.0j, 2.0 + 5.0j, 5.0 + 0.0j])
@@ -210,12 +214,14 @@ class TestBase:
         ].generator.write_to_waveform_memory.call_args[1]["pulses"]
         compare_waveforms(target, actual)
 
+        # Empty generator waveform
         input = Path(".")
         device_driver.instrCfg.getQuantity.return_value.getValue.return_value = input
         assert input == device_driver.performSetValue(quant, input)
         device_driver._instrument.qachannels[
             0
-        ].generator.write_to_waveform_memory.assert_called_with(pulses=None)
+        ].generator.write_to_waveform_memory.call_args[1]["pulses"]._waveforms == {}
+
         # AWG Wave
         waves1 = Path("tests/data/waves1.csv")
         waves2 = Path("tests/data/waves2.csv")
@@ -226,7 +232,7 @@ class TestBase:
             waves2,
             markers,
         ]
-        quant = create_quant_mock("awgs - 0 - waves1", "*.csv", "")
+        quant = create_quant_mock("awgs - 0 - waves1", device_driver, "*.csv", "")
         assert input == device_driver.performSetValue(quant, input)
         target = Waveforms()
         target[0] = (
@@ -239,9 +245,9 @@ class TestBase:
             np.array([8.0, -8.0, 8.0, -8.0, 8.0, -8.0, 8.0, -8.0]),
             np.array([1, 1, 1, 0, 1, 1, 1, 1]),
         )
-        actual = device_driver._instrument.awgs[
-            0
-        ].write_to_waveform_memory.call_args[1]["waveforms"]
+        actual = device_driver._instrument.awgs[0].write_to_waveform_memory.call_args[
+            1
+        ]["waveforms"]
         compare_waveforms(target, actual)
 
         # AWG Wave without marker
@@ -254,7 +260,7 @@ class TestBase:
             waves2,
             markers,
         ]
-        quant = create_quant_mock("awgs - 0 - waves1", "*.csv", "")
+        quant = create_quant_mock("awgs - 0 - waves1", device_driver, "*.csv", "")
         assert input == device_driver.performSetValue(quant, input)
         target = Waveforms()
         target[0] = (
@@ -267,9 +273,9 @@ class TestBase:
             np.array([8.0, -8.0, 8.0, -8.0, 8.0, -8.0, 8.0, -8.0]),
             None,
         )
-        actual = device_driver._instrument.awgs[
-            0
-        ].write_to_waveform_memory.call_args[1]["waveforms"]
+        actual = device_driver._instrument.awgs[0].write_to_waveform_memory.call_args[
+            1
+        ]["waveforms"]
         compare_waveforms(target, actual)
 
     def test_performSet_function_delayed(self, mock_toolkit_session, device_driver):
@@ -285,19 +291,19 @@ class TestBase:
             waves2,
             markers,
         ]
-        quant = create_quant_mock("awgs - 0 - waves1", "*.csv", "")
+        quant = create_quant_mock("awgs - 0 - waves1", device_driver, "*.csv", "")
         device_driver.performSetValue(
             quant, waves1, options={"call_no": 0, "n_calls": 3}
         )
         device_driver._instrument.awgs[0].write_to_waveform_memory.assert_not_called()
 
-        quant = create_quant_mock("awgs - 0 - waves2", "*.csv", "")
+        quant = create_quant_mock("awgs - 0 - waves2", device_driver, "*.csv", "")
         device_driver.performSetValue(
             quant, waves2, options={"call_no": 1, "n_calls": 3}
         )
         device_driver._instrument.awgs[0].write_to_waveform_memory.assert_not_called()
 
-        quant = create_quant_mock("awgs - 0 - markers", "*.csv", "")
+        quant = create_quant_mock("awgs - 0 - markers", device_driver, "*.csv", "")
         device_driver.performSetValue(
             quant, markers, options={"call_no": 2, "n_calls": 3}
         )
@@ -314,23 +320,25 @@ class TestBase:
             np.array([8.0, -8.0, 8.0, -8.0, 8.0, -8.0, 8.0, -8.0]),
             np.array([1, 1, 1, 0, 1, 1, 1, 1]),
         )
-        actual = device_driver._instrument.awgs[
-            0
-        ].write_to_waveform_memory.call_args[1]["waveforms"]
+        actual = device_driver._instrument.awgs[0].write_to_waveform_memory.call_args[
+            1
+        ]["waveforms"]
         compare_waveforms(target, actual)
 
     def test_performSet_json(self, mock_toolkit_session, device_driver):
         device_driver.comCfg.getAddressString.return_value = "DEV1234"
         device_driver.performOpen()
 
-        quant = create_quant_mock("awgs - 0 - commandtable - data", "*.json", "")
+        quant = create_quant_mock(
+            "awgs - 0 - commandtable - data", device_driver, "*.json", ""
+        )
         # empty input
         input = Path(".")
         device_driver.instrCfg.getQuantity.return_value.getValue.return_value = input
         assert input == device_driver.performSetValue(quant, input)
         device_driver._instrument.awgs[
             0
-        ].commandtable.upload_to_device.assert_called_with(ct=None)
+        ].commandtable.upload_to_device.assert_called_with(ct={})
 
         # valid input
         input = Path("tests/data/test.json")
@@ -345,14 +353,14 @@ class TestBase:
         device_driver.comCfg.getAddressString.return_value = "DEV1234"
         device_driver.performOpen()
 
-        quant = create_quant_mock("awgs - 0 - sequencer_program", "*.seqc", "")
+        quant = create_quant_mock(
+            "awgs - 0 - sequencer_program", device_driver, "*.seqc", ""
+        )
         # empty input
         input = Path(".")
         device_driver.instrCfg.getQuantity.return_value.getValue.return_value = input
         assert input == device_driver.performSetValue(quant, input)
-        device_driver._instrument.awgs[0].load_sequencer_program.assert_called_with(
-            sequencer_program=None
-        )
+        device_driver._instrument.awgs[0].load_sequencer_program.assert_not_called()
 
         # valid input
         input = Path("tests/data/test.seqc")
@@ -368,7 +376,7 @@ class TestBase:
         device_driver.performOpen()
 
         # Standart node get
-        quant = create_quant_mock("Test - Name", "", "test/node")
+        quant = create_quant_mock("Test - Name", device_driver, "", "test/node")
         device_driver.performGetValue(quant)
         device_driver._instrument[quant.get_cmd].assert_called_with()
 
@@ -383,7 +391,7 @@ class TestBase:
         )
 
         # Without set command
-        quant = create_quant_mock("Test - Name", "", "")
+        quant = create_quant_mock("Test - Name", device_driver, "", "")
         device_driver.performGetValue(quant)
 
     def test_performGet_Get_CFG(self, mock_toolkit_session, device_driver):
@@ -394,7 +402,7 @@ class TestBase:
 
         # Not existing node (in snapshot)
         device_driver._instrument.root["*"].side_effect = [{}, 1]
-        quant = create_quant_mock("Test - Name", "", "test/node")
+        quant = create_quant_mock("Test - Name", device_driver, "", "test/node")
         assert device_driver.performGetValue(quant) == 1
 
         # Not existing node (in snapshot)
@@ -413,23 +421,29 @@ class TestBase:
         device_driver.comCfg.getAddressString.return_value = "DEV1234"
         device_driver.performOpen()
 
-        device_driver._instrument.scopes[0].read.return_value = ([np.array([1,1,1]),np.array([2,2,2]),np.array([3,3,3]),None],None,None)
-        device_driver.instrCfg.getQuantity.return_value.getTraceDict.side_effect = lambda a,**kwarg: a
+        device_driver._instrument.scopes[0].read.return_value = (
+            [np.array([1, 1, 1]), np.array([2, 2, 2]), np.array([3, 3, 3]), None],
+            None,
+            None,
+        )
+        device_driver.instrCfg.getQuantity.return_value.getTraceDict.side_effect = (
+            lambda a, **kwarg: a
+        )
 
-        quant = create_quant_mock("scopes/0/result_0", "", "")
+        quant = create_quant_mock("scopes/0/result_0", device_driver, "", "")
 
         device_driver.performGetValue(quant, input)
         set_value = device_driver.instrCfg.getQuantity.return_value.setValue
-        assert all(set_value.call_args_list[0][0][0] == np.array([1,1,1]))
-        assert all(set_value.call_args_list[1][0][0] == np.array([2,2,2]))
-        assert all(set_value.call_args_list[2][0][0] == np.array([3,3,3]))
+        assert all(set_value.call_args_list[0][0][0] == np.array([1, 1, 1]))
+        assert all(set_value.call_args_list[1][0][0] == np.array([2, 2, 2]))
+        assert all(set_value.call_args_list[2][0][0] == np.array([3, 3, 3]))
         assert set_value.call_args_list[3][0][0] == None
 
         # non existing quant
         device_driver.instrCfg.getQuantity.side_effect = KeyError("test")
         with patch("zhinst.labber.base_instrument.logger") as logger:
             device_driver.performGetValue(quant, input)
-        logger.debug.assert_any_call("scopes - 0 - result_0 does not exist")
+        logger.debug.assert_any_call("scopes/0/result_0 does not exist")
         device_driver.instrCfg.getQuantity.side_effect = None
 
         # Invalid return value
