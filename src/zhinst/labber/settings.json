@@ -2,15 +2,7 @@
     "misc": {
         "labberDelimiter": " - ",
         "ziModules": [
-            "daq",
-            "scope",
-            "sweeper",
-            "qa",
-            "shfqa_sweeper",
-            "precompensation_advisor",
-            "pid_advisor",
-            "mds",
-            "impedance"
+            "shfqa_sweeper"
         ]
     },
     "common": {
