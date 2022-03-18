@@ -8,7 +8,7 @@ class Quant:
     """Quant representation of a node-like path.
 
     quant: Quant node-like path.
-    defs: Quant definitions
+    defs: Quant definitions.
     """
 
     def __init__(self, quant: str, defs: dict):
@@ -191,34 +191,27 @@ class NodeQuant:
         return unit.encode("ascii", "ignore").decode()
 
     @property
-    def datatype(self) -> t.Optional[str]:
-        """Node datatype to Labber datatypes"""
-        unit = self.node["Type"]
-        if "enumerated" in unit.lower():
+    def datatype(self) -> str:
+        """Node datatype to Labber datatypes."""
+        node = self.node["Node"].lower()
+        unit = self.node["Type"].lower()
+        if "enumerated" in unit:
             if not "READ" == self.permission:
                 return "COMBO"
-        boolean_nodes = ["ENABLE", "SINGLE", "ON", "BUSY"]
-        if self.node["Node"].split("/")[-1].upper() in boolean_nodes:
+        boolean_nodes = ["enable", "single", "on", "busy", "ready", "reset"]
+        if node.split("/")[-1] in boolean_nodes:
             return "BOOLEAN"
-        if unit == "Double" or "integer" in unit.lower():
+        if unit == "double" or "integer" in unit:
             return "DOUBLE"
-        if unit == "Complex":
-            return unit.upper()
-        if unit == "ZIVectorData":
-            return "VECTOR"
-        if unit == "String":
+        if unit == "complex":
+            return "VECTOR_COMPLEX"
+        if unit == "string":
             return "STRING"
-        if unit == "ZIAdvisorWave":
+        if unit in ["zivectordata", "ziadvisorwave", "zidemodsample", "zidiosample"]:
             return "VECTOR"
-        if unit == "Complex Double":
-            return "COMPLEX"
-        if unit == "ZIVectorData":
-            return "VECTOR"
-        if unit == "ZIDemodSample":
-            return "VECTOR"
-        if unit == "ZIDIOSample":
-            return "VECTOR"
-        if unit == "ZITriggerSample":
+        if unit == "complex double":
+            return "VECTOR_COMPLEX"
+        if unit == "zitriggersample":
             return "STRING"
         return "STRING"
 
