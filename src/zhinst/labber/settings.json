@@ -29,14 +29,52 @@
                 "*/waveform/memoryusage*",
                 "*/waveform/descriptors",
                 "*/commandtable/status",
-                "*/commandtable/clear"
+                "*/commandtable/clear",
+                "/system/impedance/*",
+                "/system/calib*"
             ],
             "advanced": [
                 "/features/*"
             ]
         },
-        "groups": {},
-        "sections": {},
+        "groups": {
+            "/sines/0": "Sines 0",
+            "/sines/1": "Sines 1",
+            "/sines/2": "Sines 2",
+            "/sines/3": "Sines 3",
+            "/sines/4": "Sines 4",
+            "/sines/5": "Sines 5",
+            "/sines/6": "Sines 6",
+            "/sines/7": "Sines 7",
+            "/oscs/0/*": "OSCS 0",
+            "/oscs/1/*": "OSCS 1",
+            "/oscs/2/*": "OSCS 2",
+            "/oscs/3/*": "OSCS 3",
+            "/oscs/4/*": "OSCS 4",
+            "/oscs/5/*": "OSCS 5",
+            "/oscs/6/*": "OSCS 6",
+            "/awgs/0/*": "AWGS 0",
+            "/awgs/1/*": "AWGS 1",
+            "/awgs/2/*": "AWGS 2",
+            "/awgs/3/*": "AWGS 3",
+            "/awgs/4/*": "AWGS 4",
+            "/awgs/5/*": "AWGS 5",
+            "/awgs/6/*": "AWGS 6"
+        },
+        "sections": {
+            "/sigins/*": "Input - Output",
+            "/sigouts/*": "Input - Output",
+            "/currins/*": "Input - Output",
+            "/demods/*": "DEMODS",
+            "/oscs/*": "Oscillators",
+            "/sines/*": "MOD",
+            "/auxins/*": "AUX",
+            "/auxouts/*": "AUX",
+            "/extrefs/*": "EXT Refs",
+            "/mods/*": "MODS",
+            "/tu/*": "Thresholds",
+            "/awgs/*": "AWG Sequencer"
+        },
         "quants": {
             "/scopes/*/wave": {
                 "add": false,
@@ -56,7 +94,7 @@
                 "add": true,
                 "indexes": ["dev"],
                 "conf": {
-                    "datatype": "VECTOR_COMPLEX"
+                    "datatype": "COMPLEX"
                 }
             },
             "/clearhistory": {
@@ -512,8 +550,6 @@
             "advanced": []
         },
         "sections": {
-            "/sigins/*": "Input - Output",
-            "/sigouts/*": "Input - Output",
             "/aux/*": "AUX",
             "/aucarts/*": "AU",
             "/aupolars/*": "AU",
@@ -556,27 +592,10 @@
         "sections": {
             "/awgs/*/dio/*": "DIO",
             "/dios/*": "DIO",
-            "/oscs/*": "Oscillators",
             "/awgs/*/outputs/*": "Outputs",
-            "/awgs/*": "AWG Sequencer",
             "/sines/*": "Sine Generator"
         },
-        "groups": {
-            "/oscs/0/*": "OSCS 0",
-            "/oscs/1/*": "OSCS 1",
-            "/oscs/2/*": "OSCS 2",
-            "/oscs/3/*": "OSCS 3",
-            "/oscs/4/*": "OSCS 4",
-            "/oscs/5/*": "OSCS 5",
-            "/oscs/6/*": "OSCS 6",
-            "/awgs/0/*": "AWGS 0",
-            "/awgs/1/*": "AWGS 1",
-            "/awgs/2/*": "AWGS 2",
-            "/awgs/3/*": "AWGS 3",
-            "/awgs/4/*": "AWGS 4",
-            "/awgs/5/*": "AWGS 5",
-            "/awgs/6/*": "AWGS 6"
-        }
+        "groups": {}
     },
     "SHFQA_Sweeper": {
         "generalSettings": {
@@ -634,6 +653,21 @@
                 }
             }
         }
+    },
+    "PQSC": {
+        "generalSettings": {},
+        "ignoredNodes": {
+            "normal": [
+                "/feedback/decoder/lut/tables/*"
+            ],
+            "advanced": []
+        },
+        "sections": {
+            "/execution/*": "Ports",
+            "/triggers/*": "Ports",
+            "/zsync/*/connection/*": "Ports"
+        },
+        "groups": {}
     },
     "DataServer": {
         "generalSettings": {
@@ -693,6 +727,15 @@
             "interface": "Other"
         }
     },
+    "MFLI": {
+        "generalSettings": {},
+        "ignoredNodes": {
+            "normal": [],
+            "advanced": []
+        },
+        "sections": {},
+        "groups": {}
+    },
     "SHFSG": {
         "generalSettings": {
             "support_arm": true,
@@ -710,8 +753,6 @@
         "sections": {
             "/sgchannels/*/awg/dio/*": "DIO",
             "/sgchannels/*/awg/*": "AWG Sequencer",
-            "/sgchannels/*/oscs/*": "MOD",
-            "/sgchannels/*/sines/*": "MOD",
             "/sgchannels/*": "Output",
             "/synthesizers/*": "MOD",
             "/dios/*": "DIO"
