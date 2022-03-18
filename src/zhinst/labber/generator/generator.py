@@ -184,7 +184,8 @@ class LabberConfig:
     @property
     def general_settings(self) -> dict:
         """General settings"""
-        return self._general_settings
+        self._general_settings.update(self.env_settings.general_settings)
+        return {"General settings": self._general_settings}
 
     @property
     def settings(self) -> dict:
@@ -209,13 +210,9 @@ class DeviceConfig(LabberConfig):
             "instrument": {"base_type": "device", "type": self._name},
         }
         self._general_settings = {
-            "General settings": {
-                "name": f"Zurich Instruments {self._name}",
-                "version": "0.1",
-                "driver_path": f"Zurich_Instruments_{self._name}",
-                "interface": "Other",
-                "startup": f"Do nothing",
-            }
+            "name": f"Zurich Instruments {self._name}",
+            "version": "0.1",
+            "driver_path": f"Zurich_Instruments_{self._name}",
         }
 
 
@@ -237,13 +234,9 @@ class DataServerConfig(LabberConfig):
             },
         }
         self._general_settings = {
-            "General settings": {
-                "name": f"Zurich Instruments {self._name}",
-                "version": "0.1",
-                "driver_path": f"Zurich_Instruments_{self._name}",
-                "interface": "Other",
-                "startup": f"Do nothing",
-            }
+            "name": f"Zurich Instruments {self._name}",
+            "version": "0.1",
+            "driver_path": f"Zurich_Instruments_{self._name}",
         }
 
 
@@ -267,13 +260,9 @@ class ModuleConfig(LabberConfig):
             "instrument": {"base_type": "module", "type": self._tk_name},
         }
         self._general_settings = {
-            "General settings": {
-                "name": f"Zurich Instruments {self._name}",
-                "version": "0.1",
-                "driver_path": f"Zurich_Instruments_{self._name}",
-                "interface": "Other",
-                "startup": f"Do nothing",
-            }
+            "name": f"Zurich Instruments {self._name}",
+            "version": "0.1",
+            "driver_path": f"Zurich_Instruments_{self._name}",
         }
 
 
@@ -303,8 +292,8 @@ def conf_to_labber_format(data: dict, delim: str) -> dict:
         data[title_] = {}
         for key, value in quant.items():
             if key not in ["set_cmd", "get_cmd", "tooltip", "datatype"]:
-                key = _path_to_labber_section(key, delim)
-                value = _path_to_labber_section(value, delim)
+                key = _path_to_labber_section(str(key), delim)
+                value = _path_to_labber_section(str(value), delim)
             if key.lower() in ["label", "group", "section"]:
                 key = key.title()
                 value = value.title()
