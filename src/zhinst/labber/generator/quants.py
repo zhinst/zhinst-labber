@@ -184,7 +184,7 @@ class NodeQuant:
         unit = self.node.get("Unit", None)
         if not unit:
             return None
-        if unit.lower() in ["none", "dependent"]:
+        if unit.lower() in ["none", "dependent", "many"]:
             return None
         unit = self.node["Unit"].replace("%", " percent").replace("'", "")
         # Remove degree signs etc.
