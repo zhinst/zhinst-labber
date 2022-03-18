@@ -17,15 +17,19 @@
             "normal": [
                 "/preset/*",
                 "/stats/*",
+                "status/*",
                 "/system/activeinterface*",
                 "/system/boardrevisions/*",
                 "/system/fpgarevision",
                 "/system/nics/*",
                 "/system/properties/*",
+                "*/elf/*",
                 "/awgs/*/elf/*",
                 "/awgs/*/sequencer/*",
-                "/awgs/*/waveform/memoryusage*",
-                "/awgs/*/waveform/descriptors"
+                "*/waveform/memoryusage*",
+                "*/waveform/descriptors",
+                "*/commandtable/status",
+                "*/commandtable/clear"
             ],
             "advanced": [
                 "/features/*"
@@ -696,11 +700,30 @@
             "interface": "Other",
             "startup": "Do nothing"
         },
+        "ignoredNodes": {
+            "normal": [
+                "/sgchannels/*/awg/rtlogger/data",
+                "/sgchannels/*/awg/elf/*"
+            ],
+            "advanced": []
+        },
         "sections": {
+            "/sgchannels/*/awg/dio/*": "DIO",
             "/sgchannels/*/awg/*": "AWG",
             "/sgchannels/*/oscs/*": "MOD",
             "/sgchannels/*/sines/*": "MOD",
-            "/sgchannels/*": "Output"
+            "/sgchannels/*": "Output",
+            "/synthesizers/*": "MOD"
+        },
+        "groups": {
+            "/sgchannels/0/*": "SG Channel 0",
+            "/sgchannels/1/*": "SG Channel 1",
+            "/sgchannels/2/*": "SG Channel 2",
+            "/sgchannels/3/*": "SG Channel 3",
+            "/sgchannels/4/*": "SG Channel 4",
+            "/sgchannels/5/*": "SG Channel 5",
+            "/sgchannels/6/*": "SG Channel 6",
+            "/sgchannels/7/*": "SG Channel 7"
         }
     },
     "functions": {
