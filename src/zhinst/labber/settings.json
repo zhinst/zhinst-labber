@@ -30,7 +30,8 @@
                 "*/commandtable/status",
                 "*/commandtable/clear",
                 "/system/impedance/*",
-                "/system/calib*"
+                "/system/calib*",
+                "*/dio/data"
             ],
             "advanced": [
                 "/features/*"
