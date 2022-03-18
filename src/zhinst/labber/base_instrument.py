@@ -1,21 +1,18 @@
-import typing as t
-from enum import Enum
-from pathlib import Path
-from itertools import repeat
-import inspect
+"""Generic Labber base driver for all drivers from Zurich Instruments."""
+import csv
 import fnmatch
+import json
 import logging
 import os
 import sys
-import json
-import time
+import typing as t
+from itertools import repeat
+from pathlib import Path
+import string
 
 import numpy as np
-import csv
-
 from BaseDriver import LabberDriver
 from InstrumentDriver_Interface import Interface
-
 from zhinst.toolkit import Session, Waveforms
 from zhinst.toolkit.driver.devices import DeviceType
 from zhinst.toolkit.driver.modules import ModuleType
@@ -25,68 +22,108 @@ from zhinst.labber.snapshot_manager import SnapshotManager, TransactionManager
 Quantity = t.TypeVar("Quantity")
 NumpyArray = t.TypeVar("NumpyArray")
 
+GLOBAL_SETTINGS = Path(__file__).parent / "settings.json"
+
 created_sessions = {}
-
-logger = logging.getLogger("")
-logger.setLevel(logging.DEBUG)
-# fh = logging.FileHandler('my_log_info.log')
-sh = logging.StreamHandler(sys.stdout)
-formatter = logging.Formatter(
-    "[%(asctime)s] %(levelname)s: %(message)s",
-    datefmt="%a, %d %b %Y %H:%M:%S",
-)
-# fh.setFormatter(formatter)
-sh.setFormatter(formatter)
-# logger.addHandler(fh)
-logger.addHandler(sh)
-
-
-class BaseType(Enum):
-    """Supported Instrument Types"""
-
-    SESSION = 0
-    MODULE = 1
-    DEVICE = 2
+logger = logging.getLogger(__name__)
 
 
 class BaseDevice(LabberDriver):
-    """Implement a Labber Driver for the Zurich Instruments SHFSG"""
+    """Generic Labber base driver for all drivers from Zurich Instruments.
 
-    def __init__(self, *args, settings, **kwargs):
+    The driver is based on zhinst-toolkit. It works for devices, LabOne modules
+    and a session.
+
+    It requires both local and global settings. The global settings are shared
+    with the generator script and contains information about special node
+    handling and function calls. The local settings are passed as an argument
+    and contain instrument/user specific information. The following fields are
+    supported/required:
+
+    * data_server (information about the data server session)
+        * host: Address of the data server. (default = "localhost")
+        * port: Port of the data server. (default = 8004)
+        * hf2: Flag if the data server is for hf2 device. (default = false)
+        * shared_session: Flag if the session should be shared with Labber.
+            Warning: If set to false some feature may no longer be supported.
+            (default = true)
+    * instrument: (Labber instrument specific information)
+        * base_type: Base type of the instrument. (device, module, session)
+        * type: Type of the module. Not used for session.
+            module => name of the module in toolkit
+            device => device type
+    },
+    * logger_level: Logging level of python logger. If not specified the global
+        settings are used.
+    * logger_path: Optional logger path where the logging information will be
+        stored (in addition to the std output which is always enabled).
+
+    The driver will accept all arguments and forward them to the
+    ``LabberDriver`` directly.
+
+    Args:
+        settings: local settings
+    """
+
+    def __init__(self, *args, settings=t.Dict, **kwargs):
         super().__init__(*args, **kwargs)
         self._session = None
         self._instrument = None
-        self._base_type = None
         self._transaction = None
         self._snapshot = None
-        self._settings = settings
-        logger.debug(f"PID: {os.getpid()}")
+        self._instrument_settings = settings
+        self._device_type = settings["instrument"].get("type", "")
+        log_level = settings.get("logger_level", None)
 
-    def performOpen(self, options: t.Dict = {}) -> None:
-        """Perform the operation of opening the instrument connection."""
-        self._session = self._get_session(self._settings["data_server"])
-        self._instrument = self._create_instrument(self._settings["instrument"])
-        self._snapshot = SnapshotManager(self._instrument.root)
-        self._transaction = TransactionManager(self._instrument, self)
-        self._path_seperator = self._settings.get("path_seperator", " - ")
+        # read information from global settings file
+        with GLOBAL_SETTINGS.open("r") as file:
+            node_info = json.loads(file.read())
+            self._node_info = node_info["common"].get("quants", {})
+            if self._device_type:
+                device_info = node_info.get(
+                    self._device_type.rstrip(string.digits), {}
+                ).get("quants", {})
+                self._node_info = {**self._node_info, **device_info}
+            self._function_info = node_info.get("functions", {})
+            self._path_seperator = node_info["misc"]["labberDelimiter"]
+            # use global log level if no local one is defined
+            log_level = node_info["misc"]["LogLevel"] if not log_level else log_level
+
+        # Set up logger
+        formatter = logging.Formatter(
+            "[%(asctime)s] %(levelname)s: %(message)s",
+            datefmt="%a, %d %b %Y %H:%M:%S",
+        )
+        # always log to std out
+        std_out_handler = logging.StreamHandler(sys.stdout)
+        std_out_handler.setFormatter(formatter)
+        logger.addHandler(std_out_handler)
+        # log to path if specified
+        if "logger_path" in self._instrument_settings:
+            file_handler = logging.FileHandler(self._instrument_settings["logger_path"])
+            file_handler.setFormatter(formatter)
+            logger.addHandler(file_handler)
+
+        logger.setLevel(log_level)
+        logger.debug("PID: %d", os.getpid())
+
+        # Set up node to quant map
         self._node_quant_map = {
             self._quant_to_path(quant): quant for quant in self.dQuantities
         }
 
-        settings_file = Path(__file__).parent / "settings.json"
-        self._node_info = {}
-        self._function_info = {}
-        if settings_file.exists():
-            with settings_file.open("r") as file:
-                node_info = json.loads(file.read())
-                self._node_info = node_info["common"].get("quants", {})
-                device = self._settings["instrument"].get("type", None)
-                if device:
-                    device_info = node_info.get(device, {}).get("quants", {})
-                    self._node_info = {**self._node_info, **device_info}
-                self._function_info = node_info.get("functions", {})
-        else:
-            logger.error(f"{settings_file} not found!")
+    def performOpen(self, options: t.Dict = {}) -> None:
+        """Perform the operation of opening the instrument connection.
+
+        Args:
+            options: Additional information provided by Labber.
+        """
+        self._session = self._get_session(self._instrument_settings["data_server"])
+        self._instrument = self._create_instrument(
+            self._instrument_settings["instrument"]
+        )
+        self._snapshot = SnapshotManager(self._instrument.root)
+        self._transaction = TransactionManager(self._instrument, self)
 
     def performSetValue(
         self,
@@ -106,12 +143,13 @@ class BaseDevice(LabberDriver):
         minute, as set by the sweep_minute configuration parameter
         defined in the section above.
 
+        TODO special treatment for sweeping required?
+
         Args:
-            quant: Quantity that should be set
-            value: Value to be set
-            sweepRate: sweep rate. 0 if no sweep should be performed
-            options: additional options for setting/getting a value
-                Set:
+            quant: Quantity that should be set.
+            value: Value to be set.
+            sweepRate: Sweep rate. 0 if no sweep should be performed.
+            options: Additional information provided by Labber.
                 {
                     'operation':1
                     'quant':'QA Channel 1 - Trigger Level'
@@ -120,7 +158,50 @@ class BaseDevice(LabberDriver):
                     'wait_for_sweep':True
                     'delay':693483.64
                 }
-                Get:
+
+
+        Returns:
+            Value that was set. (If None Labber will automatically use the input
+            value instead)
+        """
+        # Start transaction if necessary
+        if "call_no" in options and not self._transaction.is_running():
+            self._transaction.start()
+        try:
+            node_info = self._get_node_info(quant.name)
+            if "call_no" in options and not node_info.get("transaction", True):
+                logger.info(
+                    "%s: Transaction is not supported for this node. "
+                    "Please set value manually.",
+                    quant.name,
+                )
+                return value
+            if node_info.get("function", ""):
+                quant.setValue(False if node_info.get("trigger", False) else value)
+                function_path = node_info.get("function_path", ".")
+                function_path = self._quant_to_path(quant.name) / function_path
+                self.call_toolkit_function(
+                    node_info["function"],
+                    function_path.resolve(),
+                )
+                return False if node_info.get("trigger", False) else value
+            return self._set_value_toolkit(
+                quant, value, options=options, wait_for=node_info.get("wait_for", False)
+            )
+        # Stop transaction if necessary (should be ended regardless of any exceptions)
+        finally:
+            if self._transaction.is_running() and self.isFinalCall(options):
+                try:
+                    self._transaction.end()
+                except Exception as error:
+                    logger.error("Error during ending a transaction: %s", error)
+
+    def performGetValue(self, quant: Quantity, options: t.Dict = {}) -> t.Any:
+        """Perform the Get Value instrument operation.
+
+        Args:
+            quant: Quantity that should be set.
+            options: Additional information provided by Labber.
                 {
                     'operation':2
                     'quant':'QA Channel 1 - Trigger Level'
@@ -128,77 +209,36 @@ class BaseDevice(LabberDriver):
                 }
 
         Returns:
-            Value that was set. (if None Labber will automatically use the input
-            value instead)
+            New value of the quantity.
         """
-        if "call_no" in options and not self._transaction.is_running():
-            self._transaction.start()
-        try:
-            if sweepRate > 0.0:
-                # TODO support sweeping of values?
-                logger.error(f"{quant.name}: Sweeping not supported")
-                return value
-            if quant.set_cmd:
-                info = self._get_node_info(quant.name)
-                if "call_no" in options and not info.get("transaction", True):
-                    logger.info(
-                        f"{quant.name}: Transaction is not supported for this node. Please set value manually"
-                    )
-                    return value
-                if info.get("function", ""):
-                    if not info.get("trigger", False):
-                        quant.setValue(value)
-                    else:
-                        quant.setValue(False)
-                    self.call_toolkit_function(
-                        info["function"],
-                        (
-                            self._quant_to_path(quant.name)
-                            / info.get("function_path", ".")
-                        ).resolve(),
-                    )
-                    return False if info.get("trigger", False) else value
-                return self._set_value_toolkit(
-                    quant, value, options=options, wait_for=info.get("wait_for", False)
-                )
-            return value
-        finally:
-            if self._transaction.is_running() and self.isFinalCall(options):
-                self._transaction.end()
-
-    def performGetValue(self, quant: Quantity, options: t.Dict = {}):
-        """Perform the Get Value instrument operation."""
-        info = self._get_node_info(quant.name)
-        if info.get("function", ""):
-            if self.dOp["operation"] != Interface.GET_CFG:
-                self.call_toolkit_function(
-                    info["function"],
-                    (
-                        self._quant_to_path(quant.name) / info.get("function_path", ".")
-                    ).resolve(),
-                )
-            return quant.getValue()
-        if quant.get_cmd:
+        node_info = self._get_node_info(quant.name)
+        # Call function. (No function execution during GET_CFG)
+        if node_info.get("function", "") and self.dOp["operation"] != Interface.GET_CFG:
+            function_path = node_info.get("function_path", ".")
+            function_path = self._quant_to_path(quant.name) / function_path
+            self.call_toolkit_function(
+                node_info["function"],
+                function_path.resolve(),
+            )
+        # Get value from toolkit
+        elif quant.get_cmd:
+            # use a snapshot for the GET_CFG command
             if self.dOp["operation"] == Interface.GET_CFG:
-                # use a snapshot for the GET_CFG command
                 try:
                     value = self._snapshot.get_value(quant.get_cmd)
                     value = value if value is not None else quant.getValue()
                     return value
                 except KeyError:
-                    logger.error(f"{quant.get_cmd} not found")
+                    logger.error("%s not found", quant.get_cmd)
                     return quant.getValue()
             # clear snapshot if GET_CFG is finished
             self._snapshot.clear()
             try:
                 value = self._instrument[quant.get_cmd]()
-                logger.debug(f"{quant.name}: get {value}")
+                logger.debug("%s: get %s", quant.name, value)
                 return value
             except Exception as error:
                 logger.error(error)
-        logger.debug(
-            f"{quant.name}: does not have a get_cmd and is not part of a function"
-        )
         return quant.getValue()
 
     # def performClose(self, bError: bool = False, options: t.Dict = {}) -> None:
@@ -228,7 +268,7 @@ class BaseDevice(LabberDriver):
         target_host = data_server_info.get("host", "localhost")
         target_hf2 = data_server_info.get("hf2", False)
         target_port = data_server_info.get("port", 8005 if target_hf2 else 8004)
-        logger.info(f"Data Server Session {target_host}:{target_port}")
+        logger.info("Data Server Session %s:%s", target_host, target_port)
         if data_server_info.get("shared_session", True):
             for (host, port), session in created_sessions.items():
                 if target_host == host and target_port == port:
@@ -253,13 +293,12 @@ class BaseDevice(LabberDriver):
         """
         base_type = instrument_info.get("base_type", "session")
         if base_type == "session":
-            self._base_type = BaseType.SESSION
             logger.info("Created Session Instrument")
             return self._session
         if base_type == "module":
-            self._base_type = BaseType.MODULE
             logger.info(
-                f"Created Instrument for LabOne Module {instrument_info.get('type','unknown').lower()}"
+                "Created Instrument for LabOne Module %s",
+                instrument_info.get("type", "unknown").lower(),
             )
             try:
                 return getattr(self._session.modules, instrument_info["type"].lower())
@@ -272,9 +311,8 @@ class BaseDevice(LabberDriver):
                 raise RuntimeError(
                     f"LabOne module with name {instrument_info['type'].lower()}"
                     " does not exist in toolkit."
-                )
-        self._base_type = BaseType.DEVICE
-        logger.info(f"Created Instrument for Device {self.comCfg.getAddressString()}")
+                ) from error
+        logger.info("Created Instrument for Device %s", self.comCfg.getAddressString())
         return self._session.connect_device(self.comCfg.getAddressString())
 
     def _quant_to_path(self, quant_name: str) -> Path:
@@ -343,8 +381,11 @@ class BaseDevice(LabberDriver):
             raise_error: Flag if the function should raise an error or only log
                 it.
         """
+        if not quant.set_cmd:
+            logger.error("%s: Does not have a set command.", quant.name)
+            return
         try:
-            logger.debug(f"{quant.name}: set {value}")
+            logger.debug("%s: set %s", quant.name, value)
             self._instrument[quant.set_cmd](value)
             if wait_for and not self._transaction.is_running():
                 self._instrument[quant.set_cmd].wait_for_state_change(value)
@@ -509,13 +550,15 @@ class BaseDevice(LabberDriver):
                 kwargs[arg_name], error = self._get_quant_value(quant_name)
                 if error:
                     logger.warning(
-                        f"{self._path_to_quant(path)}: {quant_name} must not be empty"
+                        "%s: %s must not be empty",
+                        self._path_to_quant(path),
+                        quant_name,
                     )
                     return
 
         function = self._get_toolkit_function(path.parts[1:])
 
-        logger.debug(f"{self._path_to_quant(path)}: call with {kwargs}")
+        logger.debug("%s: call with %s", self._path_to_quant(path), kwargs)
         try:
             return_values = function(**kwargs)
         except Exception as error:
@@ -523,7 +566,7 @@ class BaseDevice(LabberDriver):
             if raise_error:
                 raise
             return
-        logger.debug(f"{self._path_to_quant(path)}: returned {return_values}")
+        logger.debug("%s: returned %s", self._path_to_quant(path), return_values)
 
         for relative_quant_name in func_info.get("Returns"):
             quant_path = (path / relative_quant_name).resolve()
@@ -536,5 +579,5 @@ class BaseDevice(LabberDriver):
                 value = self.getValue(quant_name)
             try:
                 self.setValue(quant_name, value)
-            except KeyError as error:
-                logger.debug(f"{quant_name} does not exist")
+            except KeyError:
+                logger.debug("%s does not exist", quant_name)

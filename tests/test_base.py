@@ -45,7 +45,7 @@ def module_driver():
             "hf2": False,
             "shared_session": True,
         },
-        "instrument": {"base_type": "module", "type": "AWG"},
+        "instrument": {"base_type": "module", "type": "SHFQA_Sweeper"},
     }
     # reset session cache
     labber_driver.created_sessions = {}
@@ -112,11 +112,11 @@ class TestBase:
         module_driver.performOpen()
         mock_toolkit_session.assert_called_with("localhost", 8004, hf2=False)
         assert (
-            module_driver._instrument == mock_toolkit_session.return_value.modules.awg
+            module_driver._instrument == mock_toolkit_session.return_value.modules.shfqa_sweeper
         )
 
         # Missing type property
-        del module_driver._settings["instrument"]["type"]
+        del module_driver._instrument_settings["instrument"]["type"]
         with pytest.raises(RuntimeError):
             module_driver.performOpen()
 
@@ -159,7 +159,7 @@ class TestBase:
 
         # Without set command
         quant = create_quant_mock("Test - Name", device_driver, "", "")
-        assert device_driver.performSetValue(quant, 0) == 0
+        assert device_driver.performSetValue(quant, 0) == None
 
     def test_performSet_transaction_node(self, mock_toolkit_session, device_driver):
         device_driver.comCfg.getAddressString.return_value = "DEV1234"
@@ -179,18 +179,18 @@ class TestBase:
             quant, "Test", options={"call_no": 2, "n_calls": 3}
         )
         device_driver._instrument[quant.set_cmd].assert_called_with("Test")
-        device_driver._instrument.set_transaction.assert_called_once()
-        device_driver._instrument.set_transaction.return_value.__enter__.assert_called_once()
-        device_driver._instrument.set_transaction.return_value.__exit__.assert_called_once()
+        device_driver._instrument.root.set_transaction.assert_called_once()
+        device_driver._instrument.root.set_transaction.return_value.__enter__.assert_called_once()
+        device_driver._instrument.root.set_transaction.return_value.__exit__.assert_called_once()
 
     def test_performSet_sweep(self, mock_toolkit_session, device_driver):
         device_driver.comCfg.getAddressString.return_value = "DEV1234"
         device_driver.performOpen()
 
+        # Currently the sweepRate keyword does not have any effect
         quant = create_quant_mock("Test - Name", device_driver, "test/node", "")
-        with patch("zhinst.labber.base_instrument.logger") as logger:
-            assert 1.0 == device_driver.performSetValue(quant, 1.0, sweepRate=1)
-        logger.error.assert_called_with("Test - Name: Sweeping not supported")
+        device_driver.performSetValue(quant, 1.0, sweepRate=1)
+        device_driver._instrument[quant.set_cmd].assert_called_with(1.0)
 
     def test_performSet_csv(self, mock_toolkit_session, device_driver):
         device_driver.comCfg.getAddressString.return_value = "DEV1234"
@@ -409,7 +409,7 @@ class TestBase:
         device_driver._instrument.root["*"].side_effect = [{}, KeyError("test")]
         with patch("zhinst.labber.base_instrument.logger") as logger:
             device_driver.performGetValue(quant)
-        logger.error.assert_called_with("test/node not found")
+        logger.error.assert_called_with('%s not found', 'test/node')
         # existing node
         device_driver._instrument.root["*"].side_effect = None
         device_driver._instrument.root["*"].return_value = {
@@ -417,44 +417,38 @@ class TestBase:
         }
         assert device_driver.performGetValue(quant) == 0
 
-    def test_performGet_function(self, mock_toolkit_session, device_driver):
-        device_driver.comCfg.getAddressString.return_value = "DEV1234"
-        device_driver.performOpen()
+    def test_performGet_function(self, mock_toolkit_session, module_driver):
+        module_driver.comCfg.getAddressString.return_value = "DEV1234"
+        module_driver.performOpen()
 
-        device_driver._instrument.scopes[0].read.return_value = (
-            [np.array([1, 1, 1]), np.array([2, 2, 2]), np.array([3, 3, 3]), None],
-            None,
-            None,
-        )
-        device_driver.instrCfg.getQuantity.return_value.getTraceDict.side_effect = (
+        module_driver._instrument.run.return_value = {'vector': np.array([1, 1, 1]), 'test': "test"}
+        module_driver.instrCfg.getQuantity.return_value.getTraceDict.side_effect = (
             lambda a, **kwarg: a
         )
 
-        quant = create_quant_mock("scopes/0/result_0", device_driver, "", "")
+        quant = create_quant_mock("result", module_driver, "", "")
 
-        device_driver.performGetValue(quant, input)
-        set_value = device_driver.instrCfg.getQuantity.return_value.setValue
+        module_driver.performGetValue(quant, input)
+        set_value = module_driver.instrCfg.getQuantity.return_value.setValue
+        module_driver._instrument.run.assert_called_once()
         assert all(set_value.call_args_list[0][0][0] == np.array([1, 1, 1]))
-        assert all(set_value.call_args_list[1][0][0] == np.array([2, 2, 2]))
-        assert all(set_value.call_args_list[2][0][0] == np.array([3, 3, 3]))
-        assert set_value.call_args_list[3][0][0] == None
 
         # non existing quant
-        device_driver.instrCfg.getQuantity.side_effect = KeyError("test")
+        module_driver.instrCfg.getQuantity.side_effect = KeyError("test")
         with patch("zhinst.labber.base_instrument.logger") as logger:
-            device_driver.performGetValue(quant, input)
-        logger.debug.assert_any_call("scopes/0/result_0 does not exist")
-        device_driver.instrCfg.getQuantity.side_effect = None
+            module_driver.performGetValue(quant, input)
+        logger.debug.assert_any_call('%s does not exist', 'result')
+        module_driver.instrCfg.getQuantity.side_effect = None
 
         # Invalid return value
-        device_driver._instrument.scopes[0].read.return_value = None
+        module_driver._instrument.run.return_value = None
         with patch("zhinst.labber.base_instrument.logger") as logger:
-            device_driver.performGetValue(quant, input)
-        logger.error.call_count == 4
+            module_driver.performGetValue(quant, input)
+        logger.error.call_count == 1
 
         # Exception in function call
         error = RuntimeError("test")
-        device_driver._instrument.scopes[0].read.side_effect = error
+        module_driver._instrument.run.side_effect = error
         with patch("zhinst.labber.base_instrument.logger") as logger:
-            device_driver.performGetValue(quant, input)
+            module_driver.performGetValue(quant, input)
         logger.error.assert_called_with(error)

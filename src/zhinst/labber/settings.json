@@ -1,6 +1,7 @@
 {
     "misc": {
         "labberDelimiter": " - ",
+        "LogLevel": 10,
         "ziModules": [
             "shfqa_sweeper"
         ]
@@ -404,84 +405,6 @@
                     "type": "CSV"
                 }
             },
-            "/scopes/*/result_0": {
-                "add": true,
-                "indexes": [
-                    "dev"
-                ],
-                "conf": {
-                    "label": "Result_0",
-                    "datatype": "VECTOR_COMPLEX",
-                    "show_in_measurement_dlg": "True",
-                    "x_name": "Length",
-                    "x_unit": "Sample"
-                },
-                "driver": {
-                    "function": "scopes/read",
-                    "function_path": "../read",
-                    "return_value": "[0][0]"
-                }
-            },
-            "/scopes/*/result_1": {
-                "add": true,
-                "indexes": [
-                    "dev"
-                ],
-                "conf": {
-                    "label": "Result_1",
-                    "datatype": "VECTOR_COMPLEX",
-                    "show_in_measurement_dlg": "True",
-                    "x_name": "Length",
-                    "x_unit": "Sample"
-                },
-                "driver": {
-                    "function": "scopes/read",
-                    "function_path": "../read",
-                    "return_value": "[0][1]"
-                }
-            },
-            "/scopes/*/result_2": {
-                "add": true,
-                "dev_type": [
-                    "SHFQA4"
-                ],
-                "indexes": [
-                    "dev"
-                ],
-                "conf": {
-                    "label": "Result_2",
-                    "datatype": "VECTOR_COMPLEX",
-                    "show_in_measurement_dlg": "True",
-                    "x_name": "Length",
-                    "x_unit": "Sample"
-                },
-                "driver": {
-                    "function": "scopes/read",
-                    "function_path": "../read",
-                    "return_value": "[0][2]"
-                }
-            },
-            "/scopes/*/result_3": {
-                "add": true,
-                "dev_type": [
-                    "SHFQA4"
-                ],
-                "indexes": [
-                    "dev"
-                ],
-                "conf": {
-                    "label": "Result_3",
-                    "datatype": "VECTOR_COMPLEX",
-                    "show_in_measurement_dlg": "True",
-                    "x_name": "Length",
-                    "x_unit": "Sample"
-                },
-                "driver": {
-                    "function": "scopes/read",
-                    "function_path": "../read",
-                    "return_value": "[0][3]"
-                }
-            },
             "/qachannels/*/generator/wait_done": {
                 "add": true,
                 "indexes": [
@@ -690,7 +613,20 @@
                 "driver": {
                     "function": "shfqa/sweeper/get_offset_freq_vector",
                     "function_path": "../get_offset_freq_vector",
-                    "return_value": "[0]"
+                    "return_value": ""
+                }
+            },
+            "/result": {
+                "add": true,
+                "conf": {
+                    "datatype": "VECTOR_COMPLEX",
+                    "label": "Result",
+                    "permission": "READ"
+                },
+                "driver": {
+                    "function": "shfqa/sweeper/run",
+                    "function_path": "../run",
+                    "return_value": "['vector']"
                 }
             }
         }
@@ -778,12 +714,6 @@
             "Returns": [],
             "call_type": "Immediately"
         },
-        "scopes/read":{
-            "Args": {},
-            "Returns": ["../result_0", "../result_1", "../result_2", "../result_3"],
-            "call_type": "Immediately",
-            "is_setting": false
-        },
         "wait_done":{
             "Args": {},
             "Returns": [],
@@ -808,6 +738,12 @@
         "shfqa/sweeper/get_offset_freq_vector":{
             "Args": {},
             "Returns": ["../offset_freq_vector"],
+            "call_type": "Immediately",
+            "is_setting": false
+        },
+        "shfqa/sweeper/run":{
+            "Args": {},
+            "Returns": ["../result"],
             "call_type": "Immediately",
             "is_setting": false
         }
