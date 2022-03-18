@@ -24,8 +24,7 @@
                 "/system/nics/*",
                 "/system/properties/*",
                 "*/elf/*",
-                "/awgs/*/elf/*",
-                "/awgs/*/sequencer/*",
+                "*/sequencer/*",
                 "*/waveform/memoryusage*",
                 "*/waveform/descriptors",
                 "*/commandtable/status",
@@ -74,9 +73,10 @@
             "/mods/*": "MOD",
             "/tu/*": "Thresholds",
             "/awgs/*": "AWG Sequencer",
-            "/dio/*": "DIO",
+            "/dios/*": "DIO",
             "/pids/*": "PID",
-            "/plls/*": "PLL"
+            "/plls/*": "PLL",
+            "/zctrls/*": "ZSync Control"
         },
         "quants": {
             "/scopes/*/wave": {
