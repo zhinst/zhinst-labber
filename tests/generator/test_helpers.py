@@ -163,7 +163,13 @@ def test_match_in_list_match(target, data, idx):
     ),
     (
         "/qa/*/bar/*/foo", "*", 4, -1
-    )
+    ),
+    (
+        "/awgs/*/waveform/waves/*", "*", 0, 6
+    ),
+    (
+        "/awgs/*/waveform/waves/*", "*", 1, 23
+    ),
 ]
 )
 def test_find_nth_occurrence(string, target, n, idx):

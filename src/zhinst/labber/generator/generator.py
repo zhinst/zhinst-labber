@@ -1,6 +1,5 @@
 from collections import OrderedDict
 import configparser
-from copy import deepcopy
 import re
 import typing as t
 from pathlib import Path
@@ -69,20 +68,20 @@ class LabberConfig:
             else:
                 return [quant]
 
-        def find_indexes(quant, i, idxs):
+        def find_indexes(quant_, i, idxs):
             for x in range(idxs[i]):
-                s = list(quant)
-                idx = find_nth_occurence("".join(s), "*", i)
+                idx = find_nth_occurence(quant, "*", i)
+                s = list(quant_)
                 if idx != -1:
                     s[idx] = str(x)
                     try:
-                        find_indexes(s, i + 1, idxs)
+                        find_indexes("".join(s), i + 1, idxs)
                     except IndexError:
                         qts.append("".join(s))
         find_indexes(quant, index, indexes)
         return qts
 
-    def _quant_paths(self, quant: str, indexes: t.List[str]) -> t.List[str]:
+    def _quant_paths(self, quant: str, indexes: t.List[t.Union[str, int]]) -> t.List[str]:
         """Quant paths."""
         idxs = []
         if not indexes:
@@ -126,7 +125,7 @@ class LabberConfig:
         """Generate Labber quants."""
         nodes = self._generate_node_quants()
         # Added nodes from configuration if the node exists but is not available
-        missing = deepcopy(self.env_settings.quants)
+        missing =self.env_settings.quants.copy()
         for k, v in nodes.copy().items():
             kk, vv = match_in_dict_keys(k, self.env_settings.quants)
             if kk:

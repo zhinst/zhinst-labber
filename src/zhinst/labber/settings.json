@@ -48,7 +48,7 @@
                     "datatype": "VECTOR_COMPLEX"
                 }
             },
-            "/demopds/*/sample": {
+            "/demods/*/sample": {
                 "add": true,
                 "indexes": ["dev"],
                 "conf": {
