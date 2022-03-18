@@ -71,9 +71,12 @@
             "/auxins/*": "AUX",
             "/auxouts/*": "AUX",
             "/extrefs/*": "EXT Refs",
-            "/mods/*": "MODS",
+            "/mods/*": "MOD",
             "/tu/*": "Thresholds",
-            "/awgs/*": "AWG Sequencer"
+            "/awgs/*": "AWG Sequencer",
+            "/dio/*": "DIO",
+            "/pids/*": "PID",
+            "/plls/*": "PLL"
         },
         "quants": {
             "/scopes/*/wave": {
@@ -83,14 +86,21 @@
                     "datatype": "VECTOR_COMPLEX"
                 }
             },
-            "/dios/*/input": {
+            "/demods/*/sample": {
                 "add": true,
                 "indexes": ["dev"],
                 "conf": {
-                    "datatype": "VECTOR_COMPLEX"
+                    "datatype": "COMPLEX"
                 }
             },
-            "/demods/*/sample": {
+            "/mods/*/sample": {
+                "add": true,
+                "indexes": ["dev"],
+                "conf": {
+                    "datatype": "COMPLEX"
+                }
+            },
+            "/dios/*/input": {
                 "add": true,
                 "indexes": ["dev"],
                 "conf": {

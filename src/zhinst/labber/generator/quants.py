@@ -210,8 +210,10 @@ class NodeQuant:
             return "VECTOR_COMPLEX"
         if unit == "string":
             return "STRING"
-        if unit in ["zivectordata", "ziadvisorwave", "zidemodsample", "zidiosample"]:
+        if unit in ["zivectordata", "ziadvisorwave"]:
             return "VECTOR"
+        if unit in ["zidemodsample", "zidiosample"]:
+            return "COMPLEX"
         if unit == "complex double":
             return "VECTOR_COMPLEX"
         if unit == "zitriggersample":
