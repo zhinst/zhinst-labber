@@ -224,17 +224,16 @@ class BaseDevice(LabberDriver):
         elif quant.get_cmd:
             # use a snapshot for the GET_CFG command
             if self.dOp["operation"] == Interface.GET_CFG:
+                value = None
                 try:
-                    value = self._snapshot.get_value(quant.get_cmd)
-                    value = value if value is not None else quant.getValue()
-                    return value
+                    value = self._parse_value(self._snapshot.get_value(quant.get_cmd))
                 except KeyError:
                     logger.error("%s not found", quant.get_cmd)
-                    return quant.getValue()
+                return value if value is not None else quant.getValue()
             # clear snapshot if GET_CFG is finished
             self._snapshot.clear()
             try:
-                value = self._instrument[quant.get_cmd]()
+                value = self._parse_value(self._instrument[quant.get_cmd]())
                 logger.debug("%s: get %s", quant.name, value)
                 return value
             except Exception as error:
@@ -252,6 +251,23 @@ class BaseDevice(LabberDriver):
     # def performArm(self, quant_names: str, options: t.Dict = {}) -> None:
     #     """Perform the instrument arm operation"""
     #     pass
+
+    def _parse_value(self, value: t.Any) -> t.Any:
+        """Parse the value received from toolkit for a node.
+
+        Args:
+            value: Received value
+
+        Returns:
+            parsed value
+        """
+        if isinstance(value, dict):
+            if "x" in value and "y" in value:
+                return complex(value["x"], value["y"])
+            if "dio" in value:
+                return value["dio"][0]
+            logger.error("Unknown data received %s", value)
+        return value
 
     def _get_session(self, data_server_info: t.Dict[str, t.Any]) -> Session:
         """Return a Session to the dataserver.

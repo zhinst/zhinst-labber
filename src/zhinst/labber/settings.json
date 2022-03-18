@@ -88,24 +88,24 @@
                 }
             },
             "/demods/*/sample": {
-                "add": true,
+                "add": false,
                 "indexes": ["dev"],
                 "conf": {
                     "datatype": "COMPLEX"
                 }
             },
             "/mods/*/sample": {
-                "add": true,
+                "add": false,
                 "indexes": ["dev"],
                 "conf": {
                     "datatype": "COMPLEX"
                 }
             },
             "/dios/*/input": {
-                "add": true,
+                "add": false,
                 "indexes": ["dev"],
                 "conf": {
-                    "datatype": "COMPLEX"
+                    "datatype": "DOUBLE"
                 }
             },
             "/clearhistory": {
