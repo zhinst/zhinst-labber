@@ -709,7 +709,7 @@
         },
         "sections": {
             "/sgchannels/*/awg/dio/*": "DIO",
-            "/sgchannels/*/awg/*": "AWG",
+            "/sgchannels/*/awg/*": "AWG Sequencer",
             "/sgchannels/*/oscs/*": "MOD",
             "/sgchannels/*/sines/*": "MOD",
             "/sgchannels/*": "Output",
