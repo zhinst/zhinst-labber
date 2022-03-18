@@ -713,7 +713,8 @@
             "/sgchannels/*/oscs/*": "MOD",
             "/sgchannels/*/sines/*": "MOD",
             "/sgchannels/*": "Output",
-            "/synthesizers/*": "MOD"
+            "/synthesizers/*": "MOD",
+            "/dios/*": "DIO"
         },
         "groups": {
             "/sgchannels/0/*": "SG Channel 0",
@@ -723,7 +724,11 @@
             "/sgchannels/4/*": "SG Channel 4",
             "/sgchannels/5/*": "SG Channel 5",
             "/sgchannels/6/*": "SG Channel 6",
-            "/sgchannels/7/*": "SG Channel 7"
+            "/sgchannels/7/*": "SG Channel 7",
+            "/dios/0": "DIO 0",
+            "/dios/1": "DIO 1",
+            "/dios/2": "DIO 2",
+            "/dios/3": "DIO 3"
         }
     },
     "functions": {
