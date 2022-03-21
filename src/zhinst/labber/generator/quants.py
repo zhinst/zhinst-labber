@@ -201,7 +201,7 @@ class NodeQuant:
         boolean_nodes = ["enable", "single", "on", "busy", "ready", "reset"]
         if node.split("/")[-1] in boolean_nodes:
             return "BOOLEAN"
-        string_nodes = ["alias", "serial", "devtype"]
+        string_nodes = ["alias", "serial", "devtype", "fwrevision"]
         if node.split("/")[-1] in string_nodes:
             return "STRING"
         if unit == "double" or "integer" in unit:
