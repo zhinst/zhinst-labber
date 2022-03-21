@@ -198,7 +198,7 @@ class NodeQuant:
         if "enumerated" in unit:
             if not "READ" == self.permission:
                 return "COMBO"
-        boolean_nodes = ["enable", "single", "on", "busy", "ready", "reset"]
+        boolean_nodes = ["enable", "single", "on", "busy", "ready", "reset", "preampenable"]
         if node.split("/")[-1] in boolean_nodes:
             return "BOOLEAN"
         string_nodes = ["alias", "serial", "devtype", "fwrevision"]
