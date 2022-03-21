@@ -45,7 +45,7 @@ def module_driver():
             "hf2": False,
             "shared_session": True,
         },
-        "instrument": {"base_type": "module", "type": "SHFQA_Sweeper"},
+        "instrument": {"base_type": "module", "type": "shfqa_sweeper"},
     }
     # reset session cache
     labber_driver.created_sessions = {}
