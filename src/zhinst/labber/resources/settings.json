@@ -583,7 +583,7 @@
         },
         "groups": {}
     },
-    "SHFQA_Sweeper": {
+    "shfqa_sweeper": {
         "generalSettings": {
             "support_arm": true,
             "support_hardware_loop": true,
@@ -674,53 +674,6 @@
             ],
             "advanced": []
         }
-    },
-    "impedance": {
-        "generalSettings": {
-            "support_arm": true,
-            "support_hardware_loop": true,
-            "interface": "Other",
-            "startup": "Do nothing"
-        },
-        "quants": {
-            "/calibrate": {
-                "add": false,
-                "conf": {
-                    "datatype": "BOOLEAN"
-                }
-            },
-            "/todevice": {
-                "add": false,
-                "conf": {
-                    "datatype": "BOOLEAN"
-                }
-            }
-        }
-    },
-    "daq": {
-        "generalSettings": {
-            "support_arm": true,
-            "support_hardware_loop": true,
-            "interface": "Other",
-            "startup": "Do nothing"
-        }
-    },
-    "scope": {
-        "generalSettings": {
-            "support_hardware_loop": true,
-            "support_arm": true,
-            "startup": "Do nothing",
-            "interface": "Other"
-        }
-    },
-    "MFLI": {
-        "generalSettings": {},
-        "ignoredNodes": {
-            "normal": [],
-            "advanced": []
-        },
-        "sections": {},
-        "groups": {}
     },
     "SHFSG": {
         "generalSettings": {
