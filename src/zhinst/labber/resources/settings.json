@@ -184,7 +184,8 @@
                 },
                 "conf": {
                     "datatype": "PATH",
-                    "set_cmd": "*.seqc"
+                    "set_cmd": "*.seqc",
+                    "tooltip": "Filepath to the Sequencer program to be loaded."
                 },
                 "driver": {
                     "function": "sequencer_program",

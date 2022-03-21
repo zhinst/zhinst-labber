@@ -73,7 +73,18 @@ def _to_html_list(x: t.List[str]) -> str:
     return html_list
 
 
-def tooltip(desc, node=None, enum=None) -> str:
+def tooltip(
+    desc: str, node: t.Optional[str] = None, enum: t.Optional[t.List[str]] = None
+) -> str:
+    """Convert tooltip arguments to HTML.
+
+    Args:
+        desc: Paragraph
+        node: Bolded text part.
+        enum: String to be converted to an HTML list.
+    """
+    if desc.startswith("<html>"):
+        return desc
     desc_cleaned = _replace_characters(desc)
     desc = f"<p>{desc_cleaned}</p>"
     enum = f"<p>{_to_html_list(enum)}</p>" if enum else ""
@@ -114,6 +125,7 @@ def match_in_dict_keys(target: str, data: dict) -> t.Tuple[str, dict]:
             return k, v
     return "", {}
 
+
 def match_in_list(target: str, data: list) -> t.List[str]:
     for item in data:
         k_ = remove_leading_trailing_slashes(item)
@@ -122,6 +134,7 @@ def match_in_list(target: str, data: list) -> t.List[str]:
         if r:
             return item
     return []
+
 
 def find_nth_occurence(s: str, target: str, n: int) -> int:
     """Find nth occurrence of the target in a string"""

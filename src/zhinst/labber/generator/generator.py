@@ -125,7 +125,7 @@ class LabberConfig:
         """Generate Labber quants."""
         nodes = self._generate_node_quants()
         # Added nodes from configuration if the node exists but is not available
-        missing =self.env_settings.quants.copy()
+        missing = self.env_settings.quants.copy()
         for k, v in nodes.copy().items():
             kk, vv = match_in_dict_keys(k, self.env_settings.quants)
             if kk:
