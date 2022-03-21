@@ -204,10 +204,20 @@ def test_generate_labber_drivers_amt_shfqa(
 ):
     gen_ses.return_value = session
     settings.return_value = settings_json
+    shfqa.features = Mock()
+    shfqa.features.options = Mock(return_value="FOO\nBAR")
     session.connect_device = Mock(return_value=shfqa)
     with tempfile.TemporaryDirectory() as tmpdirname:
         created, _ = generate_labber_files(tmpdirname, "normal", "dev1234", "localhost")
     # Dataserver + device + amount of zimodules. Times 3 (.json file, .ini, file, .py file)
     assert len(settings_json["misc"]["ziModules"]) == 1
-    # No SHFQA_Sweeper: Minus 1 from ziModules lengths
+    # SHFQA_Sweeper included
     assert len(created) == (1 + len(settings_json["misc"]["ziModules"]) + 1) * 3
+
+    files = [
+        f"{str(tmpdirname)}\\Zurich_Instruments_SHFQA4_FOO_BAR\\Zurich_Instruments_SHFQA4_FOO_BAR.py",
+        f"{str(tmpdirname)}\\Zurich_Instruments_SHFQA4_FOO_BAR\\settings.json",
+        f"{str(tmpdirname)}\\Zurich_Instruments_SHFQA4_FOO_BAR\\Zurich_Instruments_SHFQA4_FOO_BAR.ini"
+    ]
+    for file in files:
+        assert file in list(map(str, created))

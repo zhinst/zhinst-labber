@@ -207,8 +207,9 @@ class LabberConfig:
 class DeviceConfig(LabberConfig):
     def __init__(self, device: Node, session: Session, env_settings: dict, mode: str):
         self._tk_name = device.device_type.upper()
-        self._name = device.device_type.upper()
         super().__init__(device, self._tk_name, env_settings, mode)
+        options = str(device.features.options()).replace('\n', '_')
+        self._name = f"{self._tk_name}_{options}" if options else self._tk_name
         self.session = session
         self.device = device
         self._settings = {
@@ -218,10 +219,9 @@ class DeviceConfig(LabberConfig):
                 "hf2": self.session.is_hf2_server,
                 "shared_session": True,
             },
-            "instrument": {"base_type": "device", "type": self._name},
+            "instrument": {"base_type": "device", "type": self._tk_name},
         }
-        ds_version = session.about.version()
-        version = f"{ds_version}#{__version__}#{self.env_settings.version}"
+        version = f"{session.about.version()}#{__version__}#{self.env_settings.version}"
         self._general_settings = {
             "name": f"Zurich Instruments {self._name}",
             "version": version,
@@ -246,8 +246,7 @@ class DataServerConfig(LabberConfig):
                 "base_type": "DataServer",
             },
         }
-        ds_version = session.about.version()
-        version = f"{ds_version}#{__version__}#{self.env_settings.version}"
+        version = f"{session.about.version()}#{__version__}#{self.env_settings.version}"
         self._general_settings = {
             "name": f"Zurich Instruments {self._name}",
             "version":version,
@@ -274,8 +273,7 @@ class ModuleConfig(LabberConfig):
             },
             "instrument": {"base_type": "module", "type": self._tk_name}
         }
-        ds_version = session.about.version()
-        version = f"{ds_version}#{__version__}#{self.env_settings.version}"
+        version = f"{session.about.version()}#{__version__}#{self.env_settings.version}"
         self._general_settings = {
             "name": f"Zurich Instruments {self._name}",
             "version": version,
