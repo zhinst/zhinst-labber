@@ -6,12 +6,12 @@ from zhinst.toolkit import Waveforms
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "labber"))
-import zhinst.labber.base_instrument as labber_driver
+import zhinst.labber.driver.base_instrument as labber_driver
 
 
 @pytest.fixture()
 def mock_toolkit_session():
-    with patch("zhinst.labber.base_instrument.Session", autospec=True) as session:
+    with patch("zhinst.labber.driver.base_instrument.Session", autospec=True) as session:
         yield session
 
 
@@ -151,7 +151,7 @@ class TestBase:
         device_driver._instrument[quant.set_cmd].side_effect = RuntimeError(
             "Test Exception"
         )
-        with patch("zhinst.labber.base_instrument.logger") as logger:
+        with patch("zhinst.labber.driver.base_instrument.logger") as logger:
             device_driver.performSetValue(quant, -1)
         logger.error.assert_called_with(
             device_driver._instrument[quant.set_cmd].side_effect
@@ -384,7 +384,7 @@ class TestBase:
         device_driver._instrument[quant.get_cmd].side_effect = RuntimeError(
             "Test Exception"
         )
-        with patch("zhinst.labber.base_instrument.logger") as logger:
+        with patch("zhinst.labber.driver.base_instrument.logger") as logger:
             device_driver.performGetValue(quant, -1)
         logger.error.assert_called_with(
             device_driver._instrument[quant.get_cmd].side_effect
@@ -407,7 +407,7 @@ class TestBase:
 
         # Not existing node (in snapshot)
         device_driver._instrument.root["*"].side_effect = [{}, KeyError("test")]
-        with patch("zhinst.labber.base_instrument.logger") as logger:
+        with patch("zhinst.labber.driver.base_instrument.logger") as logger:
             device_driver.performGetValue(quant)
         logger.error.assert_called_with('%s not found', 'test/node')
         # existing node
@@ -435,20 +435,20 @@ class TestBase:
 
         # non existing quant
         module_driver.instrCfg.getQuantity.side_effect = KeyError("test")
-        with patch("zhinst.labber.base_instrument.logger") as logger:
+        with patch("zhinst.labber.driver.base_instrument.logger") as logger:
             module_driver.performGetValue(quant, input)
         logger.debug.assert_any_call('%s does not exist', 'result')
         module_driver.instrCfg.getQuantity.side_effect = None
 
         # Invalid return value
         module_driver._instrument.run.return_value = None
-        with patch("zhinst.labber.base_instrument.logger") as logger:
+        with patch("zhinst.labber.driver.base_instrument.logger") as logger:
             module_driver.performGetValue(quant, input)
         logger.error.call_count == 1
 
         # Exception in function call
         error = RuntimeError("test")
         module_driver._instrument.run.side_effect = error
-        with patch("zhinst.labber.base_instrument.logger") as logger:
+        with patch("zhinst.labber.driver.base_instrument.logger") as logger:
             module_driver.performGetValue(quant, input)
         logger.error.assert_called_with(error)

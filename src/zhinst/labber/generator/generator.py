@@ -273,7 +273,7 @@ def _path_to_labber_section(path: str, delim: str) -> str:
 
 def conf_to_labber_format(data: dict, delim: str) -> dict:
     """Transform data into Labber format.
-    
+
     * Natural sort dictionary keys
     * Replace slashes with delimiter
     * Title sections
@@ -372,7 +372,7 @@ class Filehandler:
         return self._created_files
 
 def open_settings_file() -> dict:
-    settings_file = Path(__file__).parent.parent / "settings.json"
+    settings_file = Path(__file__).parent.parent / "resources/settings.json"
     with open(settings_file, "r") as json_f:
         return json.load(json_f)
 
@@ -403,7 +403,7 @@ def generate_labber_files(
     ]
     # Modules
     # TODO: When hf2 option enabled:
-    # RuntimeError: Unsupported API level for specified server 
+    # RuntimeError: Unsupported API level for specified server
     if not hf2:
         modules: t.List[str] = json_settings["misc"]["ziModules"]
         configs += [ModuleConfig(mod, session, json_settings, mode) for mod in modules]

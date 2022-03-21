@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 @pytest.fixture
 def settings_json():
-    settings_file = Path(__file__).parent.parent / "src" / "zhinst" /"labber" / "settings.json"
+    settings_file = Path(__file__).parent.parent / "src/zhinst/labber/resources/settings.json"
     with open(settings_file, "r") as json_f:
         return json.load(json_f)
 

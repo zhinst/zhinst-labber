@@ -17,12 +17,12 @@ from zhinst.toolkit import Session, Waveforms
 from zhinst.toolkit.driver.devices import DeviceType
 from zhinst.toolkit.driver.modules import ModuleType
 
-from zhinst.labber.snapshot_manager import SnapshotManager, TransactionManager
+from zhinst.labber.driver.snapshot_manager import SnapshotManager, TransactionManager
 
 Quantity = t.TypeVar("Quantity")
 NumpyArray = t.TypeVar("NumpyArray")
 
-GLOBAL_SETTINGS = Path(__file__).parent / "settings.json"
+GLOBAL_SETTINGS = Path(__file__).parent / "../resources/settings.json"
 
 created_sessions = {}
 logger = logging.getLogger(__name__)
