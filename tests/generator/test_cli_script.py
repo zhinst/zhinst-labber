@@ -18,7 +18,7 @@ def test_cli_script_setup_help():
     assert result.exit_code == 0
 
 
-@mock.patch("zhinst.labber.cli_script.generate_labber_files")
+@mock.patch("zhinst.labber.cli_script.generate_labber_files", return_value=[['bar'], ['foo']])
 @pytest.mark.parametrize("inp, outp", [
     (
         ["dev1234", "localhost"], 
@@ -61,6 +61,9 @@ def test_cli_script_setup(mock_gen, inp, outp):
         outp['filepath'] = tmpdirname
         mock_gen.assert_called_with(**outp)
         assert result.exit_code == 0
+        assert result.output == "Generating Zurich Instruments Labber device drivers...\n" \
+        "Generated file: bar\n" \
+        "Upgraded file: foo\n"
 
 
 @mock.patch("zhinst.labber.cli_script.generate_labber_files")

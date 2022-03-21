@@ -1,7 +1,10 @@
 from collections import OrderedDict
 import pytest
-from zhinst.labber.generator.generator import conf_to_labber_format, DeviceConfig
+from unittest.mock import Mock, patch
+import tempfile
+from zhinst.labber.generator.generator import conf_to_labber_format, DeviceConfig, generate_labber_files
 from zhinst.toolkit.driver.devices import UHFLI
+
 
 
 @pytest.fixture
@@ -150,3 +153,15 @@ class TestLabberConfig:
         assert r == [
             "/awgs/0/markers"
         ]
+
+
+@patch("zhinst.labber.generator.generator.open_settings_file")
+@patch("zhinst.labber.generator.generator.Session")
+def test_generate_labber_drivers_amt(gen_ses, settings, uhfli, session, settings_json):
+    gen_ses.return_value = session
+    settings.return_value = settings_json
+    session.connect_device = Mock(return_value=uhfli)
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        created, _ = generate_labber_files(tmpdirname, "normal", "dev1234", "localhost")
+    # Dataserver + device + amount of zimodules. Times 3 (.json file, .ini, file, .py file)
+    assert len(created) == (1 + len(settings_json['misc']['ziModules']) + 1) * 3

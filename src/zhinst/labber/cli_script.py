@@ -83,7 +83,8 @@ def setup(filepath, device, server_host, server_port, hf2, mode, upgrade):
 
     >>> zhinst-labber setup C:/Labber/Drivers DEV1234 localhost
     """
-    generate_labber_files(
+    click.echo("Generating Zurich Instruments Labber device drivers...")
+    generated, upgraded = generate_labber_files(
         filepath=filepath,
         mode=mode.upper(),
         device=device,
@@ -92,3 +93,7 @@ def setup(filepath, device, server_host, server_port, hf2, mode, upgrade):
         server_port=server_port,
         hf2=hf2
     )
+    for file in generated:
+        click.echo(f"Generated file: {file}")
+    for file in upgraded:
+        click.echo(f"Upgraded file: {file}")

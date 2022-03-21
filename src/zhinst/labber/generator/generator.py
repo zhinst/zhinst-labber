@@ -256,7 +256,7 @@ class ModuleConfig(LabberConfig):
                 "hf2": self.session.is_hf2_server,
                 "shared_session": True,
             },
-            "instrument": {"base_type": "module", "type": self._tk_name},
+            "instrument": {"base_type": "module", "type": self._tk_name}
         }
         self._general_settings = {
             "name": f"Zurich Instruments {self._name}",
@@ -308,6 +308,75 @@ def dict_to_config(config: configparser.ConfigParser, data: dict, delim: str) ->
             config.set(title, name, value)
 
 
+class Filehandler:
+    def __init__(self, config: LabberConfig, root_dir: str, upgrade=False):
+        self._config = config
+        self._root_dir = Path(root_dir) / config.name
+        self._root_dir.mkdir(exist_ok=True)
+        self._upgrade = upgrade
+        self._created_files = []
+        self._upgraded_files = []
+
+    def write_settings_file(self):
+        path = self._root_dir / self._config.settings_path
+        if self._upgrade:
+            if not path.exists():
+                self._created_files.append(path)
+            else:
+                self._upgraded_files.append(path)
+            with open(path, "w") as json_file:
+                json.dump(self._config.settings, json_file)
+        else:
+            if not path.exists():
+                with open(path, "w") as json_file:
+                    json.dump(self._config.settings, json_file)
+                self._created_files.append(path)
+
+    def write_config_file(self, delim: str):
+        path = self._root_dir / f"{self._config.name}.ini"
+        config = configparser.ConfigParser()
+        dict_to_config(config, self._config.config(), delim=delim)
+        if self._upgrade:
+            if not path.exists():
+                self._created_files.append(path)
+            else:
+                self._upgraded_files.append(path)
+            with open(path, "w", encoding="utf-8") as config_file:
+                config.write(config_file)
+        else:
+            with open(path, "w", encoding="utf-8") as config_file:
+                config.write(config_file)
+            self._created_files.append(path)
+
+    def write_python_driver(self):
+        path = self._root_dir / f"{self._config.name}.py"
+        if self._upgrade:
+            if not path.exists():
+                self._created_files.append(path)
+            else:
+                self._upgraded_files.append(path)
+            with open(path, "w") as f:
+                f.write(self._config.generated_code())
+        else:
+            if not path.exists():
+                with open(path, "w") as f:
+                    f.write(self._config.generated_code())
+                self._created_files.append(path)
+
+    @property
+    def upgraded_files(self):
+        return self._upgraded_files
+
+    @property
+    def created_files(self):
+        return self._created_files
+
+def open_settings_file() -> dict:
+    settings_file = Path(__file__).parent.parent / "settings.json"
+    with open(settings_file, "r") as json_f:
+        return json.load(json_f)
+
+
 def generate_labber_files(
     filepath: str,
     mode: str,
@@ -321,86 +390,28 @@ def generate_labber_files(
     session = Session(server_host=server_host, server_port=server_port, hf2=hf2)
     dev = session.connect_device(device)
 
-    root_path = Path(filepath)
-    root_path.mkdir(exist_ok=True)
-
+    # Files generated to echo
+    generated_files = []
+    upgraded_files = []
     # Settings file
-    settings_file = Path(__file__).parent.parent / "settings.json"
-    with open(settings_file, "r") as json_f:
-        json_settings = json.load(json_f)
+    json_settings = open_settings_file()
     labber_delim = json_settings["misc"]["labberDelimiter"]
 
-    def write_to_json(path: Path, data, upgrade):
-        if upgrade:
-            with open(path, "w") as json_file:
-                json.dump(data, json_file)
-        else:
-            if not path.exists():
-                with open(path, "w") as json_file:
-                    json.dump(data, json_file)
-
-    def write_to_file(path: Path, data, upgrade):
-        if upgrade:
-            with open(path, "w") as f:
-                f.write(data)
-        else:
-            if not path.exists():
-                with open(path, "w") as f:
-                    f.write(data)
-
-    def write_to_config(path: Path, config, upgrade):
-        if upgrade:
-            with open(path, "w", encoding="utf-8") as config_file:
-                config.write(config_file)
-        else:
-            if not path.exists():
-                with open(path, "w", encoding="utf-8") as config_file:
-                    config.write(config_file)
-
-    # Dataserver
-    obj = DataServerConfig(session, json_settings, mode)
-    dev_dir = root_path / obj.name
-    dev_dir.mkdir(exist_ok=True)
-
-    # .ini-file
-    config = configparser.ConfigParser()
-    dict_to_config(config, obj.config(), delim=labber_delim)
-    path = dev_dir / f"{obj.name}.ini"
-    write_to_config(path, config, upgrade)
-    s_path = dev_dir / obj.settings_path
-    write_to_json(s_path, obj.settings, upgrade)
-    c_path = dev_dir / f"{obj.name}.py"
-    write_to_file(c_path, obj.generated_code(), upgrade)
-
-    # Device
-    obj = DeviceConfig(dev, session, json_settings, mode)
-    dev_dir = root_path / obj.name
-    dev_dir.mkdir(exist_ok=True)
-
-    config = configparser.ConfigParser()
-    dict_to_config(config, obj.config(), delim=labber_delim)
-    path = dev_dir / f"{obj.name}.ini"
-    write_to_config(path, config, upgrade)
-    s_path = dev_dir / obj.settings_path
-    write_to_json(s_path, obj.settings, upgrade)
-    c_path = dev_dir / f"{obj.name}.py"
-    write_to_file(c_path, obj.generated_code(), upgrade)
-
+    configs = [
+        DataServerConfig(session, json_settings, mode),
+        DeviceConfig(dev, session, json_settings, mode)
+    ]
     # Modules
     # TODO: When hf2 option enabled:
-    #   RuntimeError: Unsupported API level for specified server 
+    # RuntimeError: Unsupported API level for specified server 
     if not hf2:
         modules: t.List[str] = json_settings["misc"]["ziModules"]
-
-        for module in modules:
-            obj = ModuleConfig(module, session, json_settings, mode)
-            dev_dir = root_path / obj.name
-            dev_dir.mkdir(exist_ok=True)
-            config = configparser.ConfigParser()
-            dict_to_config(config, obj.config(), delim=labber_delim)
-            path = dev_dir / f"{obj.name}.ini"
-            write_to_config(path, config, upgrade)
-            s_path = dev_dir / obj.settings_path
-            write_to_json(s_path, obj.settings, upgrade)
-            c_path = dev_dir / f"{obj.name}.py"
-            write_to_file(c_path, obj.generated_code(), upgrade)
+        configs += [ModuleConfig(mod, session, json_settings, mode) for mod in modules]
+    for config in configs:
+        filegen = Filehandler(config, root_dir=filepath, upgrade=upgrade)
+        filegen.write_config_file(delim=labber_delim)
+        filegen.write_python_driver()
+        filegen.write_settings_file()
+        generated_files += filegen.created_files
+        upgraded_files += filegen.upgraded_files
+    return generated_files, upgraded_files
