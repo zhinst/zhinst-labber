@@ -55,28 +55,11 @@
             ]
         },
         "groups": {
-            "/sines/0": "Sines 0",
-            "/sines/1": "Sines 1",
-            "/sines/2": "Sines 2",
-            "/sines/3": "Sines 3",
-            "/sines/4": "Sines 4",
-            "/sines/5": "Sines 5",
-            "/sines/6": "Sines 6",
-            "/sines/7": "Sines 7",
-            "/oscs/0/*": "OSCS 0",
-            "/oscs/1/*": "OSCS 1",
-            "/oscs/2/*": "OSCS 2",
-            "/oscs/3/*": "OSCS 3",
-            "/oscs/4/*": "OSCS 4",
-            "/oscs/5/*": "OSCS 5",
-            "/oscs/6/*": "OSCS 6",
-            "/awgs/0/*": "AWGS 0",
-            "/awgs/1/*": "AWGS 1",
-            "/awgs/2/*": "AWGS 2",
-            "/awgs/3/*": "AWGS 3",
-            "/awgs/4/*": "AWGS 4",
-            "/awgs/5/*": "AWGS 5",
-            "/awgs/6/*": "AWGS 6"
+            "/sines/<n>/*": "Sines <n>",
+            "/oscs/<n>/*": "OSCS <n>",
+            "/awgs/<n>/*": "AWGS <n>",
+            "/sgchannels/<n>/*": "SG Channel <n>",
+            "/dios/<n>": "DIO <n>"
         },
         "sections": {
             "/sigins/*": "Input - Output",
@@ -422,34 +405,10 @@
             "/system/clocks/*": "Input - Output"
         },
         "groups": {
-            "/qachannels/0/readout/*": "QA Channel 0 Readout 0",
-            "/qachannels/1/readout/*": "QA Channel 1 Readout 1",
-            "/qachannels/2/readout/*": "QA Channel 2 Readout 2",
-            "/qachannels/3/readout/*": "QA Channel 3 Readout 3",
-            "/qachannels/4/readout/*": "QA Channel 4 Readout 4",
-            "/qachannels/5/readout/*": "QA Channel 5 Readout 5",
-            "/qachannels/6/readout/*": "QA Channel 6 Readout 6",
-            "/qachannels/7/readout/*": "QA Channel 7 Readout 7",
-            "/qachannels/0/spectroscopy/*": "QA Channel 0 Spectroscopy 0",
-            "/qachannels/1/spectroscopy/*": "QA Channel 1 Spectroscopy 1",
-            "/qachannels/2/spectroscopy/*": "QA Channel 2 Spectroscopy 2",
-            "/qachannels/3/spectroscopy/*": "QA Channel 3 Spectroscopy 3",
-            "/qachannels/4/spectroscopy/*": "QA Channel 4 Spectroscopy 4",
-            "/qachannels/5/spectroscopy/*": "QA Channel 5 Spectroscopy 5",
-            "/qachannels/6/spectroscopy/*": "QA Channel 6 Spectroscopy 6",
-            "/qachannels/7/spectroscopy/*": "QA Channel 7 Spectroscopy 7",
-            "/qachannels/0/*": "QA Channel 0",
-            "/qachannels/1/*": "QA Channel 1",
-            "/qachannels/2/*": "QA Channel 2",
-            "/qachannels/3/*": "QA Channel 3",
-            "/qachannels/4/*": "QA Channel 4",
-            "/qachannels/5/*": "QA Channel 5",
-            "/qachannels/6/*": "QA Channel 6",
-            "/qachannels/7/*": "QA Channel 7",
-            "/scopes/0/*": "Scope 0",
-            "/scopes/1/*": "Scope 1",
-            "/scopes/2/*": "Scope 2",
-            "/scopes/3/*": "Scope 3"
+            "/qachannels/<n>/readout/*": "QA Channel <n> Readout",
+            "/qachannels/<n>/spectroscopy/*": "QA Channel <n> Spectroscopy",
+            "/qachannels/<n>/*": "QA Channel <n>",
+            "/scopes/<n>/*": "Scope <n>"
         },
         "quants": {
             "/qachannels/*/generator/waveforms/*/wave": {
@@ -786,20 +745,7 @@
             "/synthesizers/*": "MOD",
             "/dios/*": "DIO"
         },
-        "groups": {
-            "/sgchannels/0/*": "SG Channel 0",
-            "/sgchannels/1/*": "SG Channel 1",
-            "/sgchannels/2/*": "SG Channel 2",
-            "/sgchannels/3/*": "SG Channel 3",
-            "/sgchannels/4/*": "SG Channel 4",
-            "/sgchannels/5/*": "SG Channel 5",
-            "/sgchannels/6/*": "SG Channel 6",
-            "/sgchannels/7/*": "SG Channel 7",
-            "/dios/0": "DIO 0",
-            "/dios/1": "DIO 1",
-            "/dios/2": "DIO 2",
-            "/dios/3": "DIO 3"
-        }
+        "groups": {}
     },
     "functions": {
         "commandtable/upload_to_device":{

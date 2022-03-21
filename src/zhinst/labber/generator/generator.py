@@ -45,8 +45,21 @@ class LabberConfig:
     def _update_groups(self, quants: dict) -> dict:
         """Update quant groups"""
         for k in quants.copy().keys():
-            _, sec = match_in_dict_keys(k, self.env_settings.quant_groups)
+            replc = []
+            for part in k.split('/'):
+                if part.isnumeric():
+                    replc.append(part)
+            quant_wc = {}
+            for kk, vv in self.env_settings.quant_groups.copy().items():
+                kk = kk.replace('<n>', '*')
+                quant_wc[kk] = vv
+            # _, sec = match_in_dict_keys(k, self.env_settings.quant_groups)
+            _, sec = match_in_dict_keys(k, quant_wc)
             if sec:
+                cnt = sec.count("<n>")
+                sec = sec.replace("<n>", "{}")
+                repl = [replc[idx] for idx in range(cnt)]
+                sec = sec.format(*repl)
                 quants[k]["group"] = sec
         return quants
 
