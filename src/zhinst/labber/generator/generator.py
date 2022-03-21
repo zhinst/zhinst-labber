@@ -53,7 +53,6 @@ class LabberConfig:
             for kk, vv in self.env_settings.quant_groups.copy().items():
                 kk = kk.replace('<n>', '*')
                 quant_wc[kk] = vv
-            # _, sec = match_in_dict_keys(k, self.env_settings.quant_groups)
             _, sec = match_in_dict_keys(k, quant_wc)
             if sec:
                 cnt = sec.count("<n>")
@@ -423,7 +422,9 @@ def generate_labber_files(
     # TODO: When hf2 option enabled:
     # RuntimeError: Unsupported API level for specified server
     if not hf2:
-        modules: t.List[str] = json_settings["misc"]["ziModules"]
+        modules: t.List[str] = json_settings["misc"]["ziModules"].copy()
+        if "SHFQA" not in dev.device_type:
+            modules.remove('shfqa_sweeper')
         configs += [ModuleConfig(mod, session, json_settings, mode) for mod in modules]
     for config in configs:
         filegen = Filehandler(config, root_dir=filepath, upgrade=upgrade)
