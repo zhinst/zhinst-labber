@@ -1,4 +1,5 @@
 {
+    "version": "0.1",
     "misc": {
         "labberDelimiter": " - ",
         "LogLevel": 10,
@@ -232,7 +233,8 @@
                 },
                 "conf": {
                     "datatype": "PATH",
-                    "set_cmd": "*.csv"
+                    "set_cmd": "*.csv",
+                    "tooltip": "Array with data of waveform 1."
                 },
                 "driver": {
                     "function": "awg/write_to_waveform_memory",
@@ -270,7 +272,8 @@
                 },
                 "conf": {
                     "datatype": "PATH",
-                    "set_cmd": "*.csv"
+                    "set_cmd": "*.csv",
+                    "tooltip": "Array with data of waveform 2."
                 },
                 "driver": {
                     "function": "awg/write_to_waveform_memory",
@@ -308,7 +311,8 @@
                 },
                 "conf": {
                     "datatype": "PATH",
-                    "set_cmd": "*.csv"
+                    "set_cmd": "*.csv",
+                    "tooltip": "Array with marker data."
                 },
                 "driver": {
                     "function": "awg/write_to_waveform_memory",
@@ -435,7 +439,8 @@
                 "add": true,
                 "conf": {
                     "datatype": "PATH",
-                    "set_cmd": "*.csv"
+                    "set_cmd": "*.csv",
+                    "tooltip": "Writes selected pulses to the waveform memory."
                 },
                 "driver": {
                     "function": "generator/write_to_waveform_memory",
@@ -449,7 +454,8 @@
                     "dev"
                 ],
                 "conf": {
-                    "datatype": "BOOLEAN"
+                    "datatype": "BOOLEAN",
+                    "tooltip": "Wait until the generator execution is finished."
                 },
                 "driver": {
                     "function": "wait_done",

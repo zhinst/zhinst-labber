@@ -63,6 +63,11 @@ class LabberConfiguration:
         return b
 
     @property
+    def version(self) -> str:
+        """Settings JSON version."""
+        return self.json_settings["version"]
+
+    @property
     def general_settings(self) -> dict:
         """Labber configuration file `General settings`-section."""
         if self.dev_settings:

@@ -18,7 +18,7 @@ from zhinst.labber.generator.helpers import (
 )
 from zhinst.labber.code_generator.drivers import generate_labber_device_driver_code
 from .conf import LabberConfiguration
-
+from zhinst.labber import __version__
 
 class LabberConfig:
     """Base class for generating Labber configuration."""
@@ -220,9 +220,11 @@ class DeviceConfig(LabberConfig):
             },
             "instrument": {"base_type": "device", "type": self._name},
         }
+        ds_version = session.about.version()
+        version = f"{ds_version}#{__version__}#{self.env_settings.version}"
         self._general_settings = {
             "name": f"Zurich Instruments {self._name}",
-            "version": "0.1",
+            "version": version,
             "driver_path": f"Zurich_Instruments_{self._name}",
         }
 
@@ -244,9 +246,11 @@ class DataServerConfig(LabberConfig):
                 "base_type": "DataServer",
             },
         }
+        ds_version = session.about.version()
+        version = f"{ds_version}#{__version__}#{self.env_settings.version}"
         self._general_settings = {
             "name": f"Zurich Instruments {self._name}",
-            "version": "0.1",
+            "version":version,
             "driver_path": f"Zurich_Instruments_{self._name}",
         }
 
@@ -270,9 +274,11 @@ class ModuleConfig(LabberConfig):
             },
             "instrument": {"base_type": "module", "type": self._tk_name}
         }
+        ds_version = session.about.version()
+        version = f"{ds_version}#{__version__}#{self.env_settings.version}"
         self._general_settings = {
             "name": f"Zurich Instruments {self._name}",
-            "version": "0.1",
+            "version": version,
             "driver_path": f"Zurich_Instruments_{self._name}",
         }
 

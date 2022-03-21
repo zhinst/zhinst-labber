@@ -215,6 +215,9 @@
         "$schema": {
             "type": "string"
         },
+        "version": {
+            "type": "string"
+        },
         "misc": {
             "$ref": "#/definitions/misc"
         },
@@ -229,6 +232,6 @@
         "$ref": "#/definitions/deviceProperty"
     },
     "required": [
-        "misc", "common", "functions"
+        "version", "misc", "common", "functions"
     ]
 }

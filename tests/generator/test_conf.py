@@ -160,3 +160,7 @@ def test_devtype_quant():
             "dev_type": ["DEV6000"],
         },
     }
+
+def test_settings_version(settings_json):
+    obj = LabberConfiguration("DEV", "normal", settings_json)
+    assert obj.version == settings_json["version"]

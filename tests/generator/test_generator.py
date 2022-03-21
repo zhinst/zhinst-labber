@@ -2,9 +2,13 @@ from collections import OrderedDict
 import pytest
 from unittest.mock import Mock, patch
 import tempfile
-from zhinst.labber.generator.generator import conf_to_labber_format, DeviceConfig, generate_labber_files
+from zhinst.labber import __version__
+from zhinst.labber.generator.generator import (
+    conf_to_labber_format,
+    DeviceConfig,
+    generate_labber_files,
+)
 from zhinst.toolkit.driver.devices import UHFLI, SHFQA
-
 
 
 @pytest.fixture
@@ -147,6 +151,8 @@ def test_conf_to_labber_format():
 class TestLabberConfig:
     @pytest.fixture
     def dev_conf(self, uhfli, session, settings_json):
+        session.about = Mock()
+        session.about.version = Mock(return_value="0.2.2")
         return DeviceConfig(uhfli, session, settings_json, "normal")
 
     def test_generate_quants_from_indexes_dev(self, dev_conf):
@@ -155,39 +161,53 @@ class TestLabberConfig:
             "/awgs/0/waveform/waves/0",
             "/awgs/0/waveform/waves/1",
             "/awgs/0/waveform/waves/2",
-            "/awgs/0/waveform/waves/3"
+            "/awgs/0/waveform/waves/3",
         ]
 
     def test_generate_quants_from_indexes_no_idx(self, dev_conf):
         r = dev_conf._quant_paths("/awgs/*/markers", [])
-        assert r == [
-            "/awgs/0/markers"
-        ]
+        assert r == ["/awgs/0/markers"]
 
+    def test_general_settings(self, dev_conf, settings_json):
+        assert dev_conf.general_settings == {
+            "General settings": {
+                "driver_path": "Zurich_Instruments_UHFLI",
+                "interface": "Other",
+                "name": "Zurich Instruments UHFLI",
+                "startup": "Do nothing",
+                "support_arm": True,
+                "support_hardware_loop": True,
+                "version": f"0.2.2#{ __version__}#{settings_json['version']}"
+            }
+        }
 
 @patch("zhinst.labber.generator.generator.open_settings_file")
 @patch("zhinst.labber.generator.generator.Session")
-def test_generate_labber_drivers_amt_uhfli(gen_ses, settings, uhfli, session, settings_json):
+def test_generate_labber_drivers_amt_uhfli(
+    gen_ses, settings, uhfli, session, settings_json
+):
     gen_ses.return_value = session
     settings.return_value = settings_json
     session.connect_device = Mock(return_value=uhfli)
     with tempfile.TemporaryDirectory() as tmpdirname:
         created, _ = generate_labber_files(tmpdirname, "normal", "dev1234", "localhost")
     # Dataserver + device + amount of zimodules. Times 3 (.json file, .ini, file, .py file)
-    assert len(settings_json['misc']['ziModules']) == 1
+    assert len(settings_json["misc"]["ziModules"]) == 1
     # No SHFQA_Sweeper: Minus 1 from ziModules lengths
-    assert len(created) == (1 + len(settings_json['misc']['ziModules']) - 1 + 1) * 3
+    assert len(created) == (1 + len(settings_json["misc"]["ziModules"]) - 1 + 1) * 3
 
 
 @patch("zhinst.labber.generator.generator.open_settings_file")
 @patch("zhinst.labber.generator.generator.Session")
-def test_generate_labber_drivers_amt_shfqa(gen_ses, settings, shfqa, session, settings_json):
+def test_generate_labber_drivers_amt_shfqa(
+    gen_ses, settings, shfqa, session, settings_json
+):
     gen_ses.return_value = session
     settings.return_value = settings_json
     session.connect_device = Mock(return_value=shfqa)
     with tempfile.TemporaryDirectory() as tmpdirname:
         created, _ = generate_labber_files(tmpdirname, "normal", "dev1234", "localhost")
     # Dataserver + device + amount of zimodules. Times 3 (.json file, .ini, file, .py file)
-    assert len(settings_json['misc']['ziModules']) == 1
+    assert len(settings_json["misc"]["ziModules"]) == 1
     # No SHFQA_Sweeper: Minus 1 from ziModules lengths
-    assert len(created) == (1 + len(settings_json['misc']['ziModules']) + 1) * 3
+    assert len(created) == (1 + len(settings_json["misc"]["ziModules"]) + 1) * 3
