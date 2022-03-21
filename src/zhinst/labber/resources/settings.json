@@ -17,20 +17,37 @@
             "normal": [
                 "/preset/*",
                 "/stats/*",
-                "status/*",
+                "/status/*",
+                "/system/fwlog",
+                "/system/fwlogenable",
+                "/system/interfacespeed",
+                "/system/owner",
                 "/system/activeinterface*",
                 "/system/boardrevisions/*",
+                "/system/stall",
+                "/system/shutdown",
+                "/system/update",
+                "/system/porttcp",
+                "/system/preset/*",
+                "/system/update/*",
+                "/system/impedance/*",
+                "/system/compdelay/*",
+                "/system/calib*",
+                "/system/portudp",
+                "/system/jumbo",
+                "/system/saveports",
                 "/system/fpgarevision",
                 "/system/nics/*",
-                "/system/properties/*",
+                "/system/powerconfigdate",
+                "/system/fx2revision",
+                "/system/identify",
+                "/system/xenpakenable",
                 "*/elf/*",
                 "*/sequencer/*",
                 "*/waveform/memoryusage*",
                 "*/waveform/descriptors",
                 "*/commandtable/status",
                 "*/commandtable/clear",
-                "/system/impedance/*",
-                "/system/calib*",
                 "*/dio/data"
             ],
             "advanced": [
@@ -132,7 +149,7 @@
             "/clockbase": {
                 "add": false,
                 "conf": {
-                    "section": "SYSTEM"
+                    "section": "System"
                 },
                 "extend": {}
             },
