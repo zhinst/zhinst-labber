@@ -20,47 +20,47 @@ def uhfli(data_dir, mock_connection, session):
 def test_conf_to_labber_format():
     conf = {
         "General Settings": {"version": "1.0"},
-        "/bar/0/foo/2/wavE": {
-            "set_cmd": "/bar/0/foo/2/wavE",
-            "get_cmd": "/bar/0/foo/2/wavE",
-            "label": "/bar/0/foo/2/wavE",
+        "/bar/0/foo/2/wave": {
+            "set_cmd": "/bar/0/foo/2/wave",
+            "get_cmd": "/bar/0/foo/2/wave",
+            "label": "/bar/0/foo/2/wave",
             "section": "bar",
             "group": "bar 0",
             "tooltip": "tooltip",
             "datatype": "BOOLEAN",
         },
-        "/bar/1/foo/0/wavE": {
-            "set_cmd": "/bar/1/foo/0/wavE",
-            "get_cmd": "/bar/1/foo/0/wavE",
-            "label": "/bar/1/foo/0/wavE",
+        "/bar/1/foo/0/wave": {
+            "set_cmd": "/bar/1/foo/0/wave",
+            "get_cmd": "/bar/1/foo/0/wave",
+            "label": "/bar/1/foo/0/wave",
             "section": "bar",
             "group": "bar 0",
             "tooltip": "tooltip",
             "datatype": "BOOLEAN",
         },
-        "/bar/0/foo/1/wavE": {
-            "set_cmd": "/bar/0/foo/1/wavE",
-            "get_cmd": "/bar/0/foo/1/wavE",
-            "label": "/bar/0/foo/1/wavE",
+        "/bar/0/foo/1/wave": {
+            "set_cmd": "/bar/0/foo/1/wave",
+            "get_cmd": "/bar/0/foo/1/wave",
+            "label": "/bar/0/foo/1/wave",
+            "section": "bar",
+            "group": "QAChannel 0",
+            "tooltip": "tooltip",
+            "datatype": "BOOLEAN",
+        },
+        "/bar/0/foo/0/wave": {
+            "set_cmd": "/bar/0/foo/0/wave",
+            "get_cmd": "/bar/0/foo/0/wave",
+            "label": "/bar/0/foo/0/wave",
             "section": "bar",
             "group": "bar 0",
             "tooltip": "tooltip",
             "datatype": "BOOLEAN",
         },
-        "/bar/0/foo/0/wavE": {
-            "set_cmd": "/bar/0/foo/0/wavE",
-            "get_cmd": "/bar/0/foo/0/wavE",
-            "label": "/bar/0/foo/0/wavE",
-            "section": "bar",
-            "group": "bar 0",
-            "tooltip": "tooltip",
-            "datatype": "BOOLEAN",
-        },
-        "/bar/1/foo/1/wavE": {
-            "set_cmd": "/bar/1/foo/1/wavE",
-            "get_cmd": "/bar/1/foo/1/wavE",
-            "label": "/bar/1/foo/1/wavE",
-            "section": "bar",
+        "/bar/1/foo/1/wave": {
+            "set_cmd": "/bar/1/foo/1/wave",
+            "get_cmd": "/bar/1/foo/1/wave",
+            "label": "/bar/1/foo/1/wave",
+            "section": "AWG Section",
             "group": "bar 0",
             "tooltip": "tooltip",
             "datatype": "BOOLEAN",
@@ -72,8 +72,8 @@ def test_conf_to_labber_format():
             (
                 "Bar - 0 - Foo - 0 - Wave",
                 {
-                    "set_cmd": "/bar/0/foo/0/wavE",
-                    "get_cmd": "/bar/0/foo/0/wavE",
+                    "set_cmd": "/bar/0/foo/0/wave",
+                    "get_cmd": "/bar/0/foo/0/wave",
                     "Label": "Bar - 0 - Foo - 0 - Wave",
                     "Section": "Bar",
                     "Group": "Bar 0",
@@ -84,11 +84,11 @@ def test_conf_to_labber_format():
             (
                 "Bar - 0 - Foo - 1 - Wave",
                 {
-                    "set_cmd": "/bar/0/foo/1/wavE",
-                    "get_cmd": "/bar/0/foo/1/wavE",
+                    "set_cmd": "/bar/0/foo/1/wave",
+                    "get_cmd": "/bar/0/foo/1/wave",
                     "Label": "Bar - 0 - Foo - 1 - Wave",
                     "Section": "Bar",
-                    "Group": "Bar 0",
+                    "Group": "QAChannel 0",
                     "tooltip": "tooltip",
                     "datatype": "BOOLEAN",
                 },
@@ -96,8 +96,8 @@ def test_conf_to_labber_format():
             (
                 "Bar - 0 - Foo - 2 - Wave",
                 {
-                    "set_cmd": "/bar/0/foo/2/wavE",
-                    "get_cmd": "/bar/0/foo/2/wavE",
+                    "set_cmd": "/bar/0/foo/2/wave",
+                    "get_cmd": "/bar/0/foo/2/wave",
                     "Label": "Bar - 0 - Foo - 2 - Wave",
                     "Section": "Bar",
                     "Group": "Bar 0",
@@ -108,8 +108,8 @@ def test_conf_to_labber_format():
             (
                 "Bar - 1 - Foo - 0 - Wave",
                 {
-                    "set_cmd": "/bar/1/foo/0/wavE",
-                    "get_cmd": "/bar/1/foo/0/wavE",
+                    "set_cmd": "/bar/1/foo/0/wave",
+                    "get_cmd": "/bar/1/foo/0/wave",
                     "Label": "Bar - 1 - Foo - 0 - Wave",
                     "Section": "Bar",
                     "Group": "Bar 0",
@@ -120,10 +120,10 @@ def test_conf_to_labber_format():
             (
                 "Bar - 1 - Foo - 1 - Wave",
                 {
-                    "set_cmd": "/bar/1/foo/1/wavE",
-                    "get_cmd": "/bar/1/foo/1/wavE",
+                    "set_cmd": "/bar/1/foo/1/wave",
+                    "get_cmd": "/bar/1/foo/1/wave",
                     "Label": "Bar - 1 - Foo - 1 - Wave",
-                    "Section": "Bar",
+                    "Section": "AWG Section",
                     "Group": "Bar 0",
                     "tooltip": "tooltip",
                     "datatype": "BOOLEAN",

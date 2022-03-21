@@ -278,13 +278,18 @@ def conf_to_labber_format(data: dict, delim: str) -> dict:
     * Replace slashes with delimiter
     * Title sections
     """
+    def _to_title_keep_uppercase(s: str) -> str:
+        if s.islower():
+            return s.title()
+        return s
+
     sorted_keys = natsort.natsorted(list(data.keys()))
     data = OrderedDict({k: data[k] for k in sorted_keys}.items())
 
     for title, quant in data.copy().items():
         title_ = str(title)
         if not title == "General settings":
-            title_ = title_.title()
+            title_ = _to_title_keep_uppercase(title_)
         title_ = _path_to_labber_section(title_, delim)
 
         data.pop(title, None)
@@ -294,8 +299,8 @@ def conf_to_labber_format(data: dict, delim: str) -> dict:
                 key = _path_to_labber_section(str(key), delim)
                 value = _path_to_labber_section(str(value), delim)
             if key.lower() in ["label", "group", "section"]:
-                key = key.title()
-                value = value.title()
+                key = _to_title_keep_uppercase(key)
+                value = _to_title_keep_uppercase(value)
             data[title_].update({key: value})
     return data
 

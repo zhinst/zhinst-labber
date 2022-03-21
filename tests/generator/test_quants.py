@@ -32,10 +32,10 @@ class TestNodeQuant:
     def test_node_quant_no_enum(self, node_info):
         obj = NodeQuant(node_info)
         assert obj.as_dict(flat=False) == {
-            "/QACHANNELS/0/CENTERFREQ": {
-                "section": "QACHANNELS/0",
-                "group": "QACHANNELS",
-                "label": "QACHANNELS/0/CENTERFREQ",
+            "/qachannels/0/centerfreq": {
+                "section": "qachannels/0",
+                "group": "qachannels",
+                "label": "qachannels/0/centerfreq",
                 "datatype": "DOUBLE",
                 "unit": "Hz",
                 "tooltip": "<html><body><p>The Center Frequency of the analysis band.</p><p><b>QACHANNELS/0/CENTERFREQ</b></p></body></html>",
@@ -49,10 +49,10 @@ class TestNodeQuant:
     def test_node_quant_enum(self):
         obj = NodeQuant(node_dict_enum)
         assert obj.as_dict(flat=False) == {
-            "/QACHANNELS/0/OUTPUT/FILTER": {
-                "section": "QACHANNELS/0",
-                "group": "QACHANNELS/OUTPUT",
-                "label": "QACHANNELS/0/OUTPUT/FILTER",
+            "/qachannels/0/output/filter": {
+                "section": "qachannels/0",
+                "group": "qachannels/output",
+                "label": "qachannels/0/output/filter",
                 "datatype": "DOUBLE",
                 "tooltip": "<html><body><p>Reads the selected analog filter before the Signal Output.</p><p><ul><li>lowpass_1500: Low-pass filter of 1.5 GHz.</li><li>lowpass_3000: Low-pass filter of 3 GHz.</li><li>bandpass_3000_6000: Band-pass filter between 3 GHz - 6 GHz</li><li>bandpass_6000_10000: Band-pass filter between 6 GHz - 10 GHz</li></ul></p><p><b>QACHANNELS/0/OUTPUT/FILTER</b></p></body></html>",
                 "permission": "READ",

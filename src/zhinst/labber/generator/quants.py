@@ -240,9 +240,9 @@ class NodeQuant:
     def as_dict(self, flat=True) -> dict:
         """Node in Labber format."""
         d = {}
-        d["section"] = self.section
-        d["group"] = self.group
-        d["label"] = self.label
+        d["section"] = self.section.lower()
+        d["group"] = self.group.lower()
+        d["label"] = self.label.lower()
         if self.datatype:
             d["datatype"] = self.datatype
         if self.unit:
@@ -264,4 +264,4 @@ class NodeQuant:
             d["x_unit"] = "Sample"
         if flat:
             return d
-        return {self.filtered_node_path: d}
+        return {self.filtered_node_path.lower(): d}
