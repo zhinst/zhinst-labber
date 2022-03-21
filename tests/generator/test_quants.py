@@ -13,6 +13,7 @@ def node_info():
         "Unit": "Hz",
     }
 
+
 node_dict_enum = {
     "Node": "/DEV12018/QACHANNELS/0/OUTPUT/FILTER",
     "Description": "Reads the selected analog filter before the Signal Output.",
@@ -45,7 +46,6 @@ class TestNodeQuant:
             }
         }
 
-
     def test_node_quant_enum(self):
         obj = NodeQuant(node_dict_enum)
         assert obj.as_dict(flat=False) == {
@@ -60,14 +60,17 @@ class TestNodeQuant:
             }
         }
 
-    @pytest.mark.parametrize("node, datatype", [
-        ("/DEV12018/QACHANNELS/READY", 'BOOLEAN'),
-        ("/DEV12018/QACHANNELS/ENABLE", 'BOOLEAN'),
-        ("/DEV12018/QACHANNELS/SINGLE", 'BOOLEAN'),
-        ("/DEV12018/QACHANNELS/BUSY", 'BOOLEAN'),
-        ("/DEV12018/QACHANNELS/ON", 'BOOLEAN'),
-        ("/DEV12018/QACHANNELS/RESET", 'BOOLEAN'),
-    ])
+    @pytest.mark.parametrize(
+        "node, datatype",
+        [
+            ("/DEV12018/QACHANNELS/READY", "BOOLEAN"),
+            ("/DEV12018/QACHANNELS/ENABLE", "BOOLEAN"),
+            ("/DEV12018/QACHANNELS/SINGLE", "BOOLEAN"),
+            ("/DEV12018/QACHANNELS/BUSY", "BOOLEAN"),
+            ("/DEV12018/QACHANNELS/ON", "BOOLEAN"),
+            ("/DEV12018/QACHANNELS/RESET", "BOOLEAN"),
+        ],
+    )
     def test_node_quant_datatype(self, node_info, node, datatype):
         node_info["Node"] = node
         obj = NodeQuant(node_info)
@@ -98,6 +101,7 @@ class TestQuantSuffix:
             }
         }
 
+
 class TestQuant:
     conf = {"datatype": "boo"}
     path = "/qachannels/0/generator/arm"
@@ -122,4 +126,74 @@ class TestQuant:
             }
         }
 
-    
+
+def test_long_node_group_idx_over1():
+    node = {
+        "Node": "/DEV12018/SIGOUTS/1/PRECOMPENSATION/HIGHPASS/0/CLEARING/SLOPE",
+        "Description": "The Center Frequency of the analysis band.",
+        "Properties": "Read, Write, Setting",
+        "Type": "Double",
+        "Unit": "Hz",
+    }
+    obj = NodeQuant(node)
+    assert obj.as_dict(flat=False) == {
+        "/sigouts/1/precompensation/highpass/0/clearing/slope": {
+            "section": "sigouts/1",
+            "group": "sigouts/precompensation/highpass",
+            "label": "sigouts/1/precompensation/highpass/0/clearing/slope",
+            "datatype": "DOUBLE",
+            "unit": "Hz",
+            "tooltip": "<html><body><p>The Center Frequency of the analysis band.</p><p><b>SIGOUTS/1/PRECOMPENSATION/HIGHPASS/0/CLEARING/SLOPE</b></p></body></html>",
+            "permission": "BOTH",
+            "set_cmd": "SIGOUTS/1/PRECOMPENSATION/HIGHPASS/0/CLEARING/SLOPE",
+            "get_cmd": "SIGOUTS/1/PRECOMPENSATION/HIGHPASS/0/CLEARING/SLOPE",
+        }
+    }
+
+
+def test_long_node_group_idx2():
+    node = {
+        "Node": "/DEV12018/SIGOUTS/7/PRECOMPENSATION/BOUNCES/0/STATUS",
+        "Description": "The Center Frequency of the analysis band.",
+        "Properties": "Read, Write, Setting",
+        "Type": "Double",
+        "Unit": "Hz",
+    }
+    obj = NodeQuant(node)
+    assert obj.as_dict(flat=False) == {
+        "/sigouts/7/precompensation/bounces/0/status": {
+            "section": "sigouts/7",
+            "group": "sigouts/precompensation/bounces",
+            "label": "sigouts/7/precompensation/bounces/0/status",
+            "datatype": "DOUBLE",
+            "unit": "Hz",
+            "tooltip": "<html><body><p>The Center Frequency of the analysis band.</p><p><b>SIGOUTS/7/PRECOMPENSATION/BOUNCES/0/STATUS</b></p></body></html>",
+            "permission": "BOTH",
+            "set_cmd": "SIGOUTS/7/PRECOMPENSATION/BOUNCES/0/STATUS",
+            "get_cmd": "SIGOUTS/7/PRECOMPENSATION/BOUNCES/0/STATUS",
+        }
+    }
+
+
+def test_long_node_group_idx_asd():
+    node = {
+        "Node": "/DEV12018/QAS/0/CROSSTALK/ROWS/0/COLS/8",
+        "Description": "The Center Frequency of the analysis band.",
+        "Properties": "Read, Write, Setting",
+        "Type": "Double",
+        "Unit": "Hz",
+    }
+    obj = NodeQuant(node)
+    assert obj.as_dict(flat=False) == {
+        "/qas/0/crosstalk/rows/0/cols/8": {
+            "section": "qas/0",
+            "group": "qas/crosstalk/rows/cols",
+            "label": "qas/0/crosstalk/rows/0/cols/8",
+            "datatype": "DOUBLE",
+            "unit": "Hz",
+            "tooltip": "<html><body><p>The Center Frequency of the analysis band.</p><p><b>QAS/0/CROSSTALK/ROWS/0/COLS/8</b></p></body></html>",
+            "permission": "BOTH",
+            "set_cmd": "QAS/0/CROSSTALK/ROWS/0/COLS/8",
+            "get_cmd": "QAS/0/CROSSTALK/ROWS/0/COLS/8",
+        }
+    }

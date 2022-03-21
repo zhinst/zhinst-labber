@@ -138,6 +138,13 @@ class NodeQuant:
         """Group in Labber where the node representation will be"""
         node_path = self._node_path_no_prefix
         path = [x for x in node_path.split("/") if not x.isnumeric()]
+        if len([x for x in node_path.split("/") if x.isnumeric()]) > 1:
+            r = node_path.split("/")
+            idx_ = 0
+            for idx, c in enumerate(r):
+                if c.isnumeric():
+                    idx_ = idx
+            return "/".join(path[:idx_-1])
         if len(path) > 1:
             return "/".join(path[:-1])
         return "/".join(path)
