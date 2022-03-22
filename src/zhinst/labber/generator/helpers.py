@@ -1,7 +1,8 @@
-import typing as t
-import re
-from enum import Enum, IntEnum
 import fnmatch
+import re
+import typing as t
+from enum import Enum, IntEnum
+
 from zhinst.toolkit.nodetree import Node
 
 

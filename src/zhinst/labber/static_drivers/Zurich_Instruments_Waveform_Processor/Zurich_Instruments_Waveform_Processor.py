@@ -1,10 +1,9 @@
-from enum import Enum
 import typing as t
+from enum import Enum
 
-from BaseDriver import LabberDriver
-
-from zhinst.utils import convert_awg_waveform, parse_awg_waveform
 import numpy as np
+from BaseDriver import LabberDriver
+from zhinst.utils import convert_awg_waveform, parse_awg_waveform
 
 Quantity = t.TypeVar("Quantity")
 

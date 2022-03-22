@@ -1,5 +1,5 @@
-import typing as t
 import re
+import typing as t
 
 from zhinst.labber.generator.helpers import tooltip
 
@@ -10,9 +10,10 @@ class LabberConfiguration:
     Args:
         name: Name of the Zurich Instrument object.
         mode: What parts to read from the settings file.
-            'normal' | 'advanced'
+            'NORMAL' | 'ADVANCED'
         settings: Settings for the given object
     """
+
     def __init__(self, name: str, mode: str, settings: dict):
         self._name = name.upper()
         self._mode = mode.lower()
@@ -41,7 +42,7 @@ class LabberConfiguration:
             b.update(self.dev_settings.get("quants", {}))
 
         for k, v in b.copy().items():
-            if not v.get('conf', {}) or v.get('add', None) is None:
+            if not v.get("conf", {}) or v.get("add", None) is None:
                 b.pop(k)
                 continue
             if v["conf"].get("tooltip", None):
@@ -77,11 +78,11 @@ class LabberConfiguration:
     @property
     def ignored_nodes(self) -> t.List[str]:
         """Ignored nodes."""
-        ign = self.json_settings["common"].get('ignoredNodes', {})
+        ign = self.json_settings["common"].get("ignoredNodes", {})
         common_norm = ign.get("normal", [])
         common_adv = ign.get("advanced", [])
         if self.dev_settings:
-            ign = self.dev_settings.get('ignoredNodes', {})
+            ign = self.dev_settings.get("ignoredNodes", {})
             dev_norm = ign.get("normal", [])
             dev_adv = ign.get("advanced", [])
             if self._mode == "normal":
@@ -102,7 +103,7 @@ class LabberConfiguration:
         """Quant sections."""
         common = self.json_settings["common"]["sections"]
         if self.dev_settings:
-            dev = self.dev_settings.get('sections', {})
+            dev = self.dev_settings.get("sections", {})
             common.update(dev)
             return common
         return common
@@ -112,7 +113,7 @@ class LabberConfiguration:
         """Quant groups"""
         common = self.json_settings["common"]["groups"]
         if self.dev_settings:
-            dev = self.dev_settings.get('groups', {})
+            dev = self.dev_settings.get("groups", {})
             common.update(dev)
             return common
         return common

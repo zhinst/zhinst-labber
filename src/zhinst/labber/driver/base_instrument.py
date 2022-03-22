@@ -4,11 +4,11 @@ import fnmatch
 import json
 import logging
 import os
+import string
 import sys
 import typing as t
 from itertools import repeat
 from pathlib import Path
-import string
 
 import numpy as np
 from BaseDriver import LabberDriver

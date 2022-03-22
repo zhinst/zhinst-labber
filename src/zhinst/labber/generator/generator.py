@@ -1,25 +1,28 @@
-from collections import OrderedDict
 import configparser
-import typing as t
-from pathlib import Path
 import json
-import natsort
+import typing as t
+from collections import OrderedDict
+from pathlib import Path
 
+import natsort
 from zhinst.toolkit import Session
 from zhinst.toolkit.nodetree import Node
-from zhinst.labber.generator.quants import NodeQuant, Quant, QuantGenerator
-from zhinst.labber.generator.helpers import (
-    delete_device_from_node_path,
-    remove_leading_trailing_slashes,
-    match_in_dict_keys,
-    match_in_list,
-)
+
+from zhinst.labber import __version__
 from zhinst.labber.code_generator.drivers import generate_labber_device_driver_code
 from zhinst.labber.generator.conf import LabberConfiguration
-from zhinst.labber import __version__
+from zhinst.labber.generator.helpers import (
+    delete_device_from_node_path,
+    match_in_dict_keys,
+    match_in_list,
+    remove_leading_trailing_slashes,
+)
+from zhinst.labber.generator.quants import NodeQuant, Quant, QuantGenerator
+
 
 class LabberConfig:
     """Base class for generating Labber configuration."""
+
     def __init__(self, root: Node, name: str, env_settings: dict, mode="NORMAL"):
         self.root = root
         self._mode = mode
@@ -32,7 +35,7 @@ class LabberConfig:
         self._settings = {}
 
     def _node_list(self) -> t.List[str]:
-        nodes = {k: v for k,v in self.root}
+        nodes = {k: v for k, v in self.root}
         return [x["Node"] for x in nodes.values()]
 
     def _update_sections(self, quants: dict) -> dict:
@@ -49,7 +52,7 @@ class LabberConfig:
             replc = [part for part in quant.split("/") if part.isnumeric()]
             quant_wc = {}
             for pattern, grp in self.env_settings.quant_groups.copy().items():
-                pattern = pattern.replace('<n>', '*')
+                pattern = pattern.replace("<n>", "*")
                 quant_wc[pattern] = grp
             _, path = match_in_dict_keys(quant, quant_wc)
             if path:
@@ -145,7 +148,7 @@ class DeviceConfig(LabberConfig):
     def __init__(self, device: Node, session: Session, env_settings: dict, mode: str):
         self._tk_name = device.device_type.upper()
         super().__init__(device, self._tk_name, env_settings, mode)
-        options = str(device.features.options()).replace('\n', '_')
+        options = str(device.features.options()).replace("\n", "_")
         self._name = f"{self._tk_name}_{options}" if options else self._tk_name
         self.session = session
         self.device = device
@@ -186,7 +189,7 @@ class DataServerConfig(LabberConfig):
         version = f"{session.about.version()}#{__version__}#{self.env_settings.version}"
         self._general_settings = {
             "name": f"Zurich Instruments {self._name}",
-            "version":version,
+            "version": version,
             "driver_path": f"Zurich_Instruments_{self._name}",
         }
 
@@ -208,7 +211,7 @@ class ModuleConfig(LabberConfig):
                 "hf2": self.session.is_hf2_server,
                 "shared_session": True,
             },
-            "instrument": {"base_type": "module", "type": self._tk_name}
+            "instrument": {"base_type": "module", "type": self._tk_name},
         }
         version = f"{session.about.version()}#{__version__}#{self.env_settings.version}"
         self._general_settings = {
@@ -231,6 +234,7 @@ def conf_to_labber_format(data: dict, delim: str) -> dict:
     * Replace slashes with delimiter
     * Title sections
     """
+
     def _to_title_keep_uppercase(s: str) -> str:
         if s.islower():
             return s.title()
@@ -256,6 +260,7 @@ def conf_to_labber_format(data: dict, delim: str) -> dict:
                 value = _to_title_keep_uppercase(value)
             data[title_].update({key: value})
     return data
+
 
 def dict_to_config(config: configparser.ConfigParser, data: dict, delim: str) -> None:
     """Turn Python dictionary into ConfigParser."""
@@ -330,6 +335,7 @@ class Filehandler:
     def created_files(self):
         return self._created_files
 
+
 def open_settings_file() -> dict:
     settings_file = Path(__file__).parent.parent / "resources/settings.json"
     with open(settings_file, "r") as json_f:
@@ -358,7 +364,7 @@ def generate_labber_files(
 
     configs = [
         DataServerConfig(session, json_settings, mode),
-        DeviceConfig(dev, session, json_settings, mode)
+        DeviceConfig(dev, session, json_settings, mode),
     ]
     # Modules
     # TODO: When hf2 option enabled:
@@ -366,7 +372,7 @@ def generate_labber_files(
     if not hf2:
         modules: t.List[str] = json_settings["misc"]["ziModules"].copy()
         if "SHFQA" not in dev.device_type:
-            modules.remove('shfqa_sweeper')
+            modules.remove("shfqa_sweeper")
         configs += [ModuleConfig(mod, session, json_settings, mode) for mod in modules]
     for config in configs:
         filegen = Filehandler(config, root_dir=filepath, upgrade=upgrade)

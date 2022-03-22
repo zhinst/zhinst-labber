@@ -1,5 +1,5 @@
-import typing as t
 import re
+import typing as t
 
 from zhinst.labber.generator import helpers
 
@@ -46,7 +46,7 @@ class Quant:
             for idx, c in enumerate(r):
                 if c.isnumeric():
                     idx_ = idx
-            return "/".join(path[:idx_-1])
+            return "/".join(path[: idx_ - 1])
         if len(path) > 1:
             return "/".join(path[:-1])
         return "/".join(path)
@@ -150,7 +150,7 @@ class NodeQuant:
             for idx, c in enumerate(r):
                 if c.isnumeric():
                     idx_ = idx
-            return "/".join(path[:idx_-1])
+            return "/".join(path[: idx_ - 1])
         if len(path) > 1:
             return "/".join(path[:-1])
         return "/".join(path)
@@ -211,7 +211,15 @@ class NodeQuant:
         if "enumerated" in unit:
             if not "READ" == self.permission:
                 return "COMBO"
-        boolean_nodes = ["enable", "single", "on", "busy", "ready", "reset", "preampenable"]
+        boolean_nodes = [
+            "enable",
+            "single",
+            "on",
+            "busy",
+            "ready",
+            "reset",
+            "preampenable",
+        ]
         if node.split("/")[-1] in boolean_nodes:
             return "BOOLEAN"
         string_nodes = ["alias", "serial", "devtype", "fwrevision"]
@@ -286,12 +294,14 @@ class QuantGenerator:
     Args:
         quants: List of quants in node-like format.
     """
+
     def __init__(self, quants: list) -> None:
         self.quants = list(map(helpers.delete_device_from_node_path, quants))
 
     def _quants_from_indexes(self, quant: str, indexes: t.List[int]) -> list:
         """Quants based on their indexes."""
         qts = []
+
         def find_indexes(quant_, i, idxs):
             for x in range(idxs[i]):
                 idx = helpers.find_nth_occurence(quant, "*", i)
@@ -302,16 +312,19 @@ class QuantGenerator:
                         find_indexes("".join(s), i + 1, idxs)
                     except IndexError:
                         qts.append("".join(s))
+
         find_indexes(quant, 0, indexes)
         return qts
 
     def _to_regex(self, s: str) -> str:
         """Quant to regex."""
-        s = s.replace('/', r"\/")
+        s = s.replace("/", r"\/")
         s = s.replace("*", r"[0-9]+")
         return "(?i)" + s
 
-    def quant_paths(self, quant: str, indexes: t.List[t.Union[str, int]]) -> t.List[str]:
+    def quant_paths(
+        self, quant: str, indexes: t.List[t.Union[str, int]]
+    ) -> t.List[str]:
         """Quant paths.
 
         Args:
