@@ -1,7 +1,9 @@
 from collections import OrderedDict
 import pytest
+from pathlib import Path
 from unittest.mock import Mock, patch
 import tempfile
+
 from zhinst.labber import __version__
 from zhinst.labber.generator.generator import (
     conf_to_labber_format,
@@ -201,17 +203,16 @@ def test_generate_labber_drivers_amt_shfqa(
     assert len(settings_json["misc"]["ziModules"]) == 1
     # SHFQA_Sweeper included
     assert len(created) == (1 + len(settings_json["misc"]["ziModules"]) + 1) * 3
-
     files = [
-        f"{str(tmpdirname)}\\Zurich_Instruments_SHFQA4_FOO_BAR\\Zurich_Instruments_SHFQA4_FOO_BAR.py",
-        f"{str(tmpdirname)}\\Zurich_Instruments_SHFQA4_FOO_BAR\\settings.json",
-        f"{str(tmpdirname)}\\Zurich_Instruments_SHFQA4_FOO_BAR\\Zurich_Instruments_SHFQA4_FOO_BAR.ini",
-        f"{str(tmpdirname)}\\Zurich_Instruments_DataServer\\Zurich_Instruments_DataServer.py",
-        f"{str(tmpdirname)}\\Zurich_Instruments_DataServer\\settings.json",
-        f"{str(tmpdirname)}\\Zurich_Instruments_DataServer\\Zurich_Instruments_DataServer.ini",
+        Path(tmpdirname) / "Zurich_Instruments_SHFQA4_FOO_BAR" / "Zurich_Instruments_SHFQA4_FOO_BAR.py",
+        Path(tmpdirname) / "Zurich_Instruments_SHFQA4_FOO_BAR" / "settings.json",
+        Path(tmpdirname) / "Zurich_Instruments_SHFQA4_FOO_BAR" / "Zurich_Instruments_SHFQA4_FOO_BAR.ini",
+        Path(tmpdirname) / "Zurich_Instruments_DataServer" / "Zurich_Instruments_DataServer.py",
+        Path(tmpdirname) / "Zurich_Instruments_DataServer" / "settings.json",
+        Path(tmpdirname) / "Zurich_Instruments_DataServer" / "Zurich_Instruments_DataServer.ini"
     ]
     for file in files:
-        assert file in list(map(str, created))
+        assert file in created
 
 class TestLabberConfigSHFQA:
     @pytest.fixture
