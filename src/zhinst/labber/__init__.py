@@ -4,3 +4,4 @@ try:
 except ModuleNotFoundError:
     pass
 from zhinst.labber.generator import generate_labber_files
+from zhinst.labber.helper import export_waveforms

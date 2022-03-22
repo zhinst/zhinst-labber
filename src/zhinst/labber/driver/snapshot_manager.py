@@ -5,7 +5,7 @@ from zhinst.toolkit.nodetree import NodeTree
 
 
 class SnapshotManager:
-    """Manages the a instrument snapshot.
+    """Manages a instrument snapshot.
 
     Lazy snapshot manager that gets all nodes values from toolkit with a single
     transaction and the reuses the values in later calls until ``clear`` is

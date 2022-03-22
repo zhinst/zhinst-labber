@@ -80,9 +80,11 @@ class BaseDevice(LabberDriver):
             node_info = json.loads(file.read())
             self._node_info = node_info["common"].get("quants", {})
             if self._device_type:
-                device_info = node_info.get(
-                    self._device_type.rstrip(string.digits), {}
-                ).get("quants", {})
+                dev_type = self._device_type.split("_")[0].rstrip(string.digits)
+                device_info = node_info.get(dev_type).get("quants", {})
+                # Backup for modules with underscore
+                if not device_info:
+                    device_info = node_info.get(self._device_type).get("quants", {})
                 self._node_info = {**self._node_info, **device_info}
             self._function_info = node_info.get("functions", {})
             self._path_seperator = node_info["misc"]["labberDelimiter"]
@@ -229,11 +231,12 @@ class BaseDevice(LabberDriver):
                     value = self._parse_value(self._snapshot.get_value(quant.get_cmd))
                 except KeyError:
                     logger.error("%s not found", quant.get_cmd)
+                logger.debug("%s: get %s", quant.name, value)
                 return value if value is not None else quant.getValue()
             # clear snapshot if GET_CFG is finished
             self._snapshot.clear()
             try:
-                value = self._parse_value(self._instrument[quant.get_cmd]())
+                value = self._parse_value(self._instrument[quant.get_cmd](parse=False,enum=False))
                 logger.debug("%s: get %s", quant.name, value)
                 return value
             except Exception as error:
@@ -472,33 +475,34 @@ class BaseDevice(LabberDriver):
             quant_name: Name of the Quantity
 
         Returns:
-            processed value of the Quantity.
+            processed value of the Quantity, do call empty
         """
         quant_info = self._get_node_info(quant_path)
         quant_type = quant_info.get("type", "default")
         quant_name = self._path_to_quant(quant_path)
         quant_value = self.getValue(quant_name)
+        call_empty = quant_info.get("call_empty", True)
         if quant_type == "JSON":
             try:
-                with open(quant_value, "r") as file:
-                    return json.loads(file.read()), False
+                with open(Path(quant_value), "r") as file:
+                    return json.loads(file.read()), call_empty
             except IOError as error:
                 logger.error(error)
-                return {}, not quant_info.get("call_empty", True)
+                return {}, call_empty
         if quant_type == "TEXT":
             try:
-                with open(quant_value, "r") as file:
-                    return file.read(), False
+                with open(Path(quant_value), "r") as file:
+                    return file.read(), call_empty
             except IOError as error:
                 logger.error(error)
-                return "", not quant_info.get("call_empty", True)
+                return "", call_empty
         if quant_type == "CSV":
             try:
-                return self._import_waveforms(Path(quant_value)), False
+                return self._import_waveforms(Path(quant_value)), call_empty
             except IOError as error:
                 logger.error(error)
-                return Waveforms(), not quant_info.get("call_empty", True)
-        return quant_value, False
+                return Waveforms(),call_empty
+        return quant_value, call_empty
 
     def _get_toolkit_function(self, path_list: t.List[str]) -> t.Callable:
         """Convert a function path into a toolkit function object.
@@ -554,7 +558,7 @@ class BaseDevice(LabberDriver):
                     quant_name = self._path_to_quant(quant_path)
                     path_value = self.getValue(quant_name)
                     waveform_paths[quant_path.stem] = (
-                        None if str(path_value) == "." else path_value
+                        None if str(path_value) in [".",""] else Path(path_value)
                     )
                 try:
                     kwargs[arg_name] = self._import_waveforms(**waveform_paths)
@@ -563,8 +567,8 @@ class BaseDevice(LabberDriver):
                     kwargs[arg_name] = Waveforms()
             else:
                 quant_name = (path / relative_quant_name).resolve()
-                kwargs[arg_name], error = self._get_quant_value(quant_name)
-                if error:
+                kwargs[arg_name], call_empty = self._get_quant_value(quant_name)
+                if not call_empty and not kwargs[arg_name]:
                     logger.warning(
                         "%s: %s must not be empty",
                         self._path_to_quant(path),
