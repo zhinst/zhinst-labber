@@ -214,6 +214,21 @@ def test_generate_labber_drivers_amt_shfqa(
     for file in files:
         assert file in created
 
+@patch("zhinst.labber.generator.generator.open_settings_file")
+@patch("zhinst.labber.generator.generator.Session")
+def test_generate_labber_drivers_exists_shfqa(
+    gen_ses, settings, shfqa, session, settings_json
+):
+    gen_ses.return_value = session
+    settings.return_value = settings_json
+    shfqa.features = Mock()
+    shfqa.features.options = Mock(return_value="FOO\nBAR")
+    session.connect_device = Mock(return_value=shfqa)
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        _, _ = generate_labber_files(tmpdirname, "normal", "dev1234", "localhost", upgrade=False)
+        created, _ = generate_labber_files(tmpdirname, "normal", "dev1234", "localhost", upgrade=False)
+    assert created == []
+
 class TestLabberConfigSHFQA:
     @pytest.fixture
     def dev_conf(self, shfqa, session, settings_json):

@@ -66,6 +66,15 @@ def test_cli_script_setup(mock_gen, inp, outp):
         "Upgraded file: foo\n"
 
 
+@mock.patch("zhinst.labber.cli_script.generate_labber_files", return_value=[[], []])
+def test_cli_script_no_files(mock_gen):
+    runner = CliRunner()
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        result = runner.invoke(main, ['setup', tmpdirname, "dev1234", "localhost", "--server_port=812"])
+        assert result.exit_code == 0
+        assert result.output == "Generating Zurich Instruments Labber device drivers...\n"
+
+
 @mock.patch("zhinst.labber.cli_script.generate_labber_files")
 def test_cli_script_setup_errors(mock_gen):
     runner = CliRunner()

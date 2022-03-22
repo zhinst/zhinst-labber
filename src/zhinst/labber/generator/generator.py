@@ -27,9 +27,7 @@ class LabberConfig:
         self._env_settings = LabberConfiguration(name, mode, env_settings)
         self._quant_gen = QuantGenerator(self._node_list())
         self._tk_name = name
-        self._base_dir = "Zurich_Instruments_"
         self._name = name
-        self._settings_path = "settings.json"
         self._general_settings = {}
         self._settings = {}
 
@@ -47,22 +45,19 @@ class LabberConfig:
 
     def _update_groups(self, quants: dict) -> dict:
         """Update quant groups"""
-        for k in quants.copy().keys():
-            replc = []
-            for part in k.split('/'):
-                if part.isnumeric():
-                    replc.append(part)
+        for quant in quants.copy().keys():
+            replc = [part for part in quant.split("/") if part.isnumeric()]
             quant_wc = {}
-            for kk, vv in self.env_settings.quant_groups.copy().items():
-                kk = kk.replace('<n>', '*')
-                quant_wc[kk] = vv
-            _, sec = match_in_dict_keys(k, quant_wc)
-            if sec:
-                cnt = sec.count("<n>")
-                sec = sec.replace("<n>", "{}")
+            for pattern, grp in self.env_settings.quant_groups.copy().items():
+                pattern = pattern.replace('<n>', '*')
+                quant_wc[pattern] = grp
+            _, path = match_in_dict_keys(quant, quant_wc)
+            if path:
+                cnt = path.count("<n>")
+                path = path.replace("<n>", "{}")
                 repl = [replc[idx] for idx in range(cnt)]
-                sec = sec.format(*repl)
-                quants[k]["group"] = sec
+                path = path.format(*repl)
+                quants[quant]["group"] = path
         return quants
 
     def _generate_node_quants(self):
@@ -127,12 +122,12 @@ class LabberConfig:
     @property
     def settings_path(self) -> str:
         """Settings filepath."""
-        return self._settings_path
+        return "settings.json"
 
     @property
     def name(self) -> str:
         """Config name"""
-        return self._base_dir + self._name
+        return "Zurich_Instruments_" + self._name
 
     @property
     def general_settings(self) -> dict:
@@ -307,9 +302,10 @@ class Filehandler:
             with open(path, "w", encoding="utf-8") as config_file:
                 config.write(config_file)
         else:
-            with open(path, "w", encoding="utf-8") as config_file:
-                config.write(config_file)
-            self._created_files.append(path)
+            if not path.exists():
+                with open(path, "w", encoding="utf-8") as config_file:
+                    config.write(config_file)
+                self._created_files.append(path)
 
     def write_python_driver(self):
         path = self._root_dir / f"{self._config.name}.py"
