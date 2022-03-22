@@ -53,7 +53,10 @@
                 "*/commandtable/clear",
                 "*/dio/data",
                 "/qas/*/result/statistics/statemap",
-                "*/precompensation/fir/coefficients"
+                "*/precompensation/fir/coefficients",
+                "*/generator/waveforms/*/length",
+                "/feedback/decoder/lut/tables/*",
+                "/sgchannels/*/awg/elf/*"
             ],
             "advanced": [
                 "/features/*"
@@ -64,7 +67,11 @@
             "/oscs/<n>/*": "OSCS <n>",
             "/awgs/<n>/*": "AWGS <n>",
             "/sgchannels/<n>/*": "SG Channel <n>",
-            "/dios/<n>": "DIO <n>"
+            "/dios/<n>": "DIO <n>",
+            "/qachannels/<n>/readout/*": "QA Channel <n> Readout",
+            "/qachannels/<n>/spectroscopy/*": "QA Channel <n> Spectroscopy",
+            "/qachannels/<n>/*": "QA Channel <n>",
+            "/scopes/<n>/*": "Scope <n>"
         },
         "sections": {
             "/sigins/*": "Input - Output",
@@ -78,15 +85,29 @@
             "/extrefs/*": "EXT Refs",
             "/mods/*": "MOD",
             "/tu/*": "Thresholds",
+            "/awg/channelgrouping": "AWG",
             "/awgs/*": "AWG Sequencer",
             "/dios/*": "DIO",
             "/pids/*": "PID",
             "/plls/*": "PLL",
             "/zctrls/*": "ZSync Control",
             "/cnts/*": "CNTS",
-            "/inputspwas/*": "PWA",
+            "/inputpwas/*": "PWA",
             "/outputpwas/*": "PWA",
-            "/zsyncs/*/connection/*": "Ports"
+            "/zsyncs/*/connection/*": "Ports",
+            "/qachannels/*/input*": "QA Setup",
+            "/qachannels/*/generator*": "Generator",
+            "/qachannels/*/readout/*": "QA Result",
+            "/qachannels/*/spectroscopy/*": "QA Result",
+            "/qachannels/*/triggers/*": "Input - Output",
+            "/qachannels/*": "QA Setup",
+            "/scopes/trigger/*": "Input - Output",
+            "/scopes/*": "Scope",
+            "/system/clocks/*": "Input - Output",
+            "/sgchannels/*/awg/dio/*": "DIO",
+            "/sgchannels/*/awg/*": "AWG Sequencer",
+            "/sgchannels/*": "Output",
+            "/synthesizers/*": "MOD"
         },
         "quants": {
             "/scopes/*/wave": {
@@ -395,33 +416,13 @@
             "startup": "Do nothing"
         },
         "ignoredNodes": {
-            "normal": [
-                "/qachannels/*/generator/waveforms/*/length",
-                "/qachannels/*/generator/sequencer/memoryusage",
-                "/qachannels/*/generator/sequencer/status",
-                "/qachannels/*/generator/sequencer/triggered",
-                "/qachannels/*/generator/elf/*"
-            ],
+            "normal": [],
             "advanced": []
         },
         "sections": {
-            "/qachannels/*/input*": "QA Setup",
-            "/qachannels/*/generator*": "Generator",
-            "/qachannels/*/readout/*": "QA Result",
-            "/qachannels/*/spectroscopy/*": "QA Result",
-            "/qachannels/*/triggers/*": "Input - Output",
-            "/scopes/*": "Scopes",
-            "/dios/*": "Input - Output",
-            "/qachannels/*": "QA Setup",
-            "/scopes/trigger/*": "Input - Output",
-            "/system/clocks/*": "Input - Output"
+            "/dios/*": "Input - Output"
         },
-        "groups": {
-            "/qachannels/<n>/readout/*": "QA Channel <n> Readout",
-            "/qachannels/<n>/spectroscopy/*": "QA Channel <n> Spectroscopy",
-            "/qachannels/<n>/*": "QA Channel <n>",
-            "/scopes/<n>/*": "Scope <n>"
-        },
+        "groups": {},
         "quants": {
             "/qachannels/*/generator/waveforms/*/wave": {
                 "add": false,
@@ -475,7 +476,8 @@
             "/qachannels/*/readout/wait_done": {
                 "add": true,
                 "conf": {
-                    "datatype": "BOOLEAN"
+                    "datatype": "BOOLEAN",
+                    "tooltip": "Wait until the readout is finished."
                 },
                 "driver": {
                     "function": "wait_done",
@@ -487,7 +489,8 @@
                 "add": true,
                 "conf": {
                     "datatype": "PATH",
-                    "set_cmd": "*.csv"
+                    "set_cmd": "*.csv",
+                    "tooltip": "Configure the weighted integration from a file."
                 },
                 "driver": {
                     "function": "generator/write_integration_weights",
@@ -508,7 +511,8 @@
             "/qachannels/*/spectroscopy/wait_done": {
                 "add": true,
                 "conf": {
-                    "datatype": "BOOLEAN"
+                    "datatype": "BOOLEAN",
+                    "tooltip": "Wait until the spectroscopy is finished."
                 },
                 "driver": {
                     "function": "wait_done",
@@ -528,7 +532,8 @@
             "/scopes/*/wait_done": {
                 "add": true,
                 "conf": {
-                    "datatype": "BOOLEAN"
+                    "datatype": "BOOLEAN",
+                    "tooltip": "Wait until the scope recording is finished."
                 },
                 "driver": {
                     "function": "wait_done",
@@ -546,26 +551,16 @@
             "startup": "Do nothing"
         },
         "ignoredNodes": {
-            "normal": [
-                "/awgs/*/elf/*"
-            ],
+            "normal": [],
             "advanced": []
         },
         "sections": {
-            "/aux/*": "AUX",
             "/aucarts/*": "AU",
             "/aupolars/*": "AU",
             "/awgs/*": "AWG",
             "/boxcars/*": "Boxcars",
-            "/awg/channelgrouping": "AWG",
             "/cnts/*": "Pulse Counter",
-            "/extrefs/*": "EXT Refs",
-            "/mods/*": "MOD",
-            "/inputspwas/*": "PWA",
-            "/outputpwas/*": "PWA",
-            "/oscs/*": "OSC",
-            "/pids/*": "PID",
-            "/scopes/*": "Scope"
+            "/oscs/*": "OSC"
         },
         "groups": {},
         "quants": {}
@@ -583,8 +578,8 @@
         },
         "sections": {
             "/awgs/*/dio/*": "DIO",
-            "/dios/*": "DIO",
             "/awgs/*/outputs/*": "Outputs",
+            "/dios/*": "DIO",
             "/sines/*": "Sine Generator"
         },
         "groups": {}
@@ -649,9 +644,7 @@
     "PQSC": {
         "generalSettings": {},
         "ignoredNodes": {
-            "normal": [
-                "/feedback/decoder/lut/tables/*"
-            ],
+            "normal": [],
             "advanced": []
         },
         "sections": {
@@ -689,19 +682,10 @@
             "startup": "Do nothing"
         },
         "ignoredNodes": {
-            "normal": [
-                "/sgchannels/*/awg/rtlogger/data",
-                "/sgchannels/*/awg/elf/*"
-            ],
+            "normal": [],
             "advanced": []
         },
-        "sections": {
-            "/sgchannels/*/awg/dio/*": "DIO",
-            "/sgchannels/*/awg/*": "AWG Sequencer",
-            "/sgchannels/*": "Output",
-            "/synthesizers/*": "MOD",
-            "/dios/*": "DIO"
-        },
+        "sections": {},
         "groups": {}
     },
     "functions": {

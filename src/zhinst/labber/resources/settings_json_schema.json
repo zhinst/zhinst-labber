@@ -4,21 +4,26 @@
     "description":"Labber configuration JSON",
     "definitions": {
         "misc": {
+            "description": "miscellaneous settings",
             "properties": {
                 "labberDelimiter": {
                     "type": "string",
                     "description": "Labber delimiter between words."
                 },
                 "ziModules": {
-                    "description": "Array of ZIPython modules",
+                    "description": "Array of included ZIPython modules",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
+                },
+                "LogLevel": {
+                    "description": "Log level in Python logging format.",
+                    "type": "number"
                 }
             },
             "required": [
-                "labberDelimiter", "ziModules"
+                "labberDelimiter", "ziModules", "LogLevel"
             ]
         },
         "common": {
@@ -55,7 +60,9 @@
                 "conf": {
                     "type": "object"
                 },
-                "extend": {},
+                "extend": {
+                    "type": "object"
+                },
                 "mapping": {
                     "$ref": "#/definitions/mapping"
                 },
@@ -118,12 +125,14 @@
         },
         "generalSettings": {
             "type": "object",
+            "description": "Labber General settings section",
             "additionalProperties": {
                 "type": ["string", "boolean"]
             }
         },
         "indexes": {
             "type": "array",
+            "description": "How the quant indexes are calculated.",
             "items": {
                 "oneOf": [
                     {
@@ -131,6 +140,7 @@
                     },
                     {
                         "type": "string",
+                        "description": "Calculate number of indexes from device.",
                         "enum": ["dev"]
                     }
                 ]
@@ -170,6 +180,7 @@
         },
         "ignoredNodes": {
             "type": "object",
+            "description": "Defined nodes to be ignored.",
             "properties": {
                 "normal": {
                     "type": "array",
@@ -209,6 +220,30 @@
                 }
             },
             "required": ["generalSettings"]
+        },
+        "functions": {
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "#/definitions/functionObject"
+            }
+        },
+        "functionObject": {
+            "type": "object",
+            "properties": {
+                "Args": {
+                    "type": "object"
+                },
+                "Returns": {
+                    "type": "array"
+                },
+                "call_type": {
+                    "type": "string"
+                },
+                "is_setting": {
+                    "type": "boolean"
+                }
+            },
+            "required": ["Args", "Returns", "call_type"]
         }
     },
     "properties": {
@@ -225,7 +260,7 @@
             "$ref": "#/definitions/common"
         },
         "functions": {
-            "type": "object"
+            "$ref": "#/definitions/functions"
         }
     },
     "additionalProperties": {
