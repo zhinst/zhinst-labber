@@ -115,7 +115,7 @@ def to_labber_combo_def(
     return enums
 
 
-def match_in_dict_keys(target: str, data: dict) -> t.Tuple[str, dict]:
+def match_in_dict_keys(target: str, data: dict) -> t.Tuple[str, t.Any]:
     """Find matches for target in data."""
     for k, v in data.items():
         k_ = remove_leading_trailing_slashes(k)

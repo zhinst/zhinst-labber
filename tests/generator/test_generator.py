@@ -148,25 +148,12 @@ def test_conf_to_labber_format():
     )
 
 
-class TestLabberConfig:
+class TestLabberConfigUHFLI:
     @pytest.fixture
     def dev_conf(self, uhfli, session, settings_json):
         session.about = Mock()
         session.about.version = Mock(return_value="0.2.2")
         return DeviceConfig(uhfli, session, settings_json, "normal")
-
-    def test_generate_quants_from_indexes_dev(self, dev_conf):
-        r = dev_conf._quant_paths("/awgs/*/waveform/waves/*", ["dev", 4])
-        assert r == [
-            "/awgs/0/waveform/waves/0",
-            "/awgs/0/waveform/waves/1",
-            "/awgs/0/waveform/waves/2",
-            "/awgs/0/waveform/waves/3",
-        ]
-
-    def test_generate_quants_from_indexes_no_idx(self, dev_conf):
-        r = dev_conf._quant_paths("/awgs/*/markers", [])
-        assert r == ["/awgs/0/markers"]
 
     def test_general_settings(self, dev_conf, settings_json):
         assert dev_conf.general_settings == {
@@ -177,9 +164,10 @@ class TestLabberConfig:
                 "startup": "Do nothing",
                 "support_arm": True,
                 "support_hardware_loop": True,
-                "version": f"0.2.2#{ __version__}#{settings_json['version']}"
+                "version": f"0.2.2#{ __version__}#{settings_json['version']}",
             }
         }
+
 
 @patch("zhinst.labber.generator.generator.open_settings_file")
 @patch("zhinst.labber.generator.generator.Session")
@@ -217,7 +205,44 @@ def test_generate_labber_drivers_amt_shfqa(
     files = [
         f"{str(tmpdirname)}\\Zurich_Instruments_SHFQA4_FOO_BAR\\Zurich_Instruments_SHFQA4_FOO_BAR.py",
         f"{str(tmpdirname)}\\Zurich_Instruments_SHFQA4_FOO_BAR\\settings.json",
-        f"{str(tmpdirname)}\\Zurich_Instruments_SHFQA4_FOO_BAR\\Zurich_Instruments_SHFQA4_FOO_BAR.ini"
+        f"{str(tmpdirname)}\\Zurich_Instruments_SHFQA4_FOO_BAR\\Zurich_Instruments_SHFQA4_FOO_BAR.ini",
+        f"{str(tmpdirname)}\\Zurich_Instruments_DataServer\\Zurich_Instruments_DataServer.py",
+        f"{str(tmpdirname)}\\Zurich_Instruments_DataServer\\settings.json",
+        f"{str(tmpdirname)}\\Zurich_Instruments_DataServer\\Zurich_Instruments_DataServer.ini",
     ]
     for file in files:
         assert file in list(map(str, created))
+
+class TestLabberConfigSHFQA:
+    @pytest.fixture
+    def dev_conf(self, shfqa, session, settings_json):
+        session.about = Mock()
+        session.about.version = Mock(return_value="0.2.2")
+        return DeviceConfig(shfqa, session, settings_json, "normal")
+
+    def test_config(self, dev_conf):
+        r = dev_conf.config()
+        assert r["/qachannels/2/triggers/0/imp50"] == {
+            "section": "Input - Output",
+            "group": "QA Channel 2",
+            "label": "qachannels/2/triggers/0/imp50",
+            "datatype": "BOOLEAN",
+            "tooltip": "<html><body><p>Trigger Input impedance: When on, the Trigger Input impedance is 50 Ohm: when off, 1 kOhm.</p><p><ul><li>1_kOhm: 1 k Ohm</li><li>50_Ohm: 50 Ohm</li></ul></p><p><b>QACHANNELS/2/TRIGGERS/0/IMP50</b></p></body></html>",
+            "cmd_def_1": "1_kOhm",
+            "combo_def_1": "1_kOhm",
+            "cmd_def_2": "50_Ohm",
+            "combo_def_2": "50_Ohm",
+            "permission": "BOTH",
+            "set_cmd": "QACHANNELS/2/TRIGGERS/0/IMP50",
+            "get_cmd": "QACHANNELS/2/TRIGGERS/0/IMP50",
+        }
+        assert r["/qachannels/3/readout/discriminators/5/threshold"] == {
+            "section": "QA Result",
+            "group": "QA Channel 3 Readout",
+            "label": "qachannels/3/readout/discriminators/5/threshold",
+            "datatype": "DOUBLE",
+            "tooltip": "<html><body><p>Sets the threshold level for the 2-state discriminator on the real signal axis in Vs.</p><p><b>QACHANNELS/3/READOUT/DISCRIMINATORS/5/THRESHOLD</b></p></body></html>",
+            "permission": "BOTH",
+            "set_cmd": "QACHANNELS/3/READOUT/DISCRIMINATORS/5/THRESHOLD",
+            "get_cmd": "QACHANNELS/3/READOUT/DISCRIMINATORS/5/THRESHOLD",
+        }

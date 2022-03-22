@@ -1,23 +1,21 @@
 from collections import OrderedDict
 import configparser
-import re
 import typing as t
 from pathlib import Path
 import json
 import natsort
 
 from zhinst.toolkit import Session
-from .quants import NodeQuant, Quant
 from zhinst.toolkit.nodetree import Node
+from zhinst.labber.generator.quants import NodeQuant, Quant, QuantGenerator
 from zhinst.labber.generator.helpers import (
     delete_device_from_node_path,
     remove_leading_trailing_slashes,
     match_in_dict_keys,
     match_in_list,
-    find_nth_occurence
 )
 from zhinst.labber.code_generator.drivers import generate_labber_device_driver_code
-from .conf import LabberConfiguration
+from zhinst.labber.generator.conf import LabberConfiguration
 from zhinst.labber import __version__
 
 class LabberConfig:
@@ -27,12 +25,17 @@ class LabberConfig:
         self._mode = mode
         self._env_settings_json = env_settings
         self._env_settings = LabberConfiguration(name, mode, env_settings)
+        self._quant_gen = QuantGenerator(self._node_list())
         self._tk_name = name
         self._base_dir = "Zurich_Instruments_"
         self._name = name
         self._settings_path = "settings.json"
         self._general_settings = {}
         self._settings = {}
+
+    def _node_list(self) -> t.List[str]:
+        nodes = {k: v for k,v in self.root}
+        return [x["Node"] for x in nodes.values()]
 
     def _update_sections(self, quants: dict) -> dict:
         """Update quant sections."""
@@ -62,65 +65,6 @@ class LabberConfig:
                 quants[k]["group"] = sec
         return quants
 
-    def _matching_name(self, s: str) -> bool:
-        """Check if value matches name"""
-        if re.match(f"{s}(\d+)?$", self._name):
-            return True
-        return False
-
-    def _generate_quants_from_indexes(
-        self, quant: str, index: int, indexes: t.List[int]
-    ) -> list:
-        """Quants based on their indexes."""
-        qts = []
-        if not indexes:
-            idx_count = quant.count("*")
-            if idx_count > 0:
-                indexes = ["dev" for _ in range(idx_count)]
-            else:
-                return [quant]
-
-        def find_indexes(quant_, i, idxs):
-            for x in range(idxs[i]):
-                idx = find_nth_occurence(quant, "*", i)
-                s = list(quant_)
-                if idx != -1:
-                    s[idx] = str(x)
-                    try:
-                        find_indexes("".join(s), i + 1, idxs)
-                    except IndexError:
-                        qts.append("".join(s))
-        find_indexes(quant, index, indexes)
-        return qts
-
-    def _quant_paths(self, quant: str, indexes: t.List[t.Union[str, int]]) -> t.List[str]:
-        """Quant paths."""
-        idxs = []
-        if not indexes:
-            indexes = ["dev" for _ in range(quant.count("*"))]
-            if not indexes:
-                return [quant]
-
-        for enum, idx in enumerate(indexes):
-            bar = find_nth_occurence(quant, "*", enum)
-            if idx == "dev":
-                bar = find_nth_occurence(quant, "*", enum)
-                if bar != -1:
-                    stop = list(quant)[:bar]
-                    stop = "".join(stop).replace("//", "/")
-                    if stop[-1] == "/":
-                        stop = stop[:-1]
-                    if not stop.startswith("/"):
-                        stop = "/" + stop
-                    try:
-                        idxs.append(len(self.root[stop]))
-                    except TypeError:
-                        return []
-            else:
-                idxs.append(idx)
-        paths = self._generate_quants_from_indexes(quant, 0, idxs)
-        return paths
-
     def _generate_node_quants(self):
         quants = {}
         for _, info in self.root:
@@ -149,8 +93,7 @@ class LabberConfig:
                 nodes[k] = v
                 # If the quant is extended
                 if vv.get("extend", None):
-                    paths = self._quant_paths(kk, v.get("indexes", []))
-                    for p in paths:
+                    for p in self._quant_gen.quant_paths(kk, v.get("indexes", [])):
                         s = Quant(p, vv["extend"])
                         nodes.update(s.as_dict())
                 missing.pop(kk, None)
@@ -158,8 +101,7 @@ class LabberConfig:
         # Manually added quants from configuration
         for k, v in missing.items():
             if v.get("add", False):
-                paths = self._quant_paths(k, v.get("indexes", []))
-                for p in paths:
+                for p in self._quant_gen.quant_paths(k, v.get("indexes", [])):
                     s = Quant(p, v["conf"])
                     nodes.update(s.as_dict())
         return nodes
@@ -219,7 +161,7 @@ class DeviceConfig(LabberConfig):
                 "hf2": self.session.is_hf2_server,
                 "shared_session": True,
             },
-            "instrument": {"base_type": "device", "type": self._tk_name},
+            "instrument": {"base_type": "device", "type": self._name},
         }
         version = f"{session.about.version()}#{__version__}#{self.env_settings.version}"
         self._general_settings = {

@@ -1,7 +1,7 @@
 import typing as t
 import re
 
-from . import helpers
+from zhinst.labber.generator import helpers
 
 
 class Quant:
@@ -38,12 +38,18 @@ class Quant:
     @property
     def group(self) -> str:
         """Quant group"""
-        s = self._quant_no_slash.split("/")
-        if len(s) == 1:
-            return "SYSTEM"
-        if s[-1].isnumeric():
-            return "/".join(s[:-2])
-        return "/".join(s[:-1]) + "/"
+        node_path = self._quant_no_slash.split("/")
+        path = [x for x in node_path if not x.isnumeric()]
+        if len([x for x in node_path if x.isnumeric()]) > 1:
+            r = node_path
+            idx_ = 0
+            for idx, c in enumerate(r):
+                if c.isnumeric():
+                    idx_ = idx
+            return "/".join(path[:idx_-1])
+        if len(path) > 1:
+            return "/".join(path[:-1])
+        return "/".join(path)
 
     @property
     def set_cmd(self) -> str:
@@ -272,3 +278,71 @@ class NodeQuant:
         if flat:
             return d
         return {self.filtered_node_path.lower(): d}
+
+
+class QuantGenerator:
+    """Quant generator.
+
+    Args:
+        quants: List of quants in node-like format.
+    """
+    def __init__(self, quants: list) -> None:
+        self.quants = list(map(helpers.delete_device_from_node_path, quants))
+
+    def _quants_from_indexes(self, quant: str, indexes: t.List[int]) -> list:
+        """Quants based on their indexes."""
+        qts = []
+        def find_indexes(quant_, i, idxs):
+            for x in range(idxs[i]):
+                idx = helpers.find_nth_occurence(quant, "*", i)
+                s = list(quant_)
+                if idx != -1:
+                    s[idx] = str(x)
+                    try:
+                        find_indexes("".join(s), i + 1, idxs)
+                    except IndexError:
+                        qts.append("".join(s))
+        find_indexes(quant, 0, indexes)
+        return qts
+
+    def _to_regex(self, s: str) -> str:
+        """Quant to regex."""
+        s = s.replace('/', r"\/")
+        s = s.replace("*", r"[0-9]+")
+        return "(?i)" + s
+
+    def quant_paths(self, quant: str, indexes: t.List[t.Union[str, int]]) -> t.List[str]:
+        """Quant paths.
+
+        Args:
+            quant: Quant node-like path.
+            indexes: Indexes for wildcards (*). 'dev' | int
+        """
+        idxs = []
+        if not indexes:
+            indexes = ["dev" for _ in range(quant.count("*"))]
+            if not indexes:
+                return [quant]
+
+        if quant.count("*") > len(indexes):
+            diff = quant.count("*") - len(indexes)
+            indexes += ["dev" for _ in range(diff)]
+
+        for enum, idx in enumerate(indexes):
+            if idx == "dev":
+                ps = set()
+                ii = helpers.find_nth_occurence(quant, "*", enum) + 1
+                p = re.compile(self._to_regex(quant[:ii]))
+                for b in list(filter(p.match, self.quants)):
+                    p = re.findall(r"[0-9]+", b)
+                    try:
+                        ps.add(p[enum])
+                    except IndexError:
+                        continue
+                idxs.append(len(ps))
+            else:
+                idxs.append(idx)
+        if not idxs:
+            return [quant]
+        paths = self._quants_from_indexes(quant, idxs)
+        return paths
