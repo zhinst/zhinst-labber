@@ -90,6 +90,12 @@ def setup(filepath, device, server_host, server_port, hf2, mode, upgrade):
         server_port=server_port,
         hf2=hf2,
     )
+    if not upgrade and not generated:
+        click.echo(
+            "Error: It appears that the driver already exists. " \
+            "Please delete the files manually or " \
+            "use --upgrade options to overwrite the existing drivers."
+        )
     for file in generated:
         click.echo(f"Generated file: {file}")
     for file in upgraded:

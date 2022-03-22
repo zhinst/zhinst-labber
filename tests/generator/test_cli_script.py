@@ -72,7 +72,7 @@ def test_cli_script_no_files(mock_gen):
     with tempfile.TemporaryDirectory() as tmpdirname:
         result = runner.invoke(main, ['setup', tmpdirname, "dev1234", "localhost", "--server_port=812"])
         assert result.exit_code == 0
-        assert result.output == "Generating Zurich Instruments Labber device drivers...\n"
+        assert "Error: It appears that the driver already exists" in result.output
 
 
 @mock.patch("zhinst.labber.cli_script.generate_labber_files")
