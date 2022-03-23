@@ -9,20 +9,29 @@ on:
 
 jobs:
   tests:
-    name: "Python ${{ matrix.python-version }}"
+    name: "Python ${{ matrix.python }}"
     runs-on: "ubuntu-latest"
     env:
-      USING_COVERAGE: "3.7"
-
+      USING_COVERAGE: "3.9"
     strategy:
       matrix:
-        python-version: ["3.7"]
+        name: [py37, py38, py39, py310]
+        include:
+        - name: py37
+          python: 3.7
+        - name: py38
+          python: 3.8
+        - name: py39
+          python: 3.9
+          coverage: "--cov"
+        - name: py310
+          python: "3.10"
 
     steps:
       - uses: "actions/checkout@v2"
       - uses: "actions/setup-python@v1"
         with:
-          python-version: "${{ matrix.python-version }}"
+          python-version: "${{ matrix.python }}"
       - name: "Install dependencies"
         run: |
           set -xe
@@ -32,8 +41,10 @@ jobs:
           python -m pip install --upgrade coverage[toml] virtualenv pytest-cov codecov
           python -m pip install --upgrade -r requirements.txt
           python -m pip install .
-
-      - name: "Run pytest targets for ${{ matrix.python-version }}"
+      - name: "Run pytest targets for ${{ matrix.python }}"
         run: |
           pytest --cov=zhinst.labber tests/
+      - name: codecov
+        if: matrix.coverage
+        run: |
           codecov
