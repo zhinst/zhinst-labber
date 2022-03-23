@@ -26,7 +26,6 @@ class LabberConfig:
         self.root = root
         self._mode = mode
         self._env_settings_json = env_settings
-        # Pass LabberConf
         self._env_settings = LabberConfiguration(name, mode, env_settings)
         self._quant_gen = QuantGenerator(list(self.root._root.raw_dict.keys()))
         self._tk_name = name
@@ -42,23 +41,21 @@ class LabberConfig:
                 quants[k]["section"] = sec
         return quants
 
-    def _update_groups(self, quants: dict) -> dict:
+    def _update_group(self, quant: str, defs: dict) -> dict:
         """Update quant groups"""
-        #TODO: TO one loop
-        for quant in quants.copy().keys():
-            replc = [part for part in quant.split("/") if part.isnumeric()]
-            quant_wc = {}
-            for pattern, grp in self.env_settings.quant_groups.copy().items():
-                pattern = pattern.replace("<n>", "*")
-                quant_wc[pattern] = grp
-            _, path = match_in_dict_keys(quant, quant_wc)
-            if path:
-                cnt = path.count("<n>")
-                path = path.replace("<n>", "{}")
-                repl = [replc[idx] for idx in range(cnt)]
-                path = path.format(*repl)
-                quants[quant]["group"] = path
-        return quants
+        replc = [part for part in quant.split("/") if part.isnumeric()]
+        quant_wc = {}
+        for pattern, grp in self.env_settings.quant_groups.copy().items():
+            pattern = pattern.replace("<n>", "*")
+            quant_wc[pattern] = grp
+        _, path = match_in_dict_keys(quant, quant_wc)
+        if path:
+            cnt = path.count("<n>")
+            path = path.replace("<n>", "{}")
+            repl = [replc[idx] for idx in range(cnt)]
+            path = path.format(*repl)
+            defs["group"] = path
+        return defs
 
     def _generate_node_quants(self):
         quants = {}
@@ -88,12 +85,13 @@ class LabberConfig:
                     for path in self._quant_gen.quant_paths(kk, v.get("indexes", [])):
                         nodes.update(Quant(path, vv["extend"]).as_dict())
                 custom_quants.pop(kk, None)
+            nodes[k] = self._update_group(k, v)
 
         # Manually added quants from configuration
         for k, v in custom_quants.items():
             if v.get("add", False):
                 for p in self._quant_gen.quant_paths(k, v.get("indexes", [])):
-                    nodes.update(Quant(p, v["conf"]).as_dict())
+                    nodes.update(Quant(p, self._update_group(p, v["conf"])).as_dict())
         return nodes
 
     def generated_code(self) -> str:
@@ -104,7 +102,6 @@ class LabberConfig:
         """Labber configuration as a Python dictionary."""
         general = self.general_settings
         nodes = self._generate_quants()
-        nodes = self._update_groups(nodes)
         nodes = self._update_sections(nodes)
         general.update(nodes)
         return general
