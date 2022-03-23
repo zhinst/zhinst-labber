@@ -659,7 +659,8 @@
             "support_arm": true,
             "support_hardware_loop": true,
             "interface": "Other",
-            "startup": "Do nothing"
+            "startup": "Do nothing",
+            "signal_analyzer": true
         },
         "ignoredNodes": {
             "normal": [
