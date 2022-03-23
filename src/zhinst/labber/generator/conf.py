@@ -7,14 +7,17 @@ from zhinst.labber.generator.helpers import tooltip
 class LabberConfiguration:
     """Labber JSON configuration handler.
 
+    Parses selected values from given settings based on name and mode.
+
     Args:
         name: Name of the Zurich Instrument object.
         mode: What parts to read from the settings file.
             'NORMAL' | 'ADVANCED'
         settings: Settings for the given object
+            JSON schema: `zhinst/labber/resources/settings_json_schema.json`
     """
 
-    def __init__(self, name: str, mode: str, settings: dict):
+    def __init__(self, name: str, mode: str, settings: t.Dict):
         self._name = name.upper()
         self._mode = mode.lower()
         self.json_settings = settings.copy()
@@ -30,38 +33,46 @@ class LabberConfiguration:
         self._quants = self._find_quants()
 
     def _matching_name(self, s: str) -> bool:
-        """Check if match with name is found."""
+        """Check if input matches with settings name.
+
+        Returns:
+            if input matches name.
+        """
         if re.match(f"{s.lower()}(\d+)?$", self._name.lower()):
             return True
         return False
 
-    def _find_quants(self) -> dict:
-        """Replaced nodes."""
-        b = self.json_settings["common"].get("quants", {}).copy()
-        if self.dev_settings:
-            b.update(self.dev_settings.get("quants", {}))
+    def _find_quants(self) -> t.Dict:
+        """Find quants based on device type and selected mode.
 
-        for k, v in b.copy().items():
-            if not v.get("conf", {}) or v.get("add", None) is None:
-                b.pop(k)
+        Returns:
+            Dictionary of all matching quant objects.
+        """
+        quants = self.json_settings["common"].get("quants", {}).copy()
+        if self.dev_settings:
+            quants.update(self.dev_settings.get("quants", {}))
+
+        for quant, defs in quants.copy().items():
+            if not defs.get("conf", {}) or defs.get("add", None) is None:
+                quants.pop(quant)
                 continue
-            if v["conf"].get("tooltip", None):
-                b[k]["conf"]["tooltip"] = tooltip(v["conf"]["tooltip"])
-            if "mapping" in v.keys():
-                map_ = v["mapping"].get(self._set_name, {})
+            if defs["conf"].get("tooltip", None):
+                quants[quant]["conf"]["tooltip"] = tooltip(defs["conf"]["tooltip"])
+            if "mapping" in defs.keys():
+                map_ = defs["mapping"].get(self._set_name, {})
                 if not map_:
-                    b.pop(k)
+                    quants.pop(quant)
                     continue
-                b.pop(k)
-                b[map_["path"]] = {
+                quants.pop(quant)
+                quants[map_["path"]] = {
                     "indexes": map_["indexes"],
-                    "conf": v["conf"],
-                    "add": v["add"],
+                    "conf": defs["conf"],
+                    "add": defs["add"],
                 }
-            elif "dev_type" in v.keys():
-                if not self._name in v["dev_type"]:
-                    b.pop(k)
-        return b
+            elif "dev_type" in defs.keys():
+                if not self._name in defs["dev_type"]:
+                    quants.pop(quant)
+        return quants
 
     @property
     def version(self) -> str:
@@ -69,7 +80,7 @@ class LabberConfiguration:
         return self.json_settings["version"]
 
     @property
-    def general_settings(self) -> dict:
+    def general_settings(self) -> t.Dict:
         """Labber configuration file `General settings`-section."""
         if self.dev_settings:
             return self.dev_settings["generalSettings"]
@@ -77,14 +88,14 @@ class LabberConfiguration:
 
     @property
     def ignored_nodes(self) -> t.List[str]:
-        """Ignored nodes."""
-        ign = self.json_settings["common"].get("ignoredNodes", {})
-        common_norm = ign.get("normal", [])
-        common_adv = ign.get("advanced", [])
+        """List of ignored nodes based on device and selected mode."""
+        ignored_common = self.json_settings["common"].get("ignoredNodes", {})
+        common_norm = ignored_common.get("normal", [])
+        common_adv = ignored_common.get("advanced", [])
         if self.dev_settings:
-            ign = self.dev_settings.get("ignoredNodes", {})
-            dev_norm = ign.get("normal", [])
-            dev_adv = ign.get("advanced", [])
+            ignored_dev = self.dev_settings.get("ignoredNodes", {})
+            dev_norm = ignored_dev.get("normal", [])
+            dev_adv = ignored_dev.get("advanced", [])
             if self._mode == "normal":
                 return common_norm + common_adv + dev_adv + dev_norm
             else:
@@ -94,13 +105,13 @@ class LabberConfiguration:
         return common_adv
 
     @property
-    def quants(self) -> dict:
-        """Configuration quants."""
+    def quants(self) -> t.Dict:
+        """Quants based on device type and selected mode."""
         return self._quants
 
     @property
-    def quant_sections(self) -> dict:
-        """Quant sections."""
+    def quant_sections(self) -> t.Dict[str, str]:
+        """Quant sections based on device type and selected mode."""
         common = self.json_settings["common"]["sections"]
         if self.dev_settings:
             dev = self.dev_settings.get("sections", {})
@@ -109,8 +120,8 @@ class LabberConfiguration:
         return common
 
     @property
-    def quant_groups(self) -> dict:
-        """Quant groups"""
+    def quant_groups(self) -> t.Dict[str, str]:
+        """Quant groups based on device type and selected mode."""
         common = self.json_settings["common"]["groups"]
         if self.dev_settings:
             dev = self.dev_settings.get("groups", {})
