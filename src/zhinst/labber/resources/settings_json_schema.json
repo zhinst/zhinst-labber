@@ -1,10 +1,10 @@
 {
-    "$schema":"http://json-schema.org/draft-04/schema#",
-    "title":"Labber configuration",
-    "description":"Labber configuration JSON",
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Labber configuration",
+    "description": "Labber configuration JSON",
     "definitions": {
         "misc": {
-            "description": "miscellaneous settings",
+            "description": "Miscellaneous settings",
             "properties": {
                 "labberDelimiter": {
                     "type": "string",
@@ -23,7 +23,9 @@
                 }
             },
             "required": [
-                "labberDelimiter", "ziModules", "LogLevel"
+                "labberDelimiter",
+                "ziModules",
+                "LogLevel"
             ]
         },
         "common": {
@@ -35,20 +37,24 @@
                     "$ref": "#/definitions/ignoredNodes"
                 },
                 "groups": {
-                    "type": "object"
+                    "$ref": "#/definitions/groups"
                 },
                 "sections": {
-                    "type": "object"
+                    "$ref": "#/definitions/sections"
                 },
                 "quants": {
                     "type": "object",
-                    "additionalProperties" : {
+                    "additionalProperties": {
                         "$ref": "#/definitions/commonQuants"
-                    } 
+                    }
                 }
             },
             "required": [
-                "generalSettings", "ignoredNodes", "groups", "sections", "quants"
+                "generalSettings",
+                "ignoredNodes",
+                "groups",
+                "sections",
+                "quants"
             ]
         },
         "commonQuants": {
@@ -70,7 +76,10 @@
                     "$ref": "#/definitions/driver"
                 }
             },
-            "required": ["add", "conf"]
+            "required": [
+                "add",
+                "conf"
+            ]
         },
         "driver": {
             "type": "object",
@@ -101,33 +110,50 @@
                     "$ref": "#/definitions/ignoredNodes"
                 },
                 "groups": {
-                    "$ref": "#/definitions/sections"
+                    "$ref": "#/definitions/groups"
                 },
                 "sections": {
                     "$ref": "#/definitions/sections"
                 },
                 "quants": {
                     "type": "object",
-                    "additionalProperties" : {
+                    "additionalProperties": {
                         "$ref": "#/definitions/commonQuants"
-                    } 
+                    }
                 }
             },
             "required": [
-                "generalSettings", "ignoredNodes", "groups", "sections", "quants"
+                "generalSettings",
+                "ignoredNodes",
+                "groups",
+                "sections",
+                "quants"
             ]
         },
         "sections": {
             "type": "object",
+            "description": "Path sections.",
             "additionalProperties": {
-                "type": "string"
+                "type": "string",
+                "description": "Path."
+            }
+        },
+        "groups": {
+            "type": "object",
+            "description": "Path groups.",
+            "additionalProperties": {
+                "type": "string",
+                "description": "Path."
             }
         },
         "generalSettings": {
             "type": "object",
             "description": "Labber General settings section",
             "additionalProperties": {
-                "type": ["string", "boolean"]
+                "type": [
+                    "string",
+                    "boolean"
+                ]
             }
         },
         "indexes": {
@@ -141,7 +167,9 @@
                     {
                         "type": "string",
                         "description": "Calculate number of indexes from device.",
-                        "enum": ["dev"]
+                        "enum": [
+                            "dev"
+                        ]
                     }
                 ]
             }
@@ -150,28 +178,95 @@
             "type": "object",
             "properties": {
                 "add": {
+                    "description": "True if quant should be added regardless if it exists in the calling device.",
                     "type": "boolean"
                 },
                 "indexes": {
                     "$ref": "#/definitions/indexes"
                 },
                 "conf": {
-                    "type": "object"
+                    "$ref": "#/definitions/conf"
                 },
                 "extend": {
-                    "type": "object"
+                    "$ref": "#/definitions/conf"
                 },
                 "driver": {
                     "$ref": "#/definitions/driver"
                 }
             },
-            "required": ["add", "conf"]
+            "required": [
+                "add",
+                "conf"
+            ]
+        },
+        "LabberDatatype": {
+            "type": "string",
+            "enum": [
+                "DOUBLE",
+                "BOOLEAN",
+                "STRING",
+                "COMPLEX",
+                "VECTOR",
+                "VECTOR_COMPLEX",
+                "PATH",
+                "BUTTON"
+            ]
+        },
+        "conf": {
+            "type": "object",
+            "properties": {
+                "suffix": {
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "unit": {
+                    "type": "string"
+                },
+                "datatype": {
+                    "type": "string",
+                    "enum": [
+                        "DOUBLE",
+                        "BOOLEAN",
+                        "STRING",
+                        "COMPLEX",
+                        "VECTOR",
+                        "VECTOR_COMPLEX",
+                        "PATH",
+                        "BUTTON"
+                    ]
+                },
+                "tooltip": {
+                    "type": "string"
+                },
+                "low_lim": {
+                    "type": "string"
+                },
+                "high_lim": {
+                    "type": "string"
+                },
+                "x_name": {
+                    "type": "string"
+                },
+                "x_unit": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "section": {
+                    "type": "string"
+                }
+            }
         },
         "mapping": {
             "type": "object",
+            "description": "Mapping of the path and indexes.",
             "properties": {
                 "path": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "Quant node-like path."
                 },
                 "indexes": {
                     "$ref": "#/definitions/indexes"
@@ -195,7 +290,9 @@
                     }
                 }
             },
-            "required": ["normal"]
+            "required": [
+                "normal"
+            ]
         },
         "deviceProperty": {
             "type": "object",
@@ -207,7 +304,7 @@
                     "$ref": "#/definitions/generalSettings"
                 },
                 "groups": {
-                    "$ref": "#/definitions/sections"
+                    "$ref": "#/definitions/groups"
                 },
                 "sections": {
                     "$ref": "#/definitions/sections"
@@ -219,7 +316,9 @@
                     }
                 }
             },
-            "required": ["generalSettings"]
+            "required": [
+                "generalSettings"
+            ]
         },
         "functions": {
             "type": "object",
@@ -243,7 +342,11 @@
                     "type": "boolean"
                 }
             },
-            "required": ["Args", "Returns", "call_type"]
+            "required": [
+                "Args",
+                "Returns",
+                "call_type"
+            ]
         }
     },
     "properties": {
@@ -267,6 +370,9 @@
         "$ref": "#/definitions/deviceProperty"
     },
     "required": [
-        "version", "misc", "common", "functions"
+        "version",
+        "misc",
+        "common",
+        "functions"
     ]
 }
