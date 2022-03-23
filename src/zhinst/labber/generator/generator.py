@@ -15,7 +15,6 @@ from zhinst.labber.generator.helpers import (
     delete_device_from_node_path,
     match_in_dict_keys,
     match_in_list,
-    remove_leading_trailing_slashes,
 )
 from zhinst.labber.generator.quants import NodeQuant, Quant, QuantGenerator
 
@@ -27,16 +26,13 @@ class LabberConfig:
         self.root = root
         self._mode = mode
         self._env_settings_json = env_settings
+        # Pass LabberConf
         self._env_settings = LabberConfiguration(name, mode, env_settings)
-        self._quant_gen = QuantGenerator(self._node_list())
+        self._quant_gen = QuantGenerator(list(self.root._root.raw_dict.keys()))
         self._tk_name = name
         self._name = name
         self._general_settings = {}
         self._settings = {}
-
-    def _node_list(self) -> t.List[str]:
-        nodes = {k: v for k, v in self.root}
-        return [x["Node"] for x in nodes.values()]
 
     def _update_sections(self, quants: dict) -> dict:
         """Update quant sections."""
@@ -48,6 +44,7 @@ class LabberConfig:
 
     def _update_groups(self, quants: dict) -> dict:
         """Update quant groups"""
+        #TODO: TO one loop
         for quant in quants.copy().keys():
             replc = [part for part in quant.split("/") if part.isnumeric()]
             quant_wc = {}
@@ -65,43 +62,38 @@ class LabberConfig:
 
     def _generate_node_quants(self):
         quants = {}
-        for _, info in self.root:
+        for info in self.root._root.raw_dict.values():
             if match_in_list(
                 delete_device_from_node_path(info["Node"]),
                 self.env_settings.ignored_nodes,
             ):
                 continue
             sec = NodeQuant(info)
-            quants.update(sec.as_dict(flat=False))
+            quants.update(sec.as_dict())
         return quants
 
     def _generate_quants(self) -> t.Dict[str, dict]:
         """Generate Labber quants."""
         nodes = self._generate_node_quants()
         # Added nodes from configuration if the node exists but is not available
-        missing = self.env_settings.quants.copy()
+        custom_quants = self.env_settings.quants.copy()
         for k, v in nodes.copy().items():
             kk, vv = match_in_dict_keys(k, self.env_settings.quants)
             if kk:
-                for _, conf in vv["conf"].items():
-                    if not conf:
-                        # Delete key if it is set to None
-                        nodes[k].pop(v, None)
+                [nodes[k].pop(v, None) for conf in vv["conf"].values() if not conf]
                 v.update(vv["conf"])
                 nodes[k] = v
                 # If the quant is extended
                 if vv.get("extend", None):
-                    for p in self._quant_gen.quant_paths(kk, v.get("indexes", [])):
-                        s = Quant(p, vv["extend"])
-                        nodes.update(s.as_dict())
-                missing.pop(kk, None)
+                    for path in self._quant_gen.quant_paths(kk, v.get("indexes", [])):
+                        nodes.update(Quant(path, vv["extend"]).as_dict())
+                custom_quants.pop(kk, None)
 
         # Manually added quants from configuration
-        for k, v in missing.items():
+        for k, v in custom_quants.items():
             if v.get("add", False):
                 for p in self._quant_gen.quant_paths(k, v.get("indexes", [])):
-                    s = Quant(p, v["conf"])
-                    nodes.update(s.as_dict())
+                    nodes.update(Quant(p, v["conf"]).as_dict())
         return nodes
 
     def generated_code(self) -> str:
@@ -223,8 +215,7 @@ class ModuleConfig(LabberConfig):
 
 def _path_to_labber_section(path: str, delim: str) -> str:
     """Path to Labber format. Delete slashes from start and end."""
-    path = remove_leading_trailing_slashes(path)
-    return path.replace("/", delim)
+    return path.strip("/").replace("/", delim)
 
 
 def conf_to_labber_format(data: dict, delim: str) -> dict:
@@ -280,52 +271,33 @@ class Filehandler:
         self._created_files = []
         self._upgraded_files = []
 
-    def write_settings_file(self):
-        path = self._root_dir / self._config.settings_path
+    def write_to_file(self, path: Path, filehandler: t.Callable) -> None:
         if self._upgrade:
             if not path.exists():
                 self._created_files.append(path)
             else:
                 self._upgraded_files.append(path)
-            with open(path, "w") as json_file:
-                json.dump(self._config.settings, json_file)
+            with open(path, "w", encoding="utf-8") as file:
+                filehandler(file)
         else:
             if not path.exists():
-                with open(path, "w") as json_file:
-                    json.dump(self._config.settings, json_file)
+                with open(path, "w", encoding="utf-8") as file:
+                    filehandler(file)
                 self._created_files.append(path)
+
+    def write_settings_file(self):
+        path = self._root_dir / self._config.settings_path
+        self.write_to_file(path, lambda x: json.dump(self._config.settings, x))
 
     def write_config_file(self, delim: str):
         path = self._root_dir / f"{self._config.name}.ini"
         config = configparser.ConfigParser()
         dict_to_config(config, self._config.config(), delim=delim)
-        if self._upgrade:
-            if not path.exists():
-                self._created_files.append(path)
-            else:
-                self._upgraded_files.append(path)
-            with open(path, "w", encoding="utf-8") as config_file:
-                config.write(config_file)
-        else:
-            if not path.exists():
-                with open(path, "w", encoding="utf-8") as config_file:
-                    config.write(config_file)
-                self._created_files.append(path)
+        self.write_to_file(path, lambda x: config.write(x))
 
     def write_python_driver(self):
         path = self._root_dir / f"{self._config.name}.py"
-        if self._upgrade:
-            if not path.exists():
-                self._created_files.append(path)
-            else:
-                self._upgraded_files.append(path)
-            with open(path, "w") as f:
-                f.write(self._config.generated_code())
-        else:
-            if not path.exists():
-                with open(path, "w") as f:
-                    f.write(self._config.generated_code())
-                self._created_files.append(path)
+        self.write_to_file(path, lambda x: x.write(self._config.generated_code()))
 
     @property
     def upgraded_files(self):
@@ -343,9 +315,9 @@ def open_settings_file() -> dict:
 
 
 def generate_labber_files(
-    filepath: str,
+    driver_directory: str,
     mode: str,
-    device: str,
+    device_id: str,
     server_host: str,
     upgrade: bool = False,
     server_port: t.Optional[int] = None,
@@ -353,14 +325,13 @@ def generate_labber_files(
 ):
     """Generate Labber files for the selected device."""
     session = Session(server_host=server_host, server_port=server_port, hf2=hf2)
-    dev = session.connect_device(device)
+    dev = session.connect_device(device_id)
 
     # Files generated to echo
     generated_files = []
     upgraded_files = []
     # Settings file
     json_settings = open_settings_file()
-    labber_delim = json_settings["misc"]["labberDelimiter"]
 
     configs = [
         DataServerConfig(session, json_settings, mode),
@@ -375,8 +346,8 @@ def generate_labber_files(
             modules.remove("shfqa_sweeper")
         configs += [ModuleConfig(mod, session, json_settings, mode) for mod in modules]
     for config in configs:
-        filegen = Filehandler(config, root_dir=filepath, upgrade=upgrade)
-        filegen.write_config_file(delim=labber_delim)
+        filegen = Filehandler(config, root_dir=driver_directory, upgrade=upgrade)
+        filegen.write_config_file(delim=json_settings["misc"]["labberDelimiter"])
         filegen.write_python_driver()
         filegen.write_settings_file()
         generated_files += filegen.created_files

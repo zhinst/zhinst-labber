@@ -7,43 +7,40 @@ from zhinst.labber.generator import helpers
 class Quant:
     """Quant representation of a node-like path.
 
-    quant: Quant node-like path.
-    defs: Quant definitions.
+    Args:
+        quant: Quant node-like path.
+        defs: Quant definitions in Labber format.
     """
 
-    def __init__(self, quant: str, defs: dict):
-        self._quant = quant
+    def __init__(self, quant: str, defs: t.Dict[str, str]):
+        self._quant = quant.strip("/")
+        self._quant_parts = self._quant.split("/")
         self._defs = defs
-        self._quant_no_slash = helpers.remove_leading_trailing_slashes(quant)
 
-    def _suffix(self) -> str:
+    @property
+    def suffix(self) -> str:
         """Suffix for the quant."""
         return self._defs.get("suffix", "").lower()
 
     @property
     def title(self) -> str:
         """Quant title."""
-        return self._quant_no_slash
+        return self._quant
 
     @property
     def label(self) -> str:
-        """Quant labe."""
-        s = self._quant_no_slash.split("/")
-        if len(self._quant) == 1:
-            return self._quant
-        elif s[-1].isnumeric():
-            return "/".join(s[-2:])
-        return s[-1]
+        """Quant label."""
+        if self._quant_parts[-1].isnumeric():
+            return "/".join(self._quant_parts[-2:])
+        return self._quant_parts[-1]
 
     @property
     def group(self) -> str:
-        """Quant group"""
-        node_path = self._quant_no_slash.split("/")
-        path = [x for x in node_path if not x.isnumeric()]
-        if len([x for x in node_path if x.isnumeric()]) > 1:
-            r = node_path
+        """Quant group."""
+        path = [x for x in self._quant_parts if not x.isnumeric()]
+        if len([x for x in self._quant_parts if x.isnumeric()]) > 1:
             idx_ = 0
-            for idx, c in enumerate(r):
+            for idx, c in enumerate(self._quant_parts):
                 if c.isnumeric():
                     idx_ = idx
             return "/".join(path[: idx_ - 1])
@@ -64,21 +61,23 @@ class Quant:
     @property
     def section(self) -> str:
         """Quant section."""
-        dig = re.search(r"\d", self._quant_no_slash)
-        if dig is not None:
-            dig = int(dig.group(0))
-            return "".join(
-                list(self._quant_no_slash)[: self._quant_no_slash.find(str(dig)) + 1]
-            )
+        digit = re.search(r"\d", self._quant)
+        if digit is not None:
+            digit = digit.group(0)
+            return "".join(list(self._quant)[: self._quant.find(digit) + 1])
         else:
             return self.title.split("/")[0]
 
-    def as_dict(self) -> dict:
-        """Python dictionary representation of the quant in a Labber format."""
+    def as_dict(self) -> t.Dict:
+        """Quant as a Python dictionary.
+
+        Returns:
+            Quant in a Python dictionary format.
+        """
         defs = self._defs.copy()
         defs.pop("suffix", None)
-        if self._suffix():
-            label = self.title + "/" + self._suffix()
+        if self.suffix:
+            label = self.title + "/" + self.suffix
         else:
             label = self.title
         res = {
@@ -94,25 +93,56 @@ class Quant:
 
 
 class NodeQuant:
-    """Zurich instrument node information as a Labber quant."""
+    """Zurich instruments node information as a Labber quant.
 
-    def __init__(self, node: t.Dict):
-        self.node = node
-        self.node.setdefault("Options", {})
-        self._node_path = helpers.delete_device_from_node_path(node["Node"].upper())
-        self._node_path_no_prefix = self._node_path
-        if self._node_path.startswith("/"):
-            self._node_path_no_prefix = self._node_path[1:]
-        self._properties = self.node["Properties"].lower()
+    Node information is transformed into a Labber suitable format.
+
+    Args:
+        node_info: Node information.
+
+        Dictionary format:
+
+            {
+                "Node": "/DEV1234/QACHANNELS/1/GENERATOR/AUXTRIGGERS/0/CHANNEL",
+                "Description": "Selects the source of the digital Trigger.",
+                "Properties": "Read, Write, Setting",
+                "Type": "Integer (enumerated)",
+                "Unit": "None",
+                "Options": {}
+    """
+
+    def __init__(self, node_info: t.Dict):
+        self._node_info = node_info
+        self._node_info.setdefault("Options", {})
+        self._node_path = helpers.delete_device_from_node_path(
+            node_info["Node"].upper()
+        )
+        self._node_path_no_prefix = self._node_path.strip("/")
+        self._path_parts = self._node_path_no_prefix.split("/")
+        self._properties = node_info.get("Properties", "").lower()
+
+    @staticmethod
+    def _enum_description(value: str) -> t.Tuple[str, str]:
+        """Split enum description into a tuple parts
+
+        Args:
+            value: Node enum description
+        Returns:
+            Enum description split into a tuple."""
+        v = value.split(": ")
+        if len(v) > 1:
+            v2 = v[0].split(",")
+            return v2[0].strip('"'), v[-1]
+        return "", v[0]
 
     @property
     def filtered_node_path(self) -> str:
-        """Filtered node path with device prefix."""
+        """Filtered node path without device prefix."""
         return self._node_path
 
     @property
     def permission(self) -> str:
-        """Permission"""
+        """Quant permission"""
         if "read" in self._properties and "write" in self._properties:
             return "BOTH"
         if "read" in self._properties:
@@ -124,30 +154,30 @@ class NodeQuant:
     @property
     def show_in_measurement_dlg(self) -> t.Optional[str]:
         """Show in measurement dialog"""
-        if self.node["Type"] in ["VECTOR", "COMPLEX", "VECTOR_COMPLEX"]:
-            if "RESULT" in self.label or "WAVE" in self.label:
+        if self.datatype in ["VECTOR", "COMPLEX", "VECTOR_COMPLEX"]:
+            if "result" in self.label.lower() or "wave" in self.label.lower():
                 return "True"
 
     @property
     def section(self) -> str:
-        """Section in Labber where the node representation will be"""
-        parsed = self._node_path_no_prefix.upper().split("/")
-        for idx, x in enumerate(parsed, 1):
+        """Quant section."""
+        for idx, x in enumerate(self._path_parts, 1):
             if idx == 3:
                 break
             if x.isnumeric():
-                return "/".join(parsed[0:idx])
-        return parsed[0]
+                return "/".join(self._path_parts[0:idx])
+        return self._path_parts[0]
 
     @property
     def group(self) -> str:
-        """Group in Labber where the node representation will be"""
-        node_path = self._node_path_no_prefix
-        path = [x for x in node_path.split("/") if not x.isnumeric()]
-        if len([x for x in node_path.split("/") if x.isnumeric()]) > 1:
-            r = node_path.split("/")
+        """Quant group.
+
+        Node path indexes are removed from the group representation.
+        """
+        path = [x for x in self._path_parts if not x.isnumeric()]
+        if len([x for x in self._path_parts if x.isnumeric()]) > 1:
             idx_ = 0
-            for idx, c in enumerate(r):
+            for idx, c in enumerate(self._path_parts):
                 if c.isnumeric():
                     idx_ = idx
             return "/".join(path[: idx_ - 1])
@@ -157,57 +187,73 @@ class NodeQuant:
 
     @property
     def label(self) -> str:
-        """Node label."""
+        """Quant label.
+        
+        Label is node path without DEV-prefix."""
         return self._node_path_no_prefix
 
     @property
-    def combo_def(self) -> t.List[dict]:
-        """Combo definition.
+    def combo_defs(self) -> t.Dict[str, str]:
+        """Labber combo definitions.
 
-        Turns enumerated options into Labber combo.
+        Turns enumerated options into a Labber combo definitions.
+
+        Returns:
+            Labber combo definitions.
+
+            Format:
+
+                {
+                    "cmd_def_1": 1,
+                    "combo_def_1": 1,
+                    "cmd_def_n": 1,
+                    "combo_def_n": 1
+                }
         """
-        if "enumerated" in self.node["Type"].lower():
+        if "enumerated" in self._node_info["Type"].lower():
             if "READ" == self.permission:
-                return []
-        opt = self.node["Options"]
-        combos = []
-        for idx, (k, v) in enumerate(opt.items(), 1):
-            value, _ = helpers.enum_description(v)
-            res = {
-                f"cmd_def_{idx}": value if value else str(k),
-                f"combo_def_{idx}": value if value else str(k),
-            }
-            combos.append(res)
-        return combos
+                return {}
+        defs = {}
+        for idx, (k, v) in enumerate(self._node_info["Options"].items(), 1):
+            value, _ = self._enum_description(v)
+            defs[f"cmd_def_{idx}"] = value if value else str(k)
+            defs[f"combo_def_{idx}"] = value if value else str(k)
+        return defs
 
     @property
     def tooltip(self) -> str:
-        """Node tooltip as HTML."""
-        node_path = self._node_path_no_prefix.upper()
+        """Node tooltip as HTML body.
+
+        Options are converted into HTML lists and node is bolded."""
         items = []
-        for k, v in self.node["Options"].items():
-            value, desc = helpers.enum_description(v)
+        for k, v in self._node_info["Options"].items():
+            value, desc = self._enum_description(v)
             items.append(f"{value if value else k}: {desc}")
-        return helpers.tooltip(self.node["Description"], enum=items, node=node_path)
+        return helpers.tooltip(
+            self._node_info["Description"],
+            enum=items,
+            node=self._node_path_no_prefix.upper(),
+        )
 
     @property
     def unit(self) -> t.Optional[str]:
         """Node unit to Labber units"""
         # HF2 does not have Unit.
-        unit = self.node.get("Unit", None)
+        unit = self._node_info.get("Unit", None)
         if not unit:
             return None
         if unit.lower() in ["none", "dependent", "many", "boolean"]:
             return None
-        unit = self.node["Unit"].replace("%", " percent").replace("'", "")
+        unit = self._node_info["Unit"].replace("%", " percent").replace("'", "")
         # Remove degree signs etc.
         return unit.encode("ascii", "ignore").decode()
 
     @property
     def datatype(self) -> str:
         """Node datatype to Labber datatypes."""
-        node = self.node["Node"].lower()
-        unit = self.node["Type"].lower()
+        unit = self._node_info.get("Type", "").lower()
+        if not unit:
+            return ""
         if "enumerated" in unit:
             if not "READ" == self.permission:
                 return "COMBO"
@@ -220,10 +266,10 @@ class NodeQuant:
             "reset",
             "preampenable",
         ]
-        if node.split("/")[-1] in boolean_nodes:
+        if self._path_parts[-1].lower() in boolean_nodes:
             return "BOOLEAN"
         string_nodes = ["alias", "serial", "devtype", "fwrevision"]
-        if node.split("/")[-1] in string_nodes:
+        if self._path_parts[-1].lower() in string_nodes:
             return "STRING"
         if unit == "double" or "integer" in unit:
             return "DOUBLE"
@@ -243,13 +289,13 @@ class NodeQuant:
 
     @property
     def set_cmd(self) -> t.Optional[str]:
-        """Set command for the node. Nodepath"""
+        """Set command for the node if the node is writable"""
         if "write" in self._properties:
             return self._node_path_no_prefix
 
     @property
     def get_cmd(self) -> t.Optional[str]:
-        """Get command for the node. Nodepath"""
+        """Get command for the node if the node is readable."""
         if "read" in self._properties:
             return self._node_path_no_prefix
 
@@ -258,8 +304,12 @@ class NodeQuant:
         """Title of the quant."""
         return self.label
 
-    def as_dict(self, flat=True) -> dict:
-        """Node in Labber format."""
+    def as_dict(self) -> t.Dict:
+        """Python dictionary representation of the node quant.
+
+        Returns:
+            Dictionary where the keys and values are in a Labber format.
+        """
         d = {}
         d["section"] = self.section.lower()
         d["group"] = self.group.lower()
@@ -269,9 +319,7 @@ class NodeQuant:
         if self.unit:
             d["unit"] = self.unit
         d["tooltip"] = self.tooltip
-        for item in self.combo_def:
-            for k, v in item.items():
-                d[k] = v
+        d.update(self.combo_defs)
         if self.permission:
             d["permission"] = self.permission
         if self.set_cmd:
@@ -283,8 +331,6 @@ class NodeQuant:
         if self.datatype in ["VECTOR", "VECTOR_COMPLEX"]:
             d["x_name"] = "Length"
             d["x_unit"] = "Sample"
-        if flat:
-            return d
         return {self.filtered_node_path.lower(): d}
 
 
@@ -298,26 +344,57 @@ class QuantGenerator:
     def __init__(self, quants: list) -> None:
         self.quants = list(map(helpers.delete_device_from_node_path, quants))
 
-    def _quants_from_indexes(self, quant: str, indexes: t.List[int]) -> list:
-        """Quants based on their indexes."""
-        qts = []
+    @staticmethod
+    def find_nth_occurrence(s: str, target: str, n: int) -> int:
+        """Find nth occurrence of the target in a string.
 
-        def find_indexes(quant_, i, idxs):
-            for x in range(idxs[i]):
-                idx = helpers.find_nth_occurence(quant, "*", i)
-                s = list(quant_)
-                if idx != -1:
-                    s[idx] = str(x)
-                    try:
-                        find_indexes("".join(s), i + 1, idxs)
-                    except IndexError:
-                        qts.append("".join(s))
+        Returns:
+            Index of the nth occurrence in the string. -1 if not found."""
+        if s.count(target) < n + 1:
+            return -1
+        return s.find(target, s.find(target) + n)
 
-        find_indexes(quant, 0, indexes)
-        return qts
+    @staticmethod
+    def path_from_indexes(
+        quant_original: str,
+        quant: str,
+        i: int,
+        indexes: t.List[int],
+        quants: t.List[str],
+    ) -> t.List[str]:
+        """Recursively generate quant path from given indexes.
 
-    def _to_regex(self, s: str) -> str:
-        """Quant to regex."""
+        Args:
+            quant_original: Original quant
+            quant: Traveled quant
+            i: Index of the wildcard *
+            indexes: Number of indexes added to wildcard
+            quants: List of quant paths
+
+        Returns:
+            List of quant paths
+        """
+        for x in range(indexes[i]):
+            idx = QuantGenerator.find_nth_occurrence(quant_original, "*", i)
+            q_list = list(quant)
+            if idx != -1:
+                q_list[idx] = str(x)
+                try:
+                    quants = QuantGenerator.path_from_indexes(
+                        quant_original, "".join(q_list), i + 1, indexes, quants
+                    )
+                except IndexError:
+                    quants.append("".join(q_list))
+        return quants
+
+    @staticmethod
+    def _to_regex(s: str) -> str:
+        """Quant to regex.
+
+        * is replaced with any numbers and case is ignored.
+
+        Returns:
+            Regex of the input string."""
         s = s.replace("/", r"\/")
         s = s.replace("*", r"[0-9]+")
         return "(?i)" + s
@@ -325,37 +402,35 @@ class QuantGenerator:
     def quant_paths(
         self, quant: str, indexes: t.List[t.Union[str, int]]
     ) -> t.List[str]:
-        """Quant paths.
+        """Quant paths for all given indexes.
 
         Args:
             quant: Quant node-like path.
             indexes: Indexes for wildcards (*). 'dev' | int
-        """
-        idxs = []
-        if not indexes:
-            indexes = ["dev" for _ in range(quant.count("*"))]
-            if not indexes:
-                return [quant]
+                'dev' = Indexes from device.
+                int = The amount of indexes to be added.
 
-        if quant.count("*") > len(indexes):
-            diff = quant.count("*") - len(indexes)
+        Returns:
+            List of quant paths
+        """
+        wc_count = quant.count("*")
+        if wc_count == 0:
+            return [quant]
+        if not indexes:
+            indexes = ["dev" for _ in range(wc_count)]
+        if wc_count > len(indexes):
+            diff = wc_count - len(indexes)
             indexes += ["dev" for _ in range(diff)]
 
+        idxs = []
         for enum, idx in enumerate(indexes):
             if idx == "dev":
-                ps = set()
-                ii = helpers.find_nth_occurence(quant, "*", enum) + 1
-                p = re.compile(self._to_regex(quant[:ii]))
-                for b in list(filter(p.match, self.quants)):
-                    p = re.findall(r"[0-9]+", b)
-                    try:
-                        ps.add(p[enum])
-                    except IndexError:
-                        continue
-                idxs.append(len(ps))
+                paths = set()
+                idx_pos = self.find_nth_occurrence(quant, "*", enum) + 1
+                p = re.compile(self._to_regex(quant[:idx_pos]))
+                for path in list(filter(p.match, self.quants)):
+                    paths.add(re.findall(r"[0-9]+", path)[enum])
+                idxs.append(len(paths))
             else:
                 idxs.append(idx)
-        if not idxs:
-            return [quant]
-        paths = self._quants_from_indexes(quant, idxs)
-        return paths
+        return self.path_from_indexes(quant, quant, 0, idxs, [])

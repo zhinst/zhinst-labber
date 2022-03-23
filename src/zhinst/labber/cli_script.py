@@ -9,17 +9,16 @@ def main():
 
     The drivers include a settings file, configuration file (.ini) and a generated
     Python driver code for Zurich Instruments devices and modules."""
-    pass
 
 
 @main.command()
 @click.argument(
-    "filepath",
+    "driver_directory",
     required=True,
     type=click.Path(exists=True),
 )
 @click.argument(
-    "device",
+    "device_id",
     required=True,
     type=str,
 )
@@ -63,16 +62,16 @@ def main():
     functionality or nodes.
     """,
 )
-def setup(filepath, device, server_host, server_port, hf2, mode, upgrade):
+def setup(driver_directory, device_id, server_host, server_port, hf2, mode, upgrade):
     """Generate Zurich Instruments Labber drivers.
 
     This script generates the necessary files to control Zurich Instruments
     devices with Labber. The script generates a Labber driver based on the current
     status of the selected Zurich Instruments DataServer, device and modules.
 
-    FILEPATH: Filepath where the files are saved. Usually in the Labber Driver-directory.
+    DRIVER_DIRECTORY: Directory where the drivers are saved. Usually in the Labber Driver-directory.
 
-    DEVICE: Zurich Instruments device ID
+    DEVICE_ID: Zurich Instruments device ID
 
     SERVER_HOST: Server host
 
@@ -82,10 +81,10 @@ def setup(filepath, device, server_host, server_port, hf2, mode, upgrade):
     """
     click.echo("Generating Zurich Instruments Labber device drivers...")
     generated, upgraded = generate_labber_files(
-        filepath=filepath,
-        mode=mode.upper(),
-        device=device,
+        driver_directory=driver_directory,
+        device_id=device_id,
         server_host=server_host,
+        mode=mode.upper(),
         upgrade=upgrade,
         server_port=server_port,
         hf2=hf2,

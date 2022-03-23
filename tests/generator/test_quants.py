@@ -32,7 +32,7 @@ node_dict_enum = {
 class TestNodeQuant:
     def test_node_quant_no_enum(self, node_info):
         obj = NodeQuant(node_info)
-        assert obj.as_dict(flat=False) == {
+        assert obj.as_dict() == {
             "/qachannels/0/centerfreq": {
                 "section": "qachannels/0",
                 "group": "qachannels",
@@ -46,6 +46,26 @@ class TestNodeQuant:
             }
         }
 
+    @pytest.mark.parametrize(
+        "inp, out",
+        [
+            ("none", None),
+            ("dependent", None),
+            ("many", None),
+            ("boolean", None),
+            ("%", " percent"),
+            ("V", "V"),
+            ("°C", "C"),
+        ],
+    )
+    def test_unit(self, inp, out):
+        obj = NodeQuant({"Node": "/bar/0", "Unit": inp})
+        assert obj.unit == out
+
+    def test_no_unit(self):
+        obj = NodeQuant({"Node": "/bar/0"})
+        assert obj.unit is None
+
     def test_permission(self):
         obj = NodeQuant({"Node": "/bar/0", "Properties": "Write"})
         assert obj.permission == "WRITE"
@@ -53,13 +73,34 @@ class TestNodeQuant:
         obj = NodeQuant({"Node": "/bar/0", "Properties": ""})
         assert obj.permission == "NONE"
 
+    def test_show_in_measurement_dlg(self):
+        obj = NodeQuant({"Node": "/bar/0", "Type": "zivectordata"})
+        assert obj.show_in_measurement_dlg is None
+
+        obj = NodeQuant({"Node": "/bar/0/wave", "Type": "zivectordata"})
+        assert obj.show_in_measurement_dlg == "True"
+
+        obj = NodeQuant({"Node": "/bar/0/wave", "Type": "complex double"})
+        assert obj.show_in_measurement_dlg == "True"
+
+    @pytest.mark.parametrize(
+        "inp, out",
+        [
+            ("tester: This tests.", ("tester", "This tests.")),
+            ("AAsdsd123", ("", "AAsdsd123")),
+            ('"chan0", "channel0": Ch 1, Trig Inp A.', ("chan0", "Ch 1, Trig Inp A.")),
+        ],
+    )
+    def test_enum_description(self, inp, out):
+        assert NodeQuant._enum_description(inp) == out
+
     def test_title(self):
         obj = NodeQuant({"Node": "/bar/0", "Properties": "Write"})
         assert obj.title == "BAR/0"
 
     def test_node_quant_enum(self):
         obj = NodeQuant(node_dict_enum)
-        assert obj.as_dict(flat=False) == {
+        assert obj.as_dict() == {
             "/qachannels/0/output/filter": {
                 "section": "qachannels/0",
                 "group": "qachannels/output",
@@ -69,15 +110,6 @@ class TestNodeQuant:
                 "permission": "READ",
                 "get_cmd": "QACHANNELS/0/OUTPUT/FILTER",
             }
-        }
-        assert obj.as_dict(flat=True) == {
-            "section": "qachannels/0",
-            "group": "qachannels/output",
-            "label": "qachannels/0/output/filter",
-            "datatype": "DOUBLE",
-            "tooltip": "<html><body><p>Reads the selected analog filter before the Signal Output.</p><p><ul><li>lowpass_1500: Low-pass filter of 1.5 GHz.</li><li>lowpass_3000: Low-pass filter of 3 GHz.</li><li>bandpass_3000_6000: Band-pass filter between 3 GHz - 6 GHz</li><li>bandpass_6000_10000: Band-pass filter between 6 GHz - 10 GHz</li></ul></p><p><b>QACHANNELS/0/OUTPUT/FILTER</b></p></body></html>",
-            "permission": "READ",
-            "get_cmd": "QACHANNELS/0/OUTPUT/FILTER",
         }
 
     @pytest.mark.parametrize(
@@ -91,10 +123,34 @@ class TestNodeQuant:
             ("/DEV12018/QACHANNELS/RESET", "BOOLEAN"),
         ],
     )
-    def test_node_quant_datatype(self, node_info, node, datatype):
+    def test_node_quant_datatype_boolean(self, node_info, node, datatype):
         node_info["Node"] = node
         obj = NodeQuant(node_info)
         assert obj.datatype == datatype
+        
+    @pytest.mark.parametrize(
+        "unit, datatype",
+        [
+            ("DOUBLE", "DOUBLE"),
+            ("INTEGER", "DOUBLE"),
+            ("COMPLEX", "VECTOR_COMPLEX"),
+            ("STRING", "STRING"),
+            ("ZIVECTORDATA", "VECTOR"),
+            ("ZIADVISORWAVE", "VECTOR"),
+            ("ZIDEMODSAMPLE", "COMPLEX"),
+            ("ZIDIOSAMPLE", "COMPLEX"),
+            ("COMPLEX DOUBLE", "VECTOR_COMPLEX"),
+            ("ZITRIGGERSAMPLE", "STRING"),
+            ("randOM123", "STRING")
+        ],
+    )
+    def test_node_quant_datatype_unit(self, unit, datatype):
+        obj = NodeQuant({"Node": "/DEV12018/QACHANNELS/FO", "Type": unit})
+        assert obj.datatype == datatype
+
+    def test_node_quant_datatype_no_type(self):
+        obj = NodeQuant({"Node": "/DEV12018/QACHANNELS/FO"})
+        assert obj.datatype == ""
 
 
 class TestQuantSuffix:
@@ -132,12 +188,15 @@ class TestQuant:
 
     def test_label(self):
         assert self.obj.label == "arm"
-        
+
         obj = Quant("/qachannels", {})
         assert obj.label == "qachannels"
 
         obj = Quant("/qachannels/0/wave/0", {})
         assert obj.label == "wave/0"
+
+        obj = Quant("/qachannels/0/wave/0/bar/foo", {})
+        assert obj.label == "foo"
 
     def test_group(self):
         obj = Quant("/qachannels/0/wave/0", {})
@@ -169,7 +228,7 @@ def test_long_node_group_idx_over1():
         "Unit": "Hz",
     }
     obj = NodeQuant(node)
-    assert obj.as_dict(flat=False) == {
+    assert obj.as_dict() == {
         "/sigouts/1/precompensation/highpass/0/clearing/slope": {
             "section": "sigouts/1",
             "group": "sigouts/precompensation/highpass",
@@ -193,7 +252,7 @@ def test_long_node_group_idx2():
         "Unit": "Hz",
     }
     obj = NodeQuant(node)
-    assert obj.as_dict(flat=False) == {
+    assert obj.as_dict() == {
         "/sigouts/7/precompensation/bounces/0/status": {
             "section": "sigouts/7",
             "group": "sigouts/precompensation/bounces",
@@ -208,6 +267,37 @@ def test_long_node_group_idx2():
     }
 
 
+def test_node_group_enum():
+    node = {
+        "Node": "/DEV1234/QACHANNELS/1/GENERATOR/AUXTRIGGERS/0/CHANNEL",
+        "Description": "Selects the source of the digital Trigger.",
+        "Properties": "Read, Write, Setting",
+        "Type": "Integer (enumerated)",
+        "Unit": "None",
+        "Options": {
+            "0": '"chan0trigin0", "channel0_trigger_input0": Channel 1, Trigger Input A.',
+            "1": '"chan0trigin1", "channel0_trigger_input1": Channel 1, Trigger Input B.',
+        },
+    }
+    obj = NodeQuant(node)
+    assert obj.as_dict() == {
+        "/qachannels/1/generator/auxtriggers/0/channel": {
+            "section": "qachannels/1",
+            "group": "qachannels/generator/auxtriggers",
+            "label": "qachannels/1/generator/auxtriggers/0/channel",
+            "datatype": "COMBO",
+            "tooltip": "<html><body><p>Selects the source of the digital Trigger.</p><p><ul><li>chan0trigin0: Channel 1, Trigger Input A.</li><li>chan0trigin1: Channel 1, Trigger Input B.</li></ul></p><p><b>QACHANNELS/1/GENERATOR/AUXTRIGGERS/0/CHANNEL</b></p></body></html>",
+            "cmd_def_1": "chan0trigin0",
+            "combo_def_1": "chan0trigin0",
+            "cmd_def_2": "chan0trigin1",
+            "combo_def_2": "chan0trigin1",
+            "permission": "BOTH",
+            "set_cmd": "QACHANNELS/1/GENERATOR/AUXTRIGGERS/0/CHANNEL",
+            "get_cmd": "QACHANNELS/1/GENERATOR/AUXTRIGGERS/0/CHANNEL",
+        }
+    }
+
+
 def test_long_node_group_idx_asd():
     node = {
         "Node": "/DEV12018/QAS/0/CROSSTALK/ROWS/0/COLS/8",
@@ -217,7 +307,7 @@ def test_long_node_group_idx_asd():
         "Unit": "Hz",
     }
     obj = NodeQuant(node)
-    assert obj.as_dict(flat=False) == {
+    assert obj.as_dict() == {
         "/qas/0/crosstalk/rows/0/cols/8": {
             "section": "qas/0",
             "group": "qas/crosstalk/rows/cols",
@@ -230,8 +320,6 @@ def test_long_node_group_idx_asd():
             "get_cmd": "QAS/0/CROSSTALK/ROWS/0/COLS/8",
         }
     }
-
-
 
 
 class TestQuantGenerator:
@@ -247,7 +335,7 @@ class TestQuantGenerator:
             "/DEV1234/SYSTEM/FOO/0/FF",
             "/DEV1234/SYSTEM/FOO/1/FF",
             "/QACHANNELS/0/GENERATOR/",
-            "/QACHANNELS/1/GENERATOR/"
+            "/QACHANNELS/1/GENERATOR/",
         ]
         return QuantGenerator(data)
 
@@ -259,7 +347,10 @@ class TestQuantGenerator:
         assert r == ["/system/foo/0/ff", "/system/foo/1/ff"]
 
         r = q_gen.quant_paths("/qachannels/*/generator/sequencer_program", ["dev"])
-        assert r == ["/qachannels/0/generator/sequencer_program", "/qachannels/1/generator/sequencer_program"]
+        assert r == [
+            "/qachannels/0/generator/sequencer_program",
+            "/qachannels/1/generator/sequencer_program",
+        ]
 
     def test_quant_paths_number(self, q_gen):
         r = q_gen.quant_paths("/foo/*/bar/*", ["dev", 3])
@@ -301,4 +392,30 @@ class TestQuantGenerator:
 
     def test_quant_paths_no_wildcard(self, q_gen):
         r = q_gen.quant_paths("/system/bar", [])
-        assert r == ['/system/bar']
+        assert r == ["/system/bar"]
+
+        r = q_gen.quant_paths("/system/bar", ["dev"])
+        assert r == ["/system/bar"]
+
+    def test_quant_paths_indexes_many(self, q_gen):
+        r = q_gen.quant_paths("/system/bar/*", ["dev", 1])
+        assert r == []
+
+        r = q_gen.quant_paths("/foo/*/bar/*", ["dev", 1, 2])
+        assert r == []
+
+    @pytest.mark.parametrize(
+        "string, target, n, idx",
+        [
+            ("/qa/*/bar/*/foo", "*", 0, 4),
+            ("/qa/*/bar/*/foo", "*", 1, 10),
+            ("*/bar/*/foo", "*", 0, 0),
+            ("/qa/*/bar/*/foo", "*", 2, -1),
+            ("/qa/*/bar/*/foo", "*", 3, -1),
+            ("/qa/*/bar/*/foo", "*", 4, -1),
+            ("/awgs/*/waveform/waves/*", "*", 0, 6),
+            ("/awgs/*/waveform/waves/*", "*", 1, 23),
+        ],
+    )
+    def test_find_nth_occurrence(self, string, target, n, idx):
+        assert QuantGenerator.find_nth_occurrence(string, target, n) == idx
