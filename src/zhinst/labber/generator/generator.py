@@ -139,8 +139,9 @@ class LabberConfig:
                 for path in self._quant_gen.quant_paths(
                     custom_quant, custom_defs.get("indexes", [])
                 ):
-                    conf = self._update_group(path, custom_defs["conf"])
-                    conf = self._update_section(path, custom_defs["conf"])
+                    conf = custom_defs["conf"]
+                    conf = self._update_group(path, conf)
+                    conf = self._update_section(path, conf)
                     nodes.update(Quant(path, self._update_group(path, conf)).as_dict())
         return nodes
 

@@ -19,7 +19,6 @@ def generate_labber_device_driver_code(
     fp = Path(__file__).parent / "templates"
     templateLoader = jinja2.FileSystemLoader(searchpath=fp)
     templateEnv = jinja2.Environment(loader=templateLoader)
-    fp = Path(__file__).parent / "templates/device_template.py.j2"
     template = templateEnv.get_template("device_template.py.j2")
     result = template.render(data)
     result = black.format_str(result, mode=black.FileMode())
