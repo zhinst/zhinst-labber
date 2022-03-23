@@ -3,6 +3,7 @@ import json
 import typing as t
 from collections import OrderedDict
 from pathlib import Path
+import fnmatch
 
 import natsort
 from zhinst.toolkit import Session
@@ -20,46 +21,74 @@ from zhinst.labber.generator.quants import NodeQuant, Quant, QuantGenerator
 
 
 class LabberConfig:
-    """Base class for generating Labber configuration."""
+    """Base class for generating Labber configuration.
+
+    The class generates necessary Labber driver data
+    It also converts available nodes into Labber driver configuration and
+    modifies them based on given settings file.
+
+    Args:
+        root: Zurich Instruments toolkit root node
+        name: Name of the root object
+        env_settings: Existing Labber settings
+        mode: Labber mode. `NORMAL` | `ADVANCED`
+    """
 
     def __init__(self, root: Node, name: str, env_settings: dict, mode="NORMAL"):
-        self.root = root
-        self._mode = mode
-        self._env_settings_json = env_settings
+        self._root = root
         self._env_settings = LabberConfiguration(name, mode, env_settings)
-        self._quant_gen = QuantGenerator(list(self.root._root.raw_dict.keys()))
+        self._quant_gen = QuantGenerator(list(root._root.raw_dict.keys()))
         self._tk_name = name
         self._name = name
         self._general_settings = {}
         self._settings = {}
 
-    def _update_sections(self, quants: dict) -> dict:
-        """Update quant sections."""
-        for k in quants.copy().keys():
-            _, sec = match_in_dict_keys(k, self.env_settings.quant_sections)
-            if sec:
-                quants[k]["section"] = sec
-        return quants
+    def _update_section(self, quant: str, defs: t.Dict) -> t.Dict:
+        """Update quant section.
 
-    def _update_group(self, quant: str, defs: dict) -> dict:
-        """Update quant groups"""
-        replc = [part for part in quant.split("/") if part.isnumeric()]
-        quant_wc = {}
-        for pattern, grp in self.env_settings.quant_groups.copy().items():
-            pattern = pattern.replace("<n>", "*")
-            quant_wc[pattern] = grp
-        _, path = match_in_dict_keys(quant, quant_wc)
-        if path:
-            cnt = path.count("<n>")
-            path = path.replace("<n>", "{}")
-            repl = [replc[idx] for idx in range(cnt)]
-            path = path.format(*repl)
-            defs["group"] = path
+        Returns:
+            Defs with updated section from `env_settings`."""
+        _, section = match_in_dict_keys(quant, self.env_settings.quant_sections)
+        if section:
+            defs["section"] = section
         return defs
 
-    def _generate_node_quants(self):
+    def _update_group(self, quant: str, defs: t.Dict) -> t.Dict:
+        """Update quant group.
+
+        if a match is found, `<n>` updated with corresponding
+        quant index.
+
+            Example:
+
+                quant: "sines/0"
+                group def: "/sines/<n>/*": "Sines <n>"
+                group = Sines 0
+
+        Returns:
+            Defs with updated group key from `env_settings`.
+        """
+        indexes = [part for part in quant.split("/") if part.isnumeric()]
+        for pattern, group in self.env_settings.quant_groups.copy().items():
+            pattern = pattern.replace("<n>", "*")
+            r = fnmatch.fnmatch(
+                quant.strip("/").lower(), f"{pattern.strip('/').lower()}*"
+            )
+            if r:
+                cnt = group.count("<n>")
+                path = group.replace("<n>", "{}")
+                defs["group"] = path.format(*[indexes[idx] for idx in range(cnt)])
+                break
+        return defs
+
+    def _generate_node_quants(self) -> t.Dict:
+        """Generate node quants from available nodes.
+
+        Returns:
+            Dictionary of available nodes in Labber format.
+        """
         quants = {}
-        for info in self.root._root.raw_dict.values():
+        for info in self._root._root.raw_dict.values():
             if match_in_list(
                 delete_device_from_node_path(info["Node"]),
                 self.env_settings.ignored_nodes,
@@ -70,39 +99,67 @@ class LabberConfig:
         return quants
 
     def _generate_quants(self) -> t.Dict[str, dict]:
-        """Generate Labber quants."""
+        """Generate Labber quants from available nodes and settings file.
+
+        Returns:
+            Generated Labber quants which consists of existing and added nodes from
+            `env_settings`
+        """
         nodes = self._generate_node_quants()
         # Added nodes from configuration if the node exists but is not available
         custom_quants = self.env_settings.quants.copy()
-        for k, v in nodes.copy().items():
-            kk, vv = match_in_dict_keys(k, self.env_settings.quants)
-            if kk:
-                [nodes[k].pop(v, None) for conf in vv["conf"].values() if not conf]
-                v.update(vv["conf"])
-                nodes[k] = v
+        for node_quant, node_defs in nodes.copy().items():
+            settings_quant, settings_defs = match_in_dict_keys(
+                node_quant, self.env_settings.quants
+            )
+            if settings_quant:
+                [
+                    nodes[node_quant].pop(node_defs, None)
+                    for conf in settings_defs["conf"].values()
+                    if not conf
+                ]
+                node_defs.update(settings_defs["conf"])
+                nodes[node_quant] = node_defs
                 # If the quant is extended
-                if vv.get("extend", None):
-                    for path in self._quant_gen.quant_paths(kk, v.get("indexes", [])):
-                        nodes.update(Quant(path, vv["extend"]).as_dict())
-                custom_quants.pop(kk, None)
-            nodes[k] = self._update_group(k, v)
+                if settings_defs.get("extend", None):
+                    for path in self._quant_gen.quant_paths(
+                        settings_quant, node_defs.get("indexes", [])
+                    ):
+                        conf = settings_defs["extend"]
+                        conf = self._update_group(path, conf)
+                        conf = self._update_section(path, conf)
+                        nodes.update(Quant(path, conf).as_dict())
+                custom_quants.pop(settings_quant, None)
+            nodes[node_quant] = self._update_group(node_quant, node_defs)
+            nodes[node_quant] = self._update_section(node_quant, node_defs)
 
         # Manually added quants from configuration
-        for k, v in custom_quants.items():
-            if v.get("add", False):
-                for p in self._quant_gen.quant_paths(k, v.get("indexes", [])):
-                    nodes.update(Quant(p, self._update_group(p, v["conf"])).as_dict())
+        for custom_quant, custom_defs in custom_quants.items():
+            if custom_defs.get("add", False):
+                for path in self._quant_gen.quant_paths(
+                    custom_quant, custom_defs.get("indexes", [])
+                ):
+                    conf = self._update_group(path, custom_defs["conf"])
+                    conf = self._update_section(path, custom_defs["conf"])
+                    nodes.update(Quant(path, self._update_group(path, conf)).as_dict())
         return nodes
 
     def generated_code(self) -> str:
-        """Generated labber code"""
-        return generate_labber_device_driver_code(self._name, self.settings_path)
+        """Generated labber code
 
-    def config(self) -> t.Dict[str, dict]:
-        """Labber configuration as a Python dictionary."""
+        Returns:
+            Labber driver code for the current object.
+        """
+        return generate_labber_device_driver_code(self._name, self.settings_filename)
+
+    def config(self) -> t.Dict[str, t.Dict]:
+        """Labber configuration as a Python dictionary.
+
+        Returns:
+            Generated Labber quants which consists of existing and added nodes from
+            `env_settings` and general settings."""
         general = self.general_settings
         nodes = self._generate_quants()
-        nodes = self._update_sections(nodes)
         general.update(nodes)
         return general
 
@@ -112,28 +169,42 @@ class LabberConfig:
         return self._env_settings
 
     @property
-    def settings_path(self) -> str:
-        """Settings filepath."""
+    def settings_filename(self) -> str:
+        """Settings filename."""
         return "settings.json"
 
     @property
     def name(self) -> str:
-        """Config name"""
+        """Name of the config driver."""
         return "Zurich_Instruments_" + self._name
 
     @property
-    def general_settings(self) -> dict:
-        """General settings"""
+    def general_settings(self) -> t.Dict:
+        """General settings section for Labber."""
         self._general_settings.update(self.env_settings.general_settings)
         return {"General settings": self._general_settings}
 
     @property
-    def settings(self) -> dict:
-        """Config settings."""
+    def settings(self) -> t.Dict:
+        """Driver settings."""
         return self._settings
 
 
 class DeviceConfig(LabberConfig):
+    """Class for generating Labber configuration for Zurich Instruments
+    devices.
+
+    The class generates necessary Labber driver data
+    It also converts available nodes into Labber driver configuration and
+    modifies them based on given settings file.
+
+    Args:
+        device: Zurich Instruments toolkit device node.
+        session: Existing DataServer session
+        env_settings: Existing Labber settings
+        mode: Labber mode. `NORMAL` | `ADVANCED`
+    """
+
     def __init__(self, device: Node, session: Session, env_settings: dict, mode: str):
         self._tk_name = device.device_type.upper()
         super().__init__(device, self._tk_name, env_settings, mode)
@@ -159,6 +230,19 @@ class DeviceConfig(LabberConfig):
 
 
 class DataServerConfig(LabberConfig):
+    """Class for generating Labber configuration for Zurich Instruments
+    DataServer.
+
+    The class generates necessary Labber driver data
+    It also converts available nodes into Labber driver configuration and
+    modifies them based on given settings file.
+
+    Args:
+        session: Existing DataServer session
+        env_settings: Existing Labber settings
+        mode: Labber mode. `NORMAL` | `ADVANCED`
+    """
+
     def __init__(self, session: Session, env_settings: dict, mode: str):
         self._tk_name = "DataServer"
         super().__init__(session, self._tk_name, env_settings, mode)
@@ -184,15 +268,26 @@ class DataServerConfig(LabberConfig):
 
 
 class ModuleConfig(LabberConfig):
+    """Class for generating Labber configuration for Zurich Instruments
+    modules.
+
+    The class generates necessary Labber driver data
+    It also converts available nodes into Labber driver configuration and
+    modifies them based on given settings file.
+
+    Args:
+        name: Name of the toolkit module
+        session: Existing DataServer session
+        env_settings: Existing Labber settings
+        mode: Labber mode. `NORMAL` | `ADVANCED`
+    """
+
     def __init__(self, name: str, session: Session, env_settings: dict, mode: str):
         self.module = getattr(session.modules, name)
         self._tk_name = name
         super().__init__(self.module, self._tk_name, env_settings, mode)
         self.session = session
-        if "MODULE" not in name.upper():
-            self._name = name.upper() + "_Module"
-        else:
-            self._name = name.upper()
+        self._name = name.upper() + "_Module"
         self._settings = {
             "data_server": {
                 "host": self.session.server_host,
@@ -211,7 +306,10 @@ class ModuleConfig(LabberConfig):
 
 
 def _path_to_labber_section(path: str, delim: str) -> str:
-    """Path to Labber format. Delete slashes from start and end."""
+    """Path to Labber format. Delete slashes from start and end.
+
+    Returns:
+        Formatted path in Labber format with given delimited."""
     return path.strip("/").replace("/", delim)
 
 
@@ -221,6 +319,9 @@ def conf_to_labber_format(data: dict, delim: str) -> dict:
     * Natural sort dictionary keys
     * Replace slashes with delimiter
     * Title sections
+
+    Returns:
+        Formatted data
     """
 
     def _to_title_keep_uppercase(s: str) -> str:
@@ -251,7 +352,10 @@ def conf_to_labber_format(data: dict, delim: str) -> dict:
 
 
 def dict_to_config(config: configparser.ConfigParser, data: dict, delim: str) -> None:
-    """Turn Python dictionary into ConfigParser."""
+    """Update config with give data.
+
+    The data will be formatted and then set as config sections.
+    """
     data = conf_to_labber_format(data, delim)
     for title, items in data.items():
         config.add_section(title)
@@ -260,6 +364,14 @@ def dict_to_config(config: configparser.ConfigParser, data: dict, delim: str) ->
 
 
 class Filehandler:
+    """FileHandler class for generating Labber configuration files.
+
+    Args:
+        config: Labber configuration class
+        root_dir: Root directory where the files are generated
+        upgrade: If the existing files should be overwritten
+    """
+
     def __init__(self, config: LabberConfig, root_dir: str, upgrade=False):
         self._config = config
         self._root_dir = Path(root_dir) / config.name
@@ -269,6 +381,12 @@ class Filehandler:
         self._upgraded_files = []
 
     def write_to_file(self, path: Path, filehandler: t.Callable) -> None:
+        """Write to file.
+
+        Args:
+            path: Filepath
+            filehandler: Handler to be called for saving the file
+        """
         if self._upgrade:
             if not path.exists():
                 self._created_files.append(path)
@@ -282,30 +400,40 @@ class Filehandler:
                     filehandler(file)
                 self._created_files.append(path)
 
-    def write_settings_file(self):
-        path = self._root_dir / self._config.settings_path
+    def write_settings_file(self) -> None:
+        """Write settings file (.*json-format)."""
+        path = self._root_dir / self._config.settings_filename
         self.write_to_file(path, lambda x: json.dump(self._config.settings, x))
 
-    def write_config_file(self, delim: str):
+    def write_config_file(self, delim: str) -> None:
+        """Write configuration file (*.ini-format)."""
         path = self._root_dir / f"{self._config.name}.ini"
         config = configparser.ConfigParser()
         dict_to_config(config, self._config.config(), delim=delim)
         self.write_to_file(path, lambda x: config.write(x))
 
-    def write_python_driver(self):
+    def write_python_driver(self) -> None:
+        """Write Python driver file (*.py-format)."""
         path = self._root_dir / f"{self._config.name}.py"
         self.write_to_file(path, lambda x: x.write(self._config.generated_code()))
 
     @property
-    def upgraded_files(self):
+    def upgraded_files(self) -> t.List[Path]:
+        """List of upgraded files."""
         return self._upgraded_files
 
     @property
-    def created_files(self):
+    def created_files(self) -> t.List[Path]:
+        """List of created files."""
         return self._created_files
 
 
 def open_settings_file() -> dict:
+    """Open settings file.
+
+    Returns:
+        Contents of the opened settings file.
+    """
     settings_file = Path(__file__).parent.parent / "resources/settings.json"
     with open(settings_file, "r") as json_f:
         return json.load(json_f)
@@ -320,7 +448,19 @@ def generate_labber_files(
     server_port: t.Optional[int] = None,
     hf2: t.Optional[bool] = None,
 ):
-    """Generate Labber files for the selected device."""
+    """Generate Labber files for the selected device.
+
+    Args:
+        driver_directory: Base directory for generated driver files.
+        mode: Driver mode. `NORMAL` | `ADVANCED`.
+            Normal has select amount of functionality available.
+            Advanced has most of the nodes available.
+        device_id: Zurich Instruments device ID. (e.g: dev1234)
+        server_host: DataServer host
+        upgrade: Overwrite existing drivers
+        server_port: DataServer port
+        hf2: If the device is HF2.
+    """
     session = Session(server_host=server_host, server_port=server_port, hf2=hf2)
     dev = session.connect_device(device_id)
 

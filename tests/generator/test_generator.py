@@ -187,13 +187,9 @@ def test_generate_labber_drivers_amt_uhfli(
     assert len(created) == (1 + len(settings_json["misc"]["ziModules"]) - 1 + 1) * 3
 
 
-@patch("zhinst.labber.generator.generator.open_settings_file")
 @patch("zhinst.labber.generator.generator.Session")
-def test_generate_labber_drivers_amt_shfqa(
-    gen_ses, settings, shfqa, session, settings_json
-):
+def test_generate_labber_drivers_amt_shfqa(gen_ses, shfqa, session, settings_json):
     gen_ses.return_value = session
-    settings.return_value = settings_json
     shfqa.features = Mock()
     shfqa.features.options = Mock(return_value="FOO\nBAR")
     session.connect_device = Mock(return_value=shfqa)
@@ -204,30 +200,73 @@ def test_generate_labber_drivers_amt_shfqa(
     # SHFQA_Sweeper included
     assert len(created) == (1 + len(settings_json["misc"]["ziModules"]) + 1) * 3
     files = [
-        Path(tmpdirname) / "Zurich_Instruments_SHFQA4_FOO_BAR" / "Zurich_Instruments_SHFQA4_FOO_BAR.py",
+        Path(tmpdirname)
+        / "Zurich_Instruments_SHFQA4_FOO_BAR"
+        / "Zurich_Instruments_SHFQA4_FOO_BAR.py",
         Path(tmpdirname) / "Zurich_Instruments_SHFQA4_FOO_BAR" / "settings.json",
-        Path(tmpdirname) / "Zurich_Instruments_SHFQA4_FOO_BAR" / "Zurich_Instruments_SHFQA4_FOO_BAR.ini",
-        Path(tmpdirname) / "Zurich_Instruments_DataServer" / "Zurich_Instruments_DataServer.py",
+        Path(tmpdirname)
+        / "Zurich_Instruments_SHFQA4_FOO_BAR"
+        / "Zurich_Instruments_SHFQA4_FOO_BAR.ini",
+        Path(tmpdirname)
+        / "Zurich_Instruments_DataServer"
+        / "Zurich_Instruments_DataServer.py",
         Path(tmpdirname) / "Zurich_Instruments_DataServer" / "settings.json",
-        Path(tmpdirname) / "Zurich_Instruments_DataServer" / "Zurich_Instruments_DataServer.ini"
+        Path(tmpdirname)
+        / "Zurich_Instruments_DataServer"
+        / "Zurich_Instruments_DataServer.ini",
     ]
     for file in files:
         assert file in created
 
-@patch("zhinst.labber.generator.generator.open_settings_file")
+
 @patch("zhinst.labber.generator.generator.Session")
-def test_generate_labber_drivers_exists_shfqa(
-    gen_ses, settings, shfqa, session, settings_json
-):
+def test_generate_labber_drivers_exists_shfqa(gen_ses, shfqa, session):
     gen_ses.return_value = session
-    settings.return_value = settings_json
     shfqa.features = Mock()
     shfqa.features.options = Mock(return_value="FOO\nBAR")
     session.connect_device = Mock(return_value=shfqa)
     with tempfile.TemporaryDirectory() as tmpdirname:
-        _, _ = generate_labber_files(tmpdirname, "normal", "dev1234", "localhost", upgrade=False)
-        created, _ = generate_labber_files(tmpdirname, "normal", "dev1234", "localhost", upgrade=False)
+        _, _ = generate_labber_files(
+            tmpdirname, "normal", "dev1234", "localhost", upgrade=False
+        )
+        created, _ = generate_labber_files(
+            tmpdirname, "normal", "dev1234", "localhost", upgrade=False
+        )
     assert created == []
+
+
+@patch("zhinst.labber.generator.generator.Session")
+def test_generate_labber_drivers_exists_upgrade_shfqa(gen_ses, shfqa, session):
+    gen_ses.return_value = session
+    shfqa.features = Mock()
+    shfqa.features.options = Mock(return_value="FOO\nBAR")
+    session.connect_device = Mock(return_value=shfqa)
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        _, _ = generate_labber_files(
+            tmpdirname, "normal", "dev1234", "localhost", upgrade=True
+        )
+        _, generated = generate_labber_files(
+            tmpdirname, "normal", "dev1234", "localhost", upgrade=True
+        )
+    files = [
+        Path(tmpdirname)
+        / "Zurich_Instruments_SHFQA4_FOO_BAR"
+        / "Zurich_Instruments_SHFQA4_FOO_BAR.py",
+        Path(tmpdirname) / "Zurich_Instruments_SHFQA4_FOO_BAR" / "settings.json",
+        Path(tmpdirname)
+        / "Zurich_Instruments_SHFQA4_FOO_BAR"
+        / "Zurich_Instruments_SHFQA4_FOO_BAR.ini",
+        Path(tmpdirname)
+        / "Zurich_Instruments_DataServer"
+        / "Zurich_Instruments_DataServer.py",
+        Path(tmpdirname) / "Zurich_Instruments_DataServer" / "settings.json",
+        Path(tmpdirname)
+        / "Zurich_Instruments_DataServer"
+        / "Zurich_Instruments_DataServer.ini",
+    ]
+    for file in files:
+        assert file in generated
+
 
 class TestLabberConfigSHFQA:
     @pytest.fixture
