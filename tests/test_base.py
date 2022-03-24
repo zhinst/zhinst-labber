@@ -187,7 +187,7 @@ class TestBase:
 
         # Without set command
         quant = create_quant_mock("Test - Name", device_driver, "", "")
-        assert device_driver.performSetValue(quant, 0) == None
+        assert device_driver.performSetValue(quant, 0) == quant.getValue()
 
     def test_performSet_transaction_node(self, mock_toolkit_session, device_driver):
         device_driver.comCfg.getAddressString.return_value = "DEV1234"

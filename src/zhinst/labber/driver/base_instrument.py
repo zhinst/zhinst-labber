@@ -121,7 +121,10 @@ class BaseDevice(LabberDriver):
         Args:
             options: Additional information provided by Labber.
         """
-        self._session = self._get_session(self._instrument_settings["data_server"])
+        self._session = self._get_session(
+            self._instrument_settings["data_server"],
+            self._instrument_settings["instrument"].get("base_type", "DataServer"),
+        )
         self._instrument = self._create_instrument(
             self._instrument_settings["instrument"]
         )
@@ -188,8 +191,11 @@ class BaseDevice(LabberDriver):
                     function_path.resolve(),
                 )
                 return False if node_info.get("trigger", False) else value
+            if not quant.set_cmd:
+                logger.info("%s: is read only and will not be set.", quant.name)
+                return self.performGetValue(quant)
             return self._set_value_toolkit(
-                quant, value, options=options, wait_for=node_info.get("wait_for", False)
+                quant, value, wait_for=node_info.get("wait_for", False)
             )
         # Stop transaction if necessary (should be ended regardless of any exceptions)
         finally:
@@ -225,21 +231,28 @@ class BaseDevice(LabberDriver):
             )
         # Get value from toolkit
         elif quant.get_cmd:
+            get_cmd = (
+                quant.get_cmd[3:]
+                if quant.get_cmd.lower().startswith("zi/")
+                else quant.get_cmd
+            )
             # use a snapshot for the GET_CFG command
             if self.dOp["operation"] == Interface.GET_CFG:
                 value = None
                 try:
-                    value = self._parse_value(self._snapshot.get_value(quant.get_cmd))
+                    value = self._parse_value(self._snapshot.get_value(get_cmd))
                 except KeyError:
-                    logger.error("%s not found", quant.get_cmd)
-                logger.debug("%s: get %s", quant.name, value)
+                    logger.error("%s not found", get_cmd)
+                logger.info("%s: get %s", quant.name, value)
                 return value if value is not None else quant.getValue()
             # clear snapshot if GET_CFG is finished
             self._snapshot.clear()
             try:
-                value = self._parse_value(self._instrument[quant.get_cmd](parse=False,enum=False))
-                logger.debug("%s: get %s", quant.name, value)
-                return value
+                value = self._parse_value(
+                    self._instrument[get_cmd](parse=False, enum=False)
+                )
+                logger.info("%s: get %s", quant.name, value)
+                return value if value is not None else quant.getValue()
             except Exception as error:
                 logger.error(error)
         return quant.getValue()
@@ -273,7 +286,9 @@ class BaseDevice(LabberDriver):
             logger.error("Unknown data received %s", value)
         return value
 
-    def _get_session(self, data_server_info: t.Dict[str, t.Any]) -> Session:
+    def _get_session(
+        self, data_server_info: t.Dict[str, t.Any], base_type: str
+    ) -> Session:
         """Return a Session to the dataserver.
 
         One single session to each data server is reused per default in Labber.
@@ -281,6 +296,7 @@ class BaseDevice(LabberDriver):
 
         Args:
             data_server_info: settings info for the Data Server.
+            base_type: BaseType of the Labber Instruement.
 
         Returns:
             Valid toolkit Session object.
@@ -288,6 +304,13 @@ class BaseDevice(LabberDriver):
         target_host = data_server_info.get("host", "localhost")
         target_hf2 = data_server_info.get("hf2", False)
         target_port = data_server_info.get("port", 8005 if target_hf2 else 8004)
+        # Use the Instrument Address if the Instrument is a DataSever
+        if base_type == "DataServer":
+            raw_server = self.comCfg.getAddressString()
+            split_raw_server = raw_server.split(":")
+            target_host = split_raw_server[0]
+            if len(split_raw_server) > 1:
+                target_port = int(split_raw_server[1])
         logger.info("Data Server Session %s:%s", target_host, target_port)
         if data_server_info.get("shared_session", True):
             for (host, port), session in created_sessions.items():
@@ -312,16 +335,20 @@ class BaseDevice(LabberDriver):
             toolkit object for the specified Instrument.
         """
         base_type = instrument_info.get("base_type", "session")
-        if base_type == "session":
+        if base_type in ["session", "DataServer"]:
             logger.info("Created Session Instrument")
             return self._session
         if base_type == "module":
             logger.info(
-                "Created Instrument for LabOne Module %s",
+                "Created Instrument for LabOne Module %s for Device %s",
                 instrument_info.get("type", "unknown").lower(),
+                self.comCfg.getAddressString(),
             )
             try:
-                return getattr(self._session.modules, instrument_info["type"].lower())
+                module = getattr(self._session.modules, instrument_info["type"].lower())
+                self._session.connect_device(self.comCfg.getAddressString())
+                module.device(self.comCfg.getAddressString())
+                return module
             except KeyError as error:
                 raise RuntimeError(
                     "Settingsfile is specifing a module as instrument but is "
@@ -384,7 +411,6 @@ class BaseDevice(LabberDriver):
         quant: Quantity,
         value: t.Any,
         *,
-        options: t.Dict = {},
         wait_for: bool = False,
         raise_error: bool = False,
     ) -> None:
@@ -401,11 +427,8 @@ class BaseDevice(LabberDriver):
             raise_error: Flag if the function should raise an error or only log
                 it.
         """
-        if not quant.set_cmd:
-            logger.error("%s: Does not have a set command.", quant.name)
-            return
         try:
-            logger.debug("%s: set %s", quant.name, value)
+            logger.info("%s: set %s", quant.name, value)
             self._instrument[quant.set_cmd](value)
             if wait_for and not self._transaction.is_running():
                 self._instrument[quant.set_cmd].wait_for_state_change(value)
@@ -502,7 +525,7 @@ class BaseDevice(LabberDriver):
                 return self._import_waveforms(Path(quant_value)), call_empty
             except IOError as error:
                 logger.error(error)
-                return Waveforms(),call_empty
+                return Waveforms(), call_empty
         return quant_value, call_empty
 
     def _get_toolkit_function(self, path_list: t.List[str]) -> t.Callable:
@@ -559,7 +582,7 @@ class BaseDevice(LabberDriver):
                     quant_name = self._path_to_quant(quant_path)
                     path_value = self.getValue(quant_name)
                     waveform_paths[quant_path.stem] = (
-                        None if str(path_value) in [".",""] else Path(path_value)
+                        None if str(path_value) in [".", ""] else Path(path_value)
                     )
                 try:
                     kwargs[arg_name] = self._import_waveforms(**waveform_paths)
@@ -579,7 +602,7 @@ class BaseDevice(LabberDriver):
 
         function = self._get_toolkit_function(path.parts[1:])
 
-        logger.debug("%s: call with %s", self._path_to_quant(path), kwargs)
+        logger.info("%s: call with %s", self._path_to_quant(path), kwargs)
         try:
             return_values = function(**kwargs)
         except Exception as error:
@@ -587,7 +610,7 @@ class BaseDevice(LabberDriver):
             if raise_error:
                 raise
             return
-        logger.debug("%s: returned %s", self._path_to_quant(path), return_values)
+        logger.info("%s: returned %s", self._path_to_quant(path), return_values)
 
         for relative_quant_name in func_info.get("Returns"):
             quant_path = (path / relative_quant_name).resolve()
