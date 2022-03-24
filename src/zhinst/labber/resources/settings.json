@@ -79,6 +79,7 @@
             "/sigins/*": "Input - Output",
             "/sigouts/*": "Input - Output",
             "/currins/*": "Input - Output",
+            "/imps/*": "Impedance Analyzer",
             "/demods/*": "DEMODS",
             "/oscs/*": "Oscillators",
             "/sines/*": "MOD",
