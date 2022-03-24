@@ -73,6 +73,7 @@ class BaseDevice(LabberDriver):
         self._snapshot = None
         self._instrument_settings = settings
         self._device_type = settings["instrument"].get("type", "")
+        instrument_type = settings["instrument"].get("base_type", "")
         log_level = settings.get("logger_level", None)
 
         # read information from global settings file
@@ -80,10 +81,10 @@ class BaseDevice(LabberDriver):
             node_info = json.loads(file.read())
             self._node_info = node_info["common"].get("quants", {})
             if self._device_type:
-                dev_type = self._device_type.split("_")[0].rstrip(string.digits)
-                device_info = node_info.get(dev_type).get("quants", {})
-                # Backup for modules with underscore
-                if not device_info:
+                if instrument_type == "device":
+                    dev_type = self._device_type.split("_")[0].rstrip(string.digits)
+                    device_info = node_info.get(dev_type).get("quants", {})
+                else:
                     device_info = node_info.get(self._device_type).get("quants", {})
                 self._node_info = {**self._node_info, **device_info}
             self._function_info = node_info.get("functions", {})

@@ -11,7 +11,9 @@ import zhinst.labber.driver.base_instrument as labber_driver
 
 @pytest.fixture()
 def mock_toolkit_session():
-    with patch("zhinst.labber.driver.base_instrument.Session", autospec=True) as session:
+    with patch(
+        "zhinst.labber.driver.base_instrument.Session", autospec=True
+    ) as session:
         yield session
 
 
@@ -102,6 +104,26 @@ def compare_waveforms(a, b):
 
 
 class TestBase:
+    def test_logger_path(self):
+        log_path = Path("test.log")
+        settings = {
+            "data_server": {
+                "host": "localhost",
+                "port": 8004,
+                "hf2": False,
+                "shared_session": True,
+            },
+            "instrument": {"base_type": "device", "type": "SHFQA"},
+            "logger_path": str(log_path),
+        }
+        try:
+            labber_driver.BaseDevice(settings=settings)
+            assert log_path.exists()
+            with log_path.open("r") as file:
+                assert file.read()
+        finally:
+            log_path.unlink()
+
     def test_performOpen_device(self, mock_toolkit_session, device_driver):
         device_driver.comCfg.getAddressString.return_value = "DEV1234"
         device_driver.performOpen()
@@ -112,7 +134,8 @@ class TestBase:
         module_driver.performOpen()
         mock_toolkit_session.assert_called_with("localhost", 8004, hf2=False)
         assert (
-            module_driver._instrument == mock_toolkit_session.return_value.modules.shfqa_sweeper
+            module_driver._instrument
+            == mock_toolkit_session.return_value.modules.shfqa_sweeper
         )
 
         # Missing type property
@@ -182,6 +205,27 @@ class TestBase:
         device_driver._instrument.root.set_transaction.assert_called_once()
         device_driver._instrument.root.set_transaction.return_value.__enter__.assert_called_once()
         device_driver._instrument.root.set_transaction.return_value.__exit__.assert_called_once()
+
+        # Node that does not support a transaction
+        quant = create_quant_mock("System - Identify", device_driver, "test/3", "")
+        with patch("zhinst.labber.driver.base_instrument.logger") as logger:
+            assert "Test" == device_driver.performSetValue(
+                quant, "Test", options={"call_no": 2, "n_calls": 3}
+            )
+        logger.info.assert_called_with(
+            "%s: Transaction is not supported for this node. Please set value manually.",
+            quant.name,
+        )
+
+        # Error during end transaction
+        quant = create_quant_mock("Test - Name", device_driver, "test/node", "")
+        error = RuntimeError("testee")
+        device_driver._instrument.root.set_transaction().__exit__.side_effect = error
+        with patch("zhinst.labber.driver.base_instrument.logger") as logger:
+            device_driver.performSetValue(quant, 0, options={"call_no": 0, "n_calls": 1})
+        logger.error.assert_called_with(
+            "Error during ending a transaction: %s", error
+        )
 
     def test_performSet_sweep(self, mock_toolkit_session, device_driver):
         device_driver.comCfg.getAddressString.return_value = "DEV1234"
@@ -278,6 +322,21 @@ class TestBase:
         ]["waveforms"]
         compare_waveforms(target, actual)
 
+        # None existing wave
+        waves1 = Path("tests/data/wav.csv")
+        waves2 = Path(".")
+        markers = Path(".")
+        device_driver.instrCfg.getQuantity.return_value.getValue.side_effect = [
+            waves1,
+            waves2,
+            markers,
+        ]
+        assert input == device_driver.performSetValue(quant, input)
+        actual = device_driver._instrument.awgs[0].write_to_waveform_memory.call_args[
+            1
+        ]["waveforms"]
+        compare_waveforms(Waveforms(), actual)
+
     def test_performSet_function_delayed(self, mock_toolkit_session, device_driver):
         device_driver.comCfg.getAddressString.return_value = "DEV1234"
         device_driver.performOpen()
@@ -324,6 +383,14 @@ class TestBase:
             1
         ]["waveforms"]
         compare_waveforms(target, actual)
+
+        # no setting function
+        quant = create_quant_mock("qachannels - 0 - generator - wait_done", device_driver, "", "")
+        device_driver.dOp["operation"] = 3
+        device_driver.performSetValue(
+            quant, waves2, options={"call_no": 1, "n_calls": 1}
+        )
+        device_driver._instrument.qachannels[0].generator.wait_done.assert_not_called()
 
     def test_performSet_json(self, mock_toolkit_session, device_driver):
         device_driver.comCfg.getAddressString.return_value = "DEV1234"
@@ -378,7 +445,22 @@ class TestBase:
         # Standart node get
         quant = create_quant_mock("Test - Name", device_driver, "", "test/node")
         device_driver.performGetValue(quant)
-        device_driver._instrument[quant.get_cmd].assert_called_with()
+        device_driver._instrument[quant.get_cmd].assert_called_with(
+            parse=False, enum=False
+        )
+
+        # Parser
+        device_driver._instrument[quant.get_cmd].return_value = {"x":1,"y":2}
+        assert complex (1,2) == device_driver.performGetValue(quant)
+        device_driver._instrument[quant.get_cmd].assert_called_with(
+            parse=False, enum=False
+        )
+
+        device_driver._instrument[quant.get_cmd].return_value = {"dio": [1.5,4],"y":2}
+        assert 1.5 == device_driver.performGetValue(quant)
+        device_driver._instrument[quant.get_cmd].assert_called_with(
+            parse=False, enum=False
+        )
 
         # With exception
         device_driver._instrument[quant.get_cmd].side_effect = RuntimeError(
@@ -393,6 +475,7 @@ class TestBase:
         # Without set command
         quant = create_quant_mock("Test - Name", device_driver, "", "")
         device_driver.performGetValue(quant)
+
 
     def test_performGet_Get_CFG(self, mock_toolkit_session, device_driver):
         device_driver.comCfg.getAddressString.return_value = "DEV1234"
@@ -409,7 +492,7 @@ class TestBase:
         device_driver._instrument.root["*"].side_effect = [{}, KeyError("test")]
         with patch("zhinst.labber.driver.base_instrument.logger") as logger:
             device_driver.performGetValue(quant)
-        logger.error.assert_called_with('%s not found', 'test/node')
+        logger.error.assert_called_with("%s not found", "test/node")
         # existing node
         device_driver._instrument.root["*"].side_effect = None
         device_driver._instrument.root["*"].return_value = {
@@ -421,7 +504,10 @@ class TestBase:
         module_driver.comCfg.getAddressString.return_value = "DEV1234"
         module_driver.performOpen()
 
-        module_driver._instrument.run.return_value = {'vector': np.array([1, 1, 1]), 'test': "test"}
+        module_driver._instrument.run.return_value = {
+            "vector": np.array([1, 1, 1]),
+            "test": "test",
+        }
         module_driver.instrCfg.getQuantity.return_value.getTraceDict.side_effect = (
             lambda a, **kwarg: a
         )
@@ -437,7 +523,7 @@ class TestBase:
         module_driver.instrCfg.getQuantity.side_effect = KeyError("test")
         with patch("zhinst.labber.driver.base_instrument.logger") as logger:
             module_driver.performGetValue(quant, input)
-        logger.debug.assert_any_call('%s does not exist', 'result')
+        logger.debug.assert_any_call("%s does not exist", "result")
         module_driver.instrCfg.getQuantity.side_effect = None
 
         # Invalid return value
