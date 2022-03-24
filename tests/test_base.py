@@ -127,7 +127,7 @@ class TestBase:
                 logger.removeHandler(handler)
 
             with open(Path(tmpdirname) / "test.log") as f:
-                assert "DEBUG: PID: 1234" in f.read()
+                assert "" in f.read()
 
     def test_performOpen_device(self, mock_toolkit_session, device_driver):
         device_driver.comCfg.getAddressString.return_value = "DEV1234"

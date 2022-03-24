@@ -278,7 +278,7 @@ class TestLabberConfigSHFQA:
     def test_config(self, dev_conf):
         r = dev_conf.config()
         assert r["/qachannels/2/triggers/0/imp50"] == {
-            "section": "Input - Output",
+            "section": "DIO",
             "group": "QA Channel 2",
             "label": "qachannels/2/triggers/0/imp50",
             "datatype": "BOOLEAN",
