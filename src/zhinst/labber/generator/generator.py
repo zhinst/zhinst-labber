@@ -251,8 +251,6 @@ class DataServerConfig(LabberConfig):
         self._name = "DataServer"
         self._settings = {
             "data_server": {
-                "host": self.session.server_host,
-                "port": self.session.server_port,
                 "hf2": self.session.is_hf2_server,
                 "shared_session": True,
             },
