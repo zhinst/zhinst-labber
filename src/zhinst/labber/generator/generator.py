@@ -402,7 +402,7 @@ class Filehandler:
     def write_settings_file(self) -> None:
         """Write settings file (.*json-format)."""
         path = self._root_dir / self._config.settings_filename
-        self.write_to_file(path, lambda x: json.dump(self._config.settings, x))
+        self.write_to_file(path, lambda x: json.dump(self._config.settings, x, indent=2))
 
     def write_config_file(self, delim: str) -> None:
         """Write configuration file (*.ini-format)."""
