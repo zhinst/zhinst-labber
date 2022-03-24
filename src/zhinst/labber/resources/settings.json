@@ -60,7 +60,8 @@
                 "/sgchannels/*/awg/elf/*"
             ],
             "advanced": [
-                "/features/*"
+                "/features/*",
+                "/plot/*"
             ]
         },
         "groups": {
@@ -594,7 +595,6 @@
         },
         "ignoredNodes": {
             "normal": [
-                "/plot/*"
             ],
             "advanced": [
             ]
