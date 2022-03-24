@@ -16,8 +16,8 @@ is a instrument control and lab automation software.
 The drivers are based on `zhinst-toolkit <https://github.com/zhinst/zhinst-toolkit>`_,
 a generic high level python driver for LabOne.
 
-Get started with the :ref:`first_steps/installation:Installation` and then get
-an overview with the :ref:`first_steps/quickstart:Quickstart` guide.
+Get started with the :doc:`first_steps/installation` and then get
+an overview with the :doc:`first_steps/quickstart` guide.
 
 .. toctree::
    :maxdepth: 2

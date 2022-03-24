@@ -2,7 +2,7 @@
     "version": "0.1",
     "misc": {
         "labberDelimiter": " - ",
-        "LogLevel": 10,
+        "LogLevel": 20,
         "ziModules": [
             "shfqa_sweeper"
         ]

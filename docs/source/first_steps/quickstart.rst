@@ -116,11 +116,15 @@ Once the drivers are generated they can be used within Labber. The following
 configuration should be used:
 
 * The ``Name`` is not used by the driver itself and can be chosen freely
-* The ``Interface`` (if available) **must** be set to ``Other``, regardless of the actual interface
+* The ``Interface`` **must** be set to ``Other``, regardless of the actual interface
   used with the device. The driver will automatically detect the correct
   interface.
-* The ``Address`` (if available) **must** be set to device id /serial of the used
-  instrument (e.g. DEV1234)
+* The ``Address`` (if available) **must** be set to one of the following:
+
+  * For Devices and Modules: device id /serial of the used instrument (e.g. DEV1234).
+  * For the DataServer ``server_host:server_port`` (e.g. localhost:8004). The port
+    is optional and can be ignored if the default port (8004 or 8005 for hf2) is
+    used.
 
 
 

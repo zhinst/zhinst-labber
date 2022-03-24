@@ -21,7 +21,7 @@ The format of CSV file is the following:
 
 To upload a waveform to index 0 and index 2 the CSV file could look like that
 
-.. code-block:: csv
+.. code-block::
 
     0.0,0.1,0.2,0.3,0.2,0.1,0.0
 
@@ -80,13 +80,56 @@ complex generator Waveform export example:
     )
     export_waveforms(waveforms, Path("generated_waveforms"))
 
-Wavefrom Processor upload
+Waveform Processor upload
 --------------------------
 
 Often the waveforms for specific applications can be generated within another
 instrument in Labber (e.g. SingleQubitPulseGenerator). Since the Waveform Nodes
 of the AWG format have a special format one can not directly connect the two
-Quantities directly.
+quantities directly. Also it is impractical to log the waveforms in their original
+format since one can not directly see how they look.
 
 To be able to do this zhinst-labber also provides a virtual Instrument called
-``Zurich_Instruments_Waveform_Processor``
+``Zurich_Instruments_Waveform_Processor``. It converts between the native Zurich
+Instrument waveform format and Labber Arrays. All of the exposed array quantities
+can be used as input or outputs.
+
+On the one device side the following quantities exist:
+
+* ``Interleaved - Signal``
+* ``Complex - Signal``
+
+On the Labber side the following counterparts exist:
+
+* ``Wave 1 - Signal``
+* ``Wave 2 - Signal``
+* ``Marker - Signal``
+
+The following scenarios are the most useful ones (but all combinations are possible):
+
+1. Route two real Waveforms to a single device waveform channel. The two input signals
+   are routed to ``Wave 1 - Signal`` and ``Wave 2 - Signal`` and the
+   ``Interleaved - Signal`` is routed to the awg waveform quantity (e.g.
+   ``AWG - Waveforms - 0 - Wave``). (The marker array can also be specified if
+   needed.)
+
+2. Route two real Waveforms to a complex waveform channel. The two input signals
+   are routed to ``Wave 1 - Signal`` and ``Wave 2 - Signal``. The
+   ``Complex - Signal`` combines these two into a complex waveform. The first
+   wave is the real part and the second wave is the imaginary part.
+
+3. Log a waveform in a way that Labber can display it. The native awg waveform
+   from the device (e.g. ``AWG - Waveforms - 0 - Wave``) is routed to
+   ``Interleaved - Signal``. Since one can not detect which format the waveform
+   is in the following quantities may need to be adjusted:
+
+   * ``Interleaved - Num - Channels`` (Either 1 or 2)
+
+   * ``Interleaved - Marker - Present`` (True if a marker is present in the signal)
+
+   ``Wave 1 - Signal``, ``Wave 2 - Signal`` and ``Marker - Signal`` can no be
+   logged and contain the respective part of the original waveform.
+
+
+
+
