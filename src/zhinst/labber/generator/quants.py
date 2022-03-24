@@ -188,7 +188,7 @@ class NodeQuant:
     @property
     def label(self) -> str:
         """Quant label.
-        
+
         Label is node path without DEV-prefix."""
         return self._node_path_no_prefix
 
@@ -211,7 +211,7 @@ class NodeQuant:
                 }
         """
         if "enumerated" in self._node_info["Type"].lower():
-            if "READ" == self.permission:
+            if self.permission == "READ":
                 return {}
         defs = {}
         for idx, (k, v) in enumerate(self._node_info["Options"].items(), 1):
@@ -224,13 +224,23 @@ class NodeQuant:
     def tooltip(self) -> str:
         """Node tooltip as HTML body.
 
-        Options are converted into HTML lists and node is bolded."""
+        Options are converted into HTML lists and node is bolded.
+        
+        For COMBO and READ-only quants, a bolded text to highlight READ-ONLY
+        is used.
+        """
         items = []
+        description = self._node_info["Description"]
         for k, v in self._node_info["Options"].items():
             value, desc = self._enum_description(v)
-            items.append(f"{value if value else k}: {desc}")
+            if self.permission == "READ":
+                items.append(f"{k}: {desc}")
+            else:
+                items.append(f"{value if value else k}: {desc}")
+        if self.permission == "READ" and self.datatype in ["STRING", "COMBO"]:
+                description = "<p><b>READ-ONLY!</p></b>" + description
         return helpers.tooltip(
-            self._node_info["Description"],
+            description,
             enum=items,
             node=self._node_path_no_prefix.upper(),
         )
@@ -255,8 +265,7 @@ class NodeQuant:
         if not unit:
             return ""
         if "enumerated" in unit:
-            if not "READ" == self.permission:
-                return "COMBO"
+            return "COMBO"
         boolean_nodes = [
             "enable",
             "single",
@@ -307,6 +316,15 @@ class NodeQuant:
     def as_dict(self) -> t.Dict:
         """Python dictionary representation of the node quant.
 
+        Due to some problems with Labber, some modification for READ-only nodes are 
+        needed:
+
+            If datatype is COMBO and permission is READ:
+                - COMBO -> Datatype DOUBLE (enumerated number)
+            if datatype is COMBO or STRING and permission is READ:
+                - Permission is removed from quant and a tooltip text to highlight
+                that this is READ-only.
+
         Returns:
             Dictionary where the keys and values are in a Labber format.
         """
@@ -315,13 +333,22 @@ class NodeQuant:
         d["group"] = self.group.lower()
         d["label"] = self.label.lower()
         if self.datatype:
-            d["datatype"] = self.datatype
+            if self.permission == "READ" and self.datatype == "COMBO":
+                d["datatype"] = "DOUBLE"
+            else:
+                d["datatype"] = self.datatype
         if self.unit:
             d["unit"] = self.unit
         d["tooltip"] = self.tooltip
         d.update(self.combo_defs)
-        if self.permission:
-            d["permission"] = self.permission
+
+        if self.permission == "READ" and self.datatype == "COMBO":
+            ...
+        elif self.permission == "READ" and self.datatype == "STRING":
+            ...
+        else:
+            if self.permission:
+                d["permission"] = self.permission
         if self.set_cmd:
             d["set_cmd"] = self.set_cmd
         if self.get_cmd:

@@ -98,7 +98,7 @@ class TestNodeQuant:
         obj = NodeQuant({"Node": "/bar/0", "Properties": "Write"})
         assert obj.title == "BAR/0"
 
-    def test_node_quant_enum(self):
+    def test_node_quant_enum_permission_read_only_enum(self):
         obj = NodeQuant(node_dict_enum)
         assert obj.as_dict() == {
             "/qachannels/0/output/filter": {
@@ -106,9 +106,55 @@ class TestNodeQuant:
                 "group": "qachannels/output",
                 "label": "qachannels/0/output/filter",
                 "datatype": "DOUBLE",
-                "tooltip": "<html><body><p>Reads the selected analog filter before the Signal Output.</p><p><ul><li>lowpass_1500: Low-pass filter of 1.5 GHz.</li><li>lowpass_3000: Low-pass filter of 3 GHz.</li><li>bandpass_3000_6000: Band-pass filter between 3 GHz - 6 GHz</li><li>bandpass_6000_10000: Band-pass filter between 6 GHz - 10 GHz</li></ul></p><p><b>QACHANNELS/0/OUTPUT/FILTER</b></p></body></html>",
-                "permission": "READ",
+                "tooltip": "<html><body><p><p><b>READ-ONLY!</p></b>Reads the selected analog filter before the Signal Output.</p><p><ul><li>0: Low-pass filter of 1.5 GHz.</li><li>1: Low-pass filter of 3 GHz.</li><li>2: Band-pass filter between 3 GHz - 6 GHz</li><li>3: Band-pass filter between 6 GHz - 10 GHz</li></ul></p><p><b>QACHANNELS/0/OUTPUT/FILTER</b></p></body></html>",
                 "get_cmd": "QACHANNELS/0/OUTPUT/FILTER",
+            }
+        }
+
+    def test_node_quant_enum_permission_read_only_string(self):
+        settings = {
+            "Node": "/DEV12018/QACHANNELS/0/OUTPUT/FILTER",
+            "Description": "Reads the selected analog filter before the Signal Output.",
+            "Properties": "Read",
+            "Type": "String",
+            "Unit": "None",
+        }
+        obj = NodeQuant(settings)
+        assert obj.as_dict() == {
+            "/qachannels/0/output/filter": {
+                "datatype": "STRING",
+                "get_cmd": "QACHANNELS/0/OUTPUT/FILTER",
+                "group": "qachannels/output",
+                "label": "qachannels/0/output/filter",
+                "section": "qachannels/0",
+                "tooltip": "<html><body><p><p><b>READ-ONLY!</p></b>Reads "
+                "the selected analog filter before "
+                "the Signal "
+                "Output.</p><p><b>QACHANNELS/0/OUTPUT/FILTER</b></p></body></html>",
+            }
+        }
+
+    def test_node_quant_enum_permission_both(self):
+        node_dict_enum["Properties"] = "Read, Write"
+        obj = NodeQuant(node_dict_enum)
+        assert obj.as_dict() == {
+            "/qachannels/0/output/filter": {
+                "section": "qachannels/0",
+                "group": "qachannels/output",
+                "label": "qachannels/0/output/filter",
+                "datatype": "COMBO",
+                "tooltip": "<html><body><p>Reads the selected analog filter before the Signal Output.</p><p><ul><li>lowpass_1500: Low-pass filter of 1.5 GHz.</li><li>lowpass_3000: Low-pass filter of 3 GHz.</li><li>bandpass_3000_6000: Band-pass filter between 3 GHz - 6 GHz</li><li>bandpass_6000_10000: Band-pass filter between 6 GHz - 10 GHz</li></ul></p><p><b>QACHANNELS/0/OUTPUT/FILTER</b></p></body></html>",
+                "permission": "BOTH",
+                "get_cmd": "QACHANNELS/0/OUTPUT/FILTER",
+                "set_cmd": "QACHANNELS/0/OUTPUT/FILTER",
+                "cmd_def_1": "lowpass_1500",
+                "cmd_def_2": "lowpass_3000",
+                "cmd_def_3": "bandpass_3000_6000",
+                "cmd_def_4": "bandpass_6000_10000",
+                "combo_def_1": "lowpass_1500",
+                "combo_def_2": "lowpass_3000",
+                "combo_def_3": "bandpass_3000_6000",
+                "combo_def_4": "bandpass_6000_10000",
             }
         }
 
@@ -127,7 +173,7 @@ class TestNodeQuant:
         node_info["Node"] = node
         obj = NodeQuant(node_info)
         assert obj.datatype == datatype
-        
+
     @pytest.mark.parametrize(
         "unit, datatype",
         [
@@ -141,7 +187,7 @@ class TestNodeQuant:
             ("ZIDIOSAMPLE", "COMPLEX"),
             ("COMPLEX DOUBLE", "VECTOR_COMPLEX"),
             ("ZITRIGGERSAMPLE", "STRING"),
-            ("randOM123", "STRING")
+            ("randOM123", "STRING"),
         ],
     )
     def test_node_quant_datatype_unit(self, unit, datatype):
