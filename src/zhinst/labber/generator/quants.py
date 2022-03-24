@@ -68,7 +68,7 @@ class Quant:
         else:
             return self.title.split("/")[0]
 
-    def as_dict(self) -> t.Dict:
+    def as_dict(self) -> t.Dict[str, t.Dict[str, str]]:
         """Quant as a Python dictionary.
 
         Returns:
@@ -100,7 +100,7 @@ class NodeQuant:
     Args:
         node_info: Node information.
 
-        Dictionary format:
+        Example format:
 
             {
                 "Node": "/DEV1234/QACHANNELS/1/GENERATOR/AUXTRIGGERS/0/CHANNEL",
@@ -109,6 +109,7 @@ class NodeQuant:
                 "Type": "Integer (enumerated)",
                 "Unit": "None",
                 "Options": {}
+            }
     """
 
     def __init__(self, node_info: t.Dict):
@@ -123,10 +124,10 @@ class NodeQuant:
 
     @staticmethod
     def _enum_description(value: str) -> t.Tuple[str, str]:
-        """Split enum description into a tuple parts
+        """Split enum description into tuple
 
         Args:
-            value: Node enum description
+            value: Node enum description.
         Returns:
             Enum description split into a tuple."""
         v = value.split(": ")
@@ -142,7 +143,7 @@ class NodeQuant:
 
     @property
     def permission(self) -> str:
-        """Quant permission"""
+        """Quant permission."""
         if "read" in self._properties and "write" in self._properties:
             return "BOTH"
         if "read" in self._properties:
@@ -153,7 +154,7 @@ class NodeQuant:
 
     @property
     def show_in_measurement_dlg(self) -> t.Optional[str]:
-        """Show in measurement dialog"""
+        """Show in measurement dialog."""
         if self.datatype in ["VECTOR", "COMPLEX", "VECTOR_COMPLEX"]:
             if "result" in self.label.lower() or "wave" in self.label.lower():
                 return "True"
@@ -189,7 +190,7 @@ class NodeQuant:
     def label(self) -> str:
         """Quant label.
 
-        Label is node path without DEV-prefix."""
+        Label is a node path without DEV-prefix."""
         return self._node_path_no_prefix
 
     @property
@@ -197,6 +198,7 @@ class NodeQuant:
         """Labber combo definitions.
 
         Turns enumerated options into a Labber combo definitions.
+        No combo definitions are generated if the node is READ-only.
 
         Returns:
             Labber combo definitions.
@@ -225,7 +227,7 @@ class NodeQuant:
         """Node tooltip as HTML body.
 
         Options are converted into HTML lists and node is bolded.
-        
+
         For COMBO and READ-only quants, a bolded text to highlight READ-ONLY
         is used.
         """
@@ -247,7 +249,10 @@ class NodeQuant:
 
     @property
     def unit(self) -> t.Optional[str]:
-        """Node unit to Labber units"""
+        """Node unit to Labber units.
+
+        Special characters are ignored or replaced in the string representation.
+        """
         # HF2 does not have Unit.
         unit = self._node_info.get("Unit", None)
         if not unit:
@@ -298,7 +303,7 @@ class NodeQuant:
 
     @property
     def set_cmd(self) -> t.Optional[str]:
-        """Set command for the node if the node is writable"""
+        """Set command for the node if the node is writable."""
         if "write" in self._properties:
             return self._node_path_no_prefix
 
@@ -309,11 +314,11 @@ class NodeQuant:
             return self._node_path_no_prefix
 
     @property
-    def title(self):
+    def title(self) -> str:
         """Title of the quant."""
         return self.label
 
-    def as_dict(self) -> t.Dict:
+    def as_dict(self) -> t.Dict[str, t.Dict]:
         """Python dictionary representation of the node quant.
 
         Due to some problems with Labber, some modification for READ-only nodes are 
@@ -341,14 +346,8 @@ class NodeQuant:
             d["unit"] = self.unit
         d["tooltip"] = self.tooltip
         d.update(self.combo_defs)
-
-        if self.permission == "READ" and self.datatype == "COMBO":
-            ...
-        elif self.permission == "READ" and self.datatype == "STRING":
-            ...
-        else:
-            if self.permission:
-                d["permission"] = self.permission
+        if not (self.permission == "READ" and self.datatype in ["COMBO", "STRING"]):
+            d["permission"] = self.permission
         if self.set_cmd:
             d["set_cmd"] = self.set_cmd
         if self.get_cmd:
@@ -368,12 +367,17 @@ class QuantGenerator:
         quants: List of quants in node-like format.
     """
 
-    def __init__(self, quants: list) -> None:
+    def __init__(self, quants: t.List[str]) -> None:
         self.quants = list(map(helpers.delete_device_from_node_path, quants))
 
     @staticmethod
     def find_nth_occurrence(s: str, target: str, n: int) -> int:
         """Find nth occurrence of the target in a string.
+
+        Args:
+            s: String
+            target: Target string to find from s
+            n: Nth occurrence of target in s
 
         Returns:
             Index of the nth occurrence in the string. -1 if not found."""
@@ -399,7 +403,7 @@ class QuantGenerator:
             quants: List of quant paths
 
         Returns:
-            List of quant paths
+            List of generated quant paths.
         """
         for x in range(indexes[i]):
             idx = QuantGenerator.find_nth_occurrence(quant_original, "*", i)
@@ -418,8 +422,10 @@ class QuantGenerator:
     def _to_regex(s: str) -> str:
         """Quant to regex.
 
-        * is replaced with any numbers and case is ignored.
+        Wildcard `*` is replaced with any numbers and case is ignored.
 
+        Args:
+            s: String to be transformed into regex.
         Returns:
             Regex of the input string."""
         s = s.replace("/", r"\/")
@@ -438,7 +444,7 @@ class QuantGenerator:
                 int = The amount of indexes to be added.
 
         Returns:
-            List of quant paths
+            Quant paths with given indexes.
         """
         wc_count = quant.count("*")
         if wc_count == 0:
@@ -451,6 +457,7 @@ class QuantGenerator:
 
         idxs = []
         for enum, idx in enumerate(indexes):
+            # Get the number of indexes from device.
             if idx == "dev":
                 paths = set()
                 idx_pos = self.find_nth_occurrence(quant, "*", enum) + 1
@@ -459,5 +466,6 @@ class QuantGenerator:
                     paths.add(re.findall(r"[0-9]+", path)[enum])
                 idxs.append(len(paths))
             else:
+                # Add any number of indexes.
                 idxs.append(idx)
         return self.path_from_indexes(quant, quant, 0, idxs, [])
