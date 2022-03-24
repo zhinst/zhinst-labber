@@ -1,12 +1,14 @@
 import pytest
-from unittest.mock import MagicMock, patch, PropertyMock
+from unittest.mock import MagicMock, patch
 import sys
+import tempfile
 from pathlib import Path
 from zhinst.toolkit import Waveforms
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "labber"))
 import zhinst.labber.driver.base_instrument as labber_driver
+from zhinst.labber.driver.base_instrument import logger
 
 
 @pytest.fixture()
@@ -102,27 +104,30 @@ def compare_waveforms(a, b):
         else:
             assert a[tar][2] == b[act][2]
 
-
 class TestBase:
-    def test_logger_path(self):
-        log_path = Path("test.log")
-        settings = {
-            "data_server": {
-                "host": "localhost",
-                "port": 8004,
-                "hf2": False,
-                "shared_session": True,
-            },
-            "instrument": {"base_type": "device", "type": "SHFQA"},
-            "logger_path": str(log_path),
-        }
-        try:
+    @patch('os.getpid', return_value=1234)
+    def test_logger_path(self, mock_getpid):
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            log_path = Path(tmpdirname) / "test.log"
+            settings = {
+                "data_server": {
+                    "host": "localhost",
+                    "port": 8004,
+                    "hf2": False,
+                    "shared_session": True,
+                },
+                "instrument": {"base_type": "device", "type": "SHFQA"},
+                "logger_path": log_path.resolve(),
+            }
             labber_driver.BaseDevice(settings=settings)
             assert log_path.exists()
-            with log_path.open("r") as file:
-                assert file.read()
-        finally:
-            log_path.unlink()
+            # Remove handler so tmpdirname can be unlinked.
+            for handler in logger.handlers[:]:
+                handler.close()
+                logger.removeHandler(handler)
+
+            with open(Path(tmpdirname) / "test.log") as f:
+                assert "DEBUG: PID: 1234" in f.read()
 
     def test_performOpen_device(self, mock_toolkit_session, device_driver):
         device_driver.comCfg.getAddressString.return_value = "DEV1234"
