@@ -16,6 +16,7 @@
         },
         "ignoredNodes": {
             "normal": [
+                "/device",
                 "/preset/*",
                 "/stats/*",
                 "/status/*",
@@ -589,14 +590,14 @@
             "support_arm": true,
             "support_hardware_loop": true,
             "interface": "Other",
-            "startup": "Do nothing",
-            "signal_analyzer": true
+            "startup": "Do nothing"
         },
         "ignoredNodes": {
             "normal": [
                 "/plot/*"
             ],
-            "advanced": []
+            "advanced": [
+            ]
         },
         "quants": {
             "/envelope/waveform": {
