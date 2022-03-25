@@ -198,6 +198,16 @@ class TestNodeQuant:
         obj = NodeQuant({"Node": "/DEV12018/QACHANNELS/FO"})
         assert obj.datatype == ""
 
+    def test_node_info_not_allowed_type(self):
+        info = {
+            "Node": "/DEV12018/QACHANNELS/0/CENTERFREQ",
+            "Description": "The Center Frequency of the analysis band.",
+            "Properties": "Read, Write, Setting",
+            "Type": "ZICntSample",
+            "Unit": "Hz",
+        }
+        with pytest.raises(ValueError):
+            NodeQuant(info)
 
 class TestQuantSuffix:
     conf = {"datatype": "BOO", "suffix": "File", "permission": "READ"}

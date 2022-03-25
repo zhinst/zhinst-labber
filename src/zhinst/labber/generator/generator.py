@@ -94,7 +94,10 @@ class LabberConfig:
                 self.env_settings.ignored_nodes,
             ):
                 continue
-            sec = NodeQuant(info)
+            try:
+                sec = NodeQuant(info)
+            except ValueError:
+                continue
             quants.update(sec.as_dict())
         return quants
 

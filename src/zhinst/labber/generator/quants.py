@@ -113,6 +113,7 @@ class NodeQuant:
     """
 
     def __init__(self, node_info: t.Dict):
+        self._validate_node_info(node_info)
         self._node_info = node_info
         self._node_info.setdefault("Options", {})
         self._node_path = helpers.delete_device_from_node_path(
@@ -121,6 +122,27 @@ class NodeQuant:
         self._node_path_no_prefix = self._node_path.strip("/")
         self._path_parts = self._node_path_no_prefix.split("/")
         self._properties = node_info.get("Properties", "").lower()
+
+    def _validate_node_info(self, node_info: t.Dict) -> None:
+        """Validate Node info.
+    
+        Generally nodes that requires polling are ignored due to limited
+        Labber functionality. This can change in the future.
+        
+        Args:
+            node_info: Node info in ZIPython format.
+        Raises:
+            ValueError: Value(s) are not supported.
+        """
+        not_allowed_types = [
+            "ZIPWAWave", 
+            "ZITriggerSample", 
+            "ZICntSample", 
+            "ZIScopeWave", 
+            "ZIAuxInSample"
+        ]
+        if node_info.get("Type", None) in not_allowed_types:
+            raise ValueError(f"Node type {node_info.get('Type', None)} not allowed.")
 
     @staticmethod
     def _enum_description(value: str) -> t.Tuple[str, str]:
@@ -287,18 +309,14 @@ class NodeQuant:
             return "STRING"
         if unit == "double" or "integer" in unit:
             return "DOUBLE"
-        if unit == "complex":
-            return "VECTOR_COMPLEX"
         if unit == "string":
             return "STRING"
         if unit in ["zivectordata", "ziadvisorwave"]:
             return "VECTOR"
         if unit in ["zidemodsample", "zidiosample"]:
             return "COMPLEX"
-        if unit == "complex double":
+        if unit in ["ziimpedancesample", "complex double", "complex"]:
             return "VECTOR_COMPLEX"
-        if unit == "zitriggersample":
-            return "STRING"
         return "STRING"
 
     @property
