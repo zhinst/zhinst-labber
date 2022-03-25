@@ -138,8 +138,9 @@ class NodeQuant:
             "ZIPWAWave", 
             "ZITriggerSample", 
             "ZICntSample", 
-            "ZIScopeWave", 
-            "ZIAuxInSample"
+            "ZIScopeWave",
+            "ZIAuxInSample",
+            "ZIImpedanceSample"
         ]
         if node_info.get("Type", None) in not_allowed_types:
             raise ValueError(f"Node type {node_info.get('Type', None)} not allowed.")
@@ -315,7 +316,7 @@ class NodeQuant:
             return "VECTOR"
         if unit in ["zidemodsample", "zidiosample"]:
             return "COMPLEX"
-        if unit in ["ziimpedancesample", "complex double", "complex"]:
+        if unit in ["complex double", "complex"]:
             return "VECTOR_COMPLEX"
         return "STRING"
 
