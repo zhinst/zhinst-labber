@@ -382,6 +382,18 @@
                     "show_in_measurement_dlg": "True"
                 }
             },
+            "/qachannels/*/generator/waveforms/*/wave": {
+                "add": false,
+                "indexes": [
+                    "dev",
+                    "dev"
+                ],
+                "conf": {
+                    "datatype": "VECTOR_COMPLEX",
+                    "x_name": "Length",
+                    "x_unit": "Sample"
+                }
+            },
             "/system/identify": {
                 "add": false,
                 "conf": {},
@@ -442,18 +454,6 @@
         "groups": {},
         "sections": {},
         "quants": {
-            "/qachannels/*/generator/waveforms/*/wave": {
-                "add": false,
-                "indexes": [
-                    "dev",
-                    "dev"
-                ],
-                "conf": {
-                    "datatype": "VECTOR_COMPLEX",
-                    "x_name": "Length",
-                    "x_unit": "Sample"
-                }
-            },
             "/qachannels/*/generator/pulses": {
                 "add": true,
                 "conf": {
