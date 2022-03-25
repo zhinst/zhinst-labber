@@ -19,19 +19,19 @@ The Labber drivers are based on the
 
 The Zurich Instruments Labber Drivers are well tested and considered stable
 enough for general usage. The interfaces may have some incompatible changes
-between releases. Please check the changelog if you are upgrading.
+between releases. Please check the changelog if you are upgrading to the latest version.
 
 ## LabOne software
-As prerequisite, the LabOne software version 22.02 or later must be installed.
+As a prerequisite, the LabOne software version 22.02 or later must be installed.
 It can be downloaded for free at
 [https://www.zhinst.com/labone](https://www.zhinst.com/labone). Follow the
 installation instructions specific to your platform. Verify that you can
 connect to your instrument(s) using the web interface of LabOne. If you are
-upgrading from an older version, be sure to update the firmware of al your
-devices using the web interface before continuing.
+upgrading from an older version, be sure to update the firmware of all
+Zurich Instruments devices in use by using the web interface.
 
 In principle LabOne can be installed in a remote machine, but we highly
-recommend to install on the local machine where you intend to run the experiment.
+recommend to install it on a local machine where you intend to run the experiment.
 
 # Getting Started
 
