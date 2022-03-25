@@ -17,17 +17,17 @@ def tk_confs_adv(settings_json):
 
 def test_ignored_nodes_normal(tk_confs_norm, settings_json):
     for conf in tk_confs_norm:
-        ign_com_norm = settings_json["common"]["ignoredNodes"]["normal"]
-        ign_com_adv = settings_json["common"]["ignoredNodes"]["advanced"]
-        ign_dev = settings_json[conf._set_name]["ignoredNodes"]["normal"]
-        ign_dev_adv = settings_json[conf._set_name]["ignoredNodes"]["advanced"]
+        ign_com_norm = settings_json["common"]["ignoredNodes"].get("normal", [])
+        ign_com_adv = settings_json["common"]["ignoredNodes"].get("advanced", [])
+        ign_dev = settings_json[conf._set_name]["ignoredNodes"].get("normal", [])
+        ign_dev_adv = settings_json[conf._set_name]["ignoredNodes"].get("advanced", [])
         assert conf.ignored_nodes == ign_com_norm + ign_com_adv + ign_dev + ign_dev_adv
 
 
 def test_ignored_nodes_adv(tk_confs_adv, settings_json):
     for conf in tk_confs_adv:
-        ign_com_adv = settings_json["common"]["ignoredNodes"]["advanced"]
-        ign_dev = settings_json[conf._set_name]["ignoredNodes"]["advanced"]
+        ign_com_adv = settings_json["common"]["ignoredNodes"].get("advanced", [])
+        ign_dev = settings_json[conf._set_name]["ignoredNodes"].get("advanced", [])
         assert conf.ignored_nodes == ign_com_adv + ign_dev
 
 

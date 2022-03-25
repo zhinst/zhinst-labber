@@ -413,6 +413,21 @@
 
         }
     },
+    "UHFQA": {
+        "generalSettings": {
+            "support_arm": true,
+            "support_hardware_loop": true,
+            "interface": "Other",
+            "startup": "Do nothing"
+        },
+        "ignoredNodes": {
+            "normal": [],
+            "advanced": []
+        },
+        "groups": {},
+        "sections": {},
+        "quants": {}
+    },
     "SHFQA": {
         "generalSettings": {
             "support_arm": true,
@@ -424,8 +439,8 @@
             "normal": [],
             "advanced": []
         },
-        "sections": {},
         "groups": {},
+        "sections": {},
         "quants": {
             "/qachannels/*/generator/waveforms/*/wave": {
                 "add": false,
@@ -564,8 +579,8 @@
             "/boxcars/*": "Boxcars",
             "/oscs/*": "OSC"
         },
-        "groups": {},
-        "quants": {}
+        "groups": {}
+
     },
     "HDAWG": {
         "generalSettings": {
@@ -584,7 +599,8 @@
             "/dios/*": "DIO",
             "/sines/*": "Sine Generator"
         },
-        "groups": {}
+        "groups": {},
+        "quants": {}
     },
     "shfqa_sweeper": {
         "generalSettings": {
@@ -594,11 +610,11 @@
             "startup": "Do nothing"
         },
         "ignoredNodes": {
-            "normal": [
-            ],
-            "advanced": [
-            ]
+            "normal": [],
+            "advanced": []
         },
+        "groups": {},
+        "sections": {},
         "quants": {
             "/envelope/waveform": {
                 "add": true,
@@ -648,12 +664,13 @@
             "normal": [],
             "advanced": []
         },
+        "groups": {},
         "sections": {
             "/execution/*": "Ports",
             "/triggers/*": "Ports",
             "/zsync/*/connection/*": "Ports"
         },
-        "groups": {}
+        "quants": {}
     },
     "DataServer": {
         "generalSettings": {
@@ -662,6 +679,8 @@
             "interface": "Other",
             "startup": "Do nothing"
         },
+        "groups": {},
+        "sections": {},
         "ignoredNodes": {
             "normal": [
                 "/zi/about/commit",
@@ -673,7 +692,8 @@
                 "/zi/system/usagedata"
             ],
             "advanced": []
-        }
+        },
+        "quants": {}
     },
     "SHFSG": {
         "generalSettings": {
@@ -682,12 +702,28 @@
             "interface": "Other",
             "startup": "Do nothing"
         },
+        "groups": {},
+        "sections": {},
         "ignoredNodes": {
             "normal": [],
             "advanced": []
         },
+        "quants": {}
+    },
+    "MFLI": {
+        "generalSettings": {
+            "support_arm": true,
+            "support_hardware_loop": true,
+            "interface": "Other",
+            "startup": "Do nothing"
+        },
+        "groups": {},
         "sections": {},
-        "groups": {}
+        "ignoredNodes": {
+            "normal": [],
+            "advanced": []
+        },
+        "quants": {}
     },
     "functions": {
         "commandtable/upload_to_device":{

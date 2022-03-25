@@ -105,8 +105,7 @@ def compare_waveforms(a, b):
             assert a[tar][2] == b[act][2]
 
 class TestBase:
-    @patch('os.getpid', return_value=1234)
-    def test_logger_path(self, mock_getpid):
+    def test_logger_path(self):
         with tempfile.TemporaryDirectory() as tmpdirname:
             log_path = Path(tmpdirname) / "test.log"
             settings = {
