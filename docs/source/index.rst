@@ -4,7 +4,7 @@
 
 |
 
-Zurich Instruments Labber driver 0.3 Documentation
+Zurich Instruments Labber driver |version| Documentation
 =========================================================
 
 The Zurich Instruments drivers for Labber (zhinst-labber) is a package of
