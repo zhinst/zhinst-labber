@@ -16,6 +16,7 @@
         },
         "ignoredNodes": {
             "normal": [
+                "/auxins/*/sample",
                 "/device",
                 "/preset/*",
                 "/stats/*",
