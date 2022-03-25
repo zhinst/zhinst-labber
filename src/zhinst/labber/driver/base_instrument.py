@@ -5,7 +5,6 @@ import json
 import logging
 import os
 import string
-import sys
 import typing as t
 from itertools import repeat
 from pathlib import Path
@@ -18,6 +17,7 @@ from zhinst.toolkit.driver.devices import DeviceType
 from zhinst.toolkit.driver.modules import ModuleType
 
 from zhinst.labber.driver.snapshot_manager import SnapshotManager, TransactionManager
+from zhinst.labber.driver.logger import configure_logger
 
 Quantity = t.TypeVar("Quantity")
 NumpyArray = t.TypeVar("NumpyArray")
@@ -92,22 +92,10 @@ class BaseDevice(LabberDriver):
             # use global log level if no local one is defined
             log_level = node_info["misc"]["LogLevel"] if not log_level else log_level
 
-        # Set up logger
-        formatter = logging.Formatter(
-            "[%(asctime)s] %(levelname)s: %(message)s",
-            datefmt="%a, %d %b %Y %H:%M:%S",
+        configure_logger(
+            logger, log_level, self._instrument_settings.get("logger_path", None)
         )
-        # always log to std out
-        std_out_handler = logging.StreamHandler(sys.stdout)
-        std_out_handler.setFormatter(formatter)
-        logger.addHandler(std_out_handler)
-        # log to path if specified
-        if "logger_path" in self._instrument_settings:
-            file_handler = logging.FileHandler(self._instrument_settings["logger_path"])
-            file_handler.setFormatter(formatter)
-            logger.addHandler(file_handler)
 
-        logger.setLevel(log_level)
         logger.debug("PID: %d", os.getpid())
 
         # Set up node to quant map
