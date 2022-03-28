@@ -314,9 +314,9 @@ class NodeQuant:
             return "STRING"
         if unit in ["zivectordata", "ziadvisorwave"]:
             return "VECTOR"
-        if unit in ["zidemodsample", "zidiosample"]:
+        if unit in ["zidemodsample", "zidiosample", "complex double"]:
             return "COMPLEX"
-        if unit in ["complex double", "complex"]:
+        if unit in ["complex"]:
             return "VECTOR_COMPLEX"
         return "STRING"
 

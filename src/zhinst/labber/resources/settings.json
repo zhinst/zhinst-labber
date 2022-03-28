@@ -43,6 +43,8 @@
                 "/system/nics/*",
                 "/system/powerconfigdate",
                 "/system/fx2revision",
+                "/system/fx3revision",
+                "/system/slaverevision",
                 "/system/identify",
                 "/system/xenpakenable",
                 "*/elf/*",
@@ -65,15 +67,19 @@
             ]
         },
         "groups": {
-            "/sines/<n>/*": "Sines <n>",
-            "/oscs/<n>/*": "OSCS <n>",
-            "/awgs/<n>/*": "AWGS <n>",
+            "/sines/<n>/*": "Sine <n> Generator",
+            "/oscs/<n>/*": "OSC <n>",
+            "/awgs/<n>/*": "AWG <n>",
             "/sgchannels/<n>/*": "SG Channel <n>",
             "/dios/<n>": "DIO <n>",
             "/qachannels/<n>/readout/*": "QA Channel <n> Readout",
             "/qachannels/<n>/spectroscopy/*": "QA Channel <n> Spectroscopy",
             "/qachannels/<n>/*": "QA Channel <n>",
-            "/scopes/<n>/*": "Scope <n>"
+            "/scopes/<n>/channels/<n>/*": "Scope <n> Channel <n>",
+            "/scopes/<n>/*": "Scope <n>",
+            "/imps/<n>/*": "Imps <n>",
+            "/cnts/<n>/*": "Pulse Counter <n>",
+            "/sigouts/<n>/*": "Sigout <n>"
         },
         "sections": {
             "/sigins/*": "In/Out",
@@ -90,6 +96,7 @@
             "/mods/*": "MOD",
             "/tu/*": "TU",
             "/awg/channelgrouping": "AWG",
+            "/awgs/*/outputs/*": "Output",
             "/awgs/*": "AWG Sequencer",
             "/dios/*": "DIO",
             "/pids/*": "PID",
@@ -98,7 +105,11 @@
             "/cnts/*": "Pulse Counter",
             "/inputpwas/*": "PWA",
             "/outputpwas/*": "PWA",
+            "/triggers/*": "DIO",
             "/zsyncs/*/connection/*": "Ports",
+            "/qas/*/result/*": "QA Result",
+            "/qas/*/monitor/*": "QA Input",
+            "/qas/*/*": "QA Setup",
             "/qachannels/*/markers/*": "DIO",
             "/qachannels/*/triggers/*": "DIO",
             "/qachannels/*/generator/dio/*": "DIO",
@@ -454,7 +465,9 @@
             "advanced": []
         },
         "groups": {},
-        "sections": {},
+        "sections": {
+            "/awgs/*": "AWG Sequencer"
+        },
         "quants": {}
     },
     "SHFQA": {
@@ -611,10 +624,8 @@
             "advanced": []
         },
         "sections": {
-            "/awgs/*/dio/*": "DIO",
-            "/awgs/*/outputs/*": "Outputs",
-            "/dios/*": "DIO",
-            "/sines/*": "Sine Generator"
+            "/sines/*": "Output",
+            "/sigouts/*": "Output"
         },
         "groups": {},
         "quants": {}

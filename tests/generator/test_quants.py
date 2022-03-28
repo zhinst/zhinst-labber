@@ -185,7 +185,7 @@ class TestNodeQuant:
             ("ZIADVISORWAVE", "VECTOR"),
             ("ZIDEMODSAMPLE", "COMPLEX"),
             ("ZIDIOSAMPLE", "COMPLEX"),
-            ("COMPLEX DOUBLE", "VECTOR_COMPLEX"),
+            ("COMPLEX DOUBLE", "COMPLEX"),
             ("ZITRIGGERSAMPLE", "STRING"),
             ("randOM123", "STRING"),
         ],
