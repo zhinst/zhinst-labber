@@ -9,8 +9,8 @@
     },
     "common": {
         "generalSettings": {
-            "support_arm": false,
-            "support_hardware_loop": false,
+            "support_arm": true,
+            "support_hardware_loop": true,
             "interface": "Other",
             "startup": "Do nothing"
         },
