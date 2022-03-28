@@ -19,27 +19,27 @@ def test_ignored_nodes_normal(tk_confs_norm, settings_json):
     for conf in tk_confs_norm:
         ign_com_norm = settings_json["common"]["ignoredNodes"].get("normal", [])
         ign_com_adv = settings_json["common"]["ignoredNodes"].get("advanced", [])
-        ign_dev = settings_json[conf._set_name]["ignoredNodes"].get("normal", [])
-        ign_dev_adv = settings_json[conf._set_name]["ignoredNodes"].get("advanced", [])
+        ign_dev = settings_json[conf.base_name]["ignoredNodes"].get("normal", [])
+        ign_dev_adv = settings_json[conf.base_name]["ignoredNodes"].get("advanced", [])
         assert conf.ignored_nodes == ign_com_norm + ign_com_adv + ign_dev + ign_dev_adv
 
 
 def test_ignored_nodes_adv(tk_confs_adv, settings_json):
     for conf in tk_confs_adv:
         ign_com_adv = settings_json["common"]["ignoredNodes"].get("advanced", [])
-        ign_dev = settings_json[conf._set_name]["ignoredNodes"].get("advanced", [])
+        ign_dev = settings_json[conf.base_name]["ignoredNodes"].get("advanced", [])
         assert conf.ignored_nodes == ign_com_adv + ign_dev
 
 
 def test_general_settings(tk_confs_norm, settings_json):
     for conf in tk_confs_norm:
-        assert settings_json[conf._set_name]["generalSettings"] == conf.general_settings
+        assert settings_json[conf.base_name]["generalSettings"] == conf.general_settings
 
 
 def test_quant_sections(tk_confs_norm, settings_json):
     common = settings_json["common"]["sections"]
     for conf in tk_confs_norm:
-        conf_secs = settings_json[conf._set_name]["sections"]
+        conf_secs = settings_json[conf.base_name]["sections"]
         common.update(conf_secs)
         assert conf.quant_sections == common
 
@@ -47,7 +47,7 @@ def test_quant_sections(tk_confs_norm, settings_json):
 def test_quant_groups(tk_confs_norm, settings_json):
     common = settings_json["common"]["groups"]
     for conf in tk_confs_norm:
-        conf_secs = settings_json[conf._set_name]["groups"]
+        conf_secs = settings_json[conf.base_name]["groups"]
         common.update(conf_secs)
         assert conf.quant_groups == common
 
@@ -85,6 +85,60 @@ def test_quants_mapping():
     }
     obj = LabberConfiguration("!=_NAME", "normal", settings)
     assert obj.quants == {}
+
+
+def test_quants_mapping_shfqc():
+    settings = {
+        "common": {
+            "quants": {
+                "/bar": {
+                    "add": True,
+                    "mapping": {
+                        "SHFQA": {
+                            "path": "/foo/bar",
+                            "indexes": ["dev", 1],
+                        },
+                    },
+                    "conf": {"datatype": "STRING"},
+                },
+                "/foo": {
+                    "add": True,
+                    "mapping": {
+                        "SHFSG": {
+                            "path": "/foo/foo",
+                            "indexes": ["dev", 1],
+                        },
+                    },
+                    "conf": {"datatype": "BOOLEAN"},
+                },
+            }
+        },
+        "SHFQA": {
+            "quants": {
+                "/bar1": {"add": True, "conf": {"foo": "bar"}, "indexes": [1, 2]}
+            }
+        },
+        "SHFSG": {
+            "quants": {
+                "/bar2": {"add": True, "conf": {"foo": "bar"}, "indexes": [1, 2]}
+            }
+        },
+    }
+    obj = LabberConfiguration("SHFQC", "normal", settings)
+    assert obj.quants == {
+        "/bar1": {"add": True, "conf": {"foo": "bar"}, "indexes": [1, 2]},
+        "/bar2": {"add": True, "conf": {"foo": "bar"}, "indexes": [1, 2]},
+        "/foo/bar": {
+            "indexes": ["dev", 1],
+            "conf": {"datatype": "STRING"},
+            "add": True,
+        },
+        "/foo/foo": {
+            "indexes": ["dev", 1],
+            "conf": {"datatype": "BOOLEAN"},
+            "add": True,
+        },
+    }
 
 
 class TestDeviceNotFound:
@@ -160,6 +214,7 @@ def test_devtype_quant():
             "dev_type": ["DEV6000"],
         },
     }
+
 
 def test_settings_version(settings_json):
     obj = LabberConfiguration("DEV", "normal", settings_json)
