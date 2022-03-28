@@ -292,7 +292,7 @@ class TestLabberConfigSHFQA:
             "get_cmd": "QACHANNELS/2/TRIGGERS/0/IMP50",
         }
         assert r["/qachannels/3/readout/discriminators/5/threshold"] == {
-            "section": "QA Result",
+            "section": "QA Setup",
             "group": "QA Channel 3 Readout",
             "label": "qachannels/3/readout/discriminators/5/threshold",
             "datatype": "DOUBLE",
