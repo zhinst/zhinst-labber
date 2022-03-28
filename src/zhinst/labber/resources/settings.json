@@ -108,7 +108,7 @@
             "/qachannels/*": "QA Setup",
             "/scopes/trigger/*": "Input - Output",
             "/scopes/*": "Scope",
-            "/system/clocks/*": "Input - Output",
+            "/system/clocks/*": "System",
             "/sgchannels/*/awg/dio/*": "DIO",
             "/sgchannels/*/awg/*": "AWG Sequencer",
             "/sgchannels/*": "Output",
