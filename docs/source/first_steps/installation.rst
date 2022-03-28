@@ -41,5 +41,5 @@ correct python environment):
 
     $ pip install zhinst-labber
 
-zhinst-labber is now installed. Check out the :ref:`first_steps/quickstart:Quickstart` or
+zhinst-labber is now installed. Check out the :doc:`Quickstart<quickstart>` or
 go back to the :doc:`Documentation Overview <index>`.

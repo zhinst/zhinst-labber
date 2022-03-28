@@ -31,7 +31,7 @@ been installed.
     Generate Zurich Instruments Labber drivers.
     ...
 
-To generate the a device driver the following information is needed:
+To generate a device driver the following information's are needed:
 
 * Output file path. (Instrument Server -> Edit -> Preferences -> Folders -> Local Drivers)
 * Device ID (e.g. DEV1234)
@@ -44,8 +44,8 @@ To generate the a device driver the following information is needed:
 .. warning::
 
     Old drivers (< 0.3 ) for Zurich Instruments devices should be deleted before
-    using the zhinst-labber CLI. Drivers already generated with this script are
-    not affected by this.
+    using the zhinst-labber CLI. Drivers already generated with the zhinst-labber
+    CLI are not affected by this.
 
 .. note::
 
@@ -60,21 +60,13 @@ To generate the a device driver the following information is needed:
     same type, options and firmware revision.
 
 
-The following files are generated into the designated folder 
-(SHFQA4 with FF option is used as an example)::
-
-    Zurich_Instruments_SHFQA4_FF
-    ├─ settings.json
-    ├─ Zurich_Instruments_SHFQA4_FF.ini
-    ├─ Zurich_Instruments_SHFQA4_FF.py
-
-
 Upgrade Instrument driver
 --------------------------
 
 Although it not mandatory it is recommended to upgrade the labber driver when
 the firmware of the device changes. The command is the same but the ``--upgrade``
-options is required.
+options is required. Without this option the generator does not overwrite
+existing drivers.
 
 .. code-block:: bash
 
@@ -104,19 +96,21 @@ The ``settings.json`` has the following structure:
             "base_type": "device",
             "type": "UHFLI"
         }
-        "logger_level": 10
+        "logger_level": 20
         "logger_path": "Path/to/log/output.log"
     }
 
-* host: Used host server. Per default set to the server used during generation.
-* port: Used host port. Per default set to the server used during generation.
-* shared_session: If true the instrument reuses a session to a data server.
-    Sharing a session is enabled by default and increases the setup speed as well
-    as resource consumption.
-* logger_level: Used logger level. If not specified the default logger level
-    from zhinst-labber is used.
-* logger_path: Optional path for storing the logger output to a path. (In
-    addition to the std::out)
+* **host**: Used host server. Per default set to the server used during generation.
+* **port**: Used host port. Per default set to the server used during generation.
+* **hf2**: Flag if the used data_server is an HF2 data server. (automatically added
+  by the generator if needed)
+* **shared_session**: If true the instrument reuses a session to a data server.
+  Sharing a session is enabled by default and increases the setup speed as well
+  as resource consumption.
+* **logger_level**: Used logger level. If not specified the default logger level
+  (Info = 20) from zhinst-labber is used.
+* **logger_path**: Optional path for storing the logger output to a path. (In
+  addition to the std::out)
 
 Using the Instrument drivers
 -----------------------------
@@ -124,13 +118,17 @@ Using the Instrument drivers
 Once the drivers are generated they can be used within Labber. The following
 configuration should be used:
 
-* The ``Name`` is not used by the driver itself and can be chosen freely
+* The ``Name`` is not used by the driver itself and can be chosen freely.
 * The ``Interface`` **must** be set to ``Other``, regardless of the actual interface
-  used with the device. The driver will automatically detect the correct
-  interface.
+  used for the device. The driver will automatically detect the correct
+  interface. (As a fallback The LabOne GUI can be used to connect the data
+  server to device via the correct interface)
 * The ``Address`` (if available) **must** be set to one of the following:
 
   * For Devices and Modules: device id /serial of the used instrument (e.g. DEV1234).
   * For the DataServer ``server_host:server_port`` (e.g. localhost:8004). The port
     is optional and can be ignored if the default port (8004 or 8005 for hf2) is
     used.
+
+
+
