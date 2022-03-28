@@ -101,6 +101,7 @@
             "/zsyncs/*/connection/*": "Ports",
             "/qachannels/*/markers/*": "DIO",
             "/qachannels/*/triggers/*": "DIO",
+            "/qachannels/*/generator/dio/*": "DIO",
             "/qachannels/*/input*": "QA Setup",
             "/qachannels/*/generator*": "Generator",
             "/qachannels/*/readout/*": "QA Result",
