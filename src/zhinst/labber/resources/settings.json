@@ -81,7 +81,7 @@
             "/sigouts/*": "Input - Output",
             "/currins/*": "Input - Output",
             "/imps/*": "Impedance Analyzer",
-            "/demods/*": "DEMODS",
+            "/demods/*": "Demods",
             "/oscs/*": "Oscillators",
             "/sines/*": "MOD",
             "/auxins/*": "AUX",
@@ -711,6 +711,21 @@
         "quants": {}
     },
     "MFLI": {
+        "generalSettings": {
+            "support_arm": true,
+            "support_hardware_loop": true,
+            "interface": "Other",
+            "startup": "Do nothing"
+        },
+        "groups": {},
+        "sections": {},
+        "ignoredNodes": {
+            "normal": [],
+            "advanced": []
+        },
+        "quants": {}
+    },
+    "HF2LI": {
         "generalSettings": {
             "support_arm": true,
             "support_hardware_loop": true,
