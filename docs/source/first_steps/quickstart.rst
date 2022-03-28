@@ -31,7 +31,7 @@ been installed.
     Generate Zurich Instruments Labber drivers.
     ...
 
-To generate the a device driver the following information's are needed:
+To generate the a device driver the following information is needed:
 
 * Output file path. (Instrument Server -> Edit -> Preferences -> Folders -> Local Drivers)
 * Device ID (e.g. DEV1234)
@@ -58,6 +58,15 @@ To generate the a device driver the following information's are needed:
     all the Quantities/Nodes that this device had at the time of the generation.
     This means the drivers can be used for other instruments, if it is of the
     same type, options and firmware revision.
+
+
+The following files are generated into the designated folder 
+(SHFQA4 with FF option is used as an example)::
+
+    Zurich_Instruments_SHFQA4_FF
+    ├─ settings.json
+    ├─ Zurich_Instruments_SHFQA4_FF.ini
+    ├─ Zurich_Instruments_SHFQA4_FF.py
 
 
 Upgrade Instrument driver
@@ -125,6 +134,3 @@ configuration should be used:
   * For the DataServer ``server_host:server_port`` (e.g. localhost:8004). The port
     is optional and can be ignored if the default port (8004 or 8005 for hf2) is
     used.
-
-
-
