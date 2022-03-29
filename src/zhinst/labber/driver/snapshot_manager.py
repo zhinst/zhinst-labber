@@ -36,7 +36,7 @@ class SnapshotManager:
                 be fetched with a single get command.
         """
         if not self._values:
-            self._values = self._nodetree["*"]()
+            self._values = self._nodetree["*"](parse=False, enum=False)
         try:
             return self._values[self._nodetree[path]]
         except KeyError:

@@ -443,6 +443,18 @@
                     "x_unit": "Sample"
                 }
             },
+            "/qachannels/*/readout/integration/weights/*/wave": {
+                "add": false,
+                "indexes": [
+                    "dev",
+                    "dev"
+                ],
+                "conf": {
+                    "datatype": "VECTOR_COMPLEX",
+                    "x_name": "Length",
+                    "x_unit": "Sample"
+                }
+            },
             "/system/identify": {
                 "add": false,
                 "conf": {},
@@ -695,6 +707,13 @@
             "/type": "Settings"
         },
         "quants": {
+            "/forcetrigger": {
+                "add": false,
+                "conf": {},
+                "driver": {
+                    "trigger": true
+                }
+            },
             "/triggernode": {
                 "add": false,
                 "conf": {},
@@ -725,7 +744,9 @@
                 "conf": {
                     "datatype": "VECTOR",
                     "section": "Control",
-                    "permission": "READ"
+                    "permission": "READ",
+                    "x_name": "Length",
+                    "x_unit": "Sample"
                 },
                 "driver": {
                     "function": "module_read",
@@ -808,7 +829,9 @@
                 "conf": {
                     "datatype": "VECTOR",
                     "section": "Control",
-                    "permission": "READ"
+                    "permission": "READ",
+                    "x_name": "Length",
+                    "x_unit": "Sample"
                 },
                 "driver": {
                     "function": "module_read",

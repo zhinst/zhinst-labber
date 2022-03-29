@@ -19,7 +19,7 @@ def configure_logger(
     """
     # Set up logger
     formatter = logging.Formatter(
-        "[%(asctime)s] %(levelname)s: %(message)s",
+        "[%(asctime)s] %(levelname)s: %(message).%200s",
         datefmt="%a, %d %b %Y %H:%M:%S",
     )
     # always log to std out

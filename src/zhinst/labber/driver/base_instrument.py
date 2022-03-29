@@ -186,9 +186,10 @@ class BaseDevice(LabberDriver):
             # Add device if necessary
             if node_info.get("is_node_path", False) and "dev" not in value.lower():
                 value, _ = self._raw_path_to_zi_node(value)
-            return self._set_value_toolkit(
+            value = self._set_value_toolkit(
                 quant, value, wait_for=node_info.get("wait_for", False)
             )
+            return False if node_info.get("trigger", False) else value
         # Stop transaction if necessary (should be ended regardless of any exceptions)
         finally:
             if self._transaction.is_running() and self.isFinalCall(options):
