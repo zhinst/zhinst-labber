@@ -146,6 +146,15 @@
             "/synthesizers/*": "MOD"
         },
         "quants": {
+            "*/enables/*": {
+                "add": false,
+                "indexes": [
+                    "dev", "dev"
+                ],
+                "conf": {
+                    "datatype": "BOOLEAN"
+                }
+            },
             "/zi/config/port": {
                 "add": false,
                 "conf": {
