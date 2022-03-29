@@ -692,7 +692,7 @@ class BaseDevice(LabberDriver):
                         logger.error(
                             "Valid signal for %s needed. Must be one of %s. \
                                 Use node/path::signal to specify a signal",
-                            signal,
+                            signal.replace("\\", "/").replace("C:", ""),
                             available_options,
                         )
                         continue
