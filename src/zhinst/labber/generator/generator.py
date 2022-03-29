@@ -343,6 +343,8 @@ def conf_to_labber_format(data: dict, delim: str) -> dict:
         data.pop(title, None)
         data[title_] = {}
         for key, value in quant.items():
+            if key.lower() == "permission":
+                continue
             if key not in ["set_cmd", "get_cmd", "tooltip", "datatype"]:
                 key = _path_to_labber_section(str(key), delim)
                 value = _path_to_labber_section(str(value), delim)
