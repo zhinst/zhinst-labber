@@ -619,7 +619,7 @@ class BaseDevice(LabberDriver):
         """
         self._instrument.raw_module.unsubscribe("*")
         logger.info(f"unsubscribed all nodes")
-        for signal_path in fnmatch.filter(map(str, self._node_quant_map), signals):
+        for signal_path in fnmatch.filter(map(str, self._node_quant_map), signals.resolve()):
             quant_name = self._node_quant_map[Path(signal_path)]
             quant_value, _ = self._raw_path_to_zi_node(
                 self.getValue(quant_name).lower()
