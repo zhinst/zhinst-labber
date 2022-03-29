@@ -7,6 +7,7 @@ following additional features.
 .. toctree::
    :maxdepth: 2
 
+   modules
    logging
    sequencer_code
    waveforms
