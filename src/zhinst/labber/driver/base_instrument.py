@@ -8,6 +8,7 @@ import string
 import typing as t
 from itertools import repeat
 from pathlib import Path
+import re
 
 import numpy as np
 from BaseDriver import LabberDriver
@@ -692,7 +693,7 @@ class BaseDevice(LabberDriver):
                         logger.error(
                             "Valid signal for %s needed. Must be one of %s. \
                                 Use node/path::signal to specify a signal",
-                            signal.replace("\\", "/").replace("C:", ""),
+                            re.sub(r"[a-zA-Z]:", "", signal.replace("\\", "/")),
                             available_options,
                         )
                         continue
