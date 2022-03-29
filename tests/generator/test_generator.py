@@ -12,9 +12,30 @@ from zhinst.labber.generator.generator import (
 )
 from zhinst.toolkit.driver.devices import UHFLI, SHFQA
 
+@pytest.fixture
+def daq_module(data_dir, mock_connection, session):
+    json_path = data_dir / "nodedoc_daq_test.json"
+    with json_path.open("r", encoding="UTF-8") as file:
+        nodes_json = file.read()
+    mock_connection.return_value.dataAcquisitionModule.return_value.listNodesJSON.return_value = nodes_json
+    mock_connection.return_value.getString.return_value = ""
+    yield session.modules.daq
 
 @pytest.fixture
-def uhfli(data_dir, mock_connection, session):
+def sweeper_module(data_dir, mock_connection, session):
+    json_path = data_dir / "nodedoc_sweeper_test.json"
+    with json_path.open("r", encoding="UTF-8") as file:
+        nodes_json = file.read()
+    mock_connection.return_value.sweep.return_value.listNodesJSON.return_value = nodes_json
+    mock_connection.return_value.getString.return_value = ""
+    yield session.modules.sweeper
+
+@pytest.fixture
+def modules(daq_module, sweeper_module):
+    yield
+
+@pytest.fixture
+def uhfli(data_dir, mock_connection, session, modules):
     json_path = data_dir / "nodedoc_dev1234_uhfli.json"
     with json_path.open("r", encoding="UTF-8") as file:
         nodes_json = file.read()
@@ -24,7 +45,7 @@ def uhfli(data_dir, mock_connection, session):
 
 
 @pytest.fixture
-def shfqa(data_dir, mock_connection, session):
+def shfqa(data_dir, mock_connection, session, modules):
     json_path = data_dir / "nodedoc_dev1234_shfqa.json"
     with json_path.open("r", encoding="UTF-8") as file:
         nodes_json = file.read()
@@ -182,7 +203,7 @@ def test_generate_labber_drivers_amt_uhfli(
     with tempfile.TemporaryDirectory() as tmpdirname:
         created, _ = generate_labber_files(tmpdirname, "normal", "dev1234", "localhost")
     # Dataserver + device + amount of zimodules. Times 3 (.json file, .ini, file, .py file)
-    assert len(settings_json["misc"]["ziModules"]) == 1
+    assert len(settings_json["misc"]["ziModules"]) == 3
     # No SHFQA_Sweeper: Minus 1 from ziModules lengths
     assert len(created) == (1 + len(settings_json["misc"]["ziModules"]) - 1 + 1) * 3
 
@@ -196,9 +217,9 @@ def test_generate_labber_drivers_amt_shfqa(gen_ses, shfqa, session, settings_jso
     with tempfile.TemporaryDirectory() as tmpdirname:
         created, _ = generate_labber_files(tmpdirname, "normal", "dev1234", "localhost")
     # Dataserver + device + amount of zimodules. Times 3 (.json file, .ini, file, .py file)
-    assert len(settings_json["misc"]["ziModules"]) == 1
+    assert len(settings_json["misc"]["ziModules"]) == 3
     # SHFQA_Sweeper included
-    assert len(created) == (1 + len(settings_json["misc"]["ziModules"]) + 1) * 3
+    assert len(created) == (1 + len(settings_json["misc"]["ziModules"])) * 3
     files = [
         Path(tmpdirname)
         / "Zurich_Instruments_SHFQA4_FOO_BAR"

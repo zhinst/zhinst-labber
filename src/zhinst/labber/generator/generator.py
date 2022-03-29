@@ -481,8 +481,10 @@ def generate_labber_files(
     # RuntimeError: Unsupported API level for specified server
     if not hf2:
         modules: t.List[str] = json_settings["misc"]["ziModules"].copy()
-        if "SHFQA" not in dev.device_type:
+        if "SHF" not in dev.device_type:
             modules.remove("shfqa_sweeper")
+        else:
+            modules.remove("sweeper")
         configs += [ModuleConfig(mod, session, json_settings, mode) for mod in modules]
     for config in configs:
         filegen = Filehandler(config, root_dir=driver_directory, upgrade=upgrade)
