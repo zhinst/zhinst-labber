@@ -65,7 +65,8 @@
             ],
             "advanced": [
                 "/features/*",
-                "/plot/*"
+                "/plot/*",
+                "/zi/debug/log"
             ]
         },
         "groups": {
@@ -145,6 +146,12 @@
             "/synthesizers/*": "MOD"
         },
         "quants": {
+            "/zi/config/port": {
+                "add": false,
+                "conf": {
+                    "datatype": "STRING"
+                }
+            },
             "/scopes/*/wave": {
                 "add": false,
                 "indexes": [

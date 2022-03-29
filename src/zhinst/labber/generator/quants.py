@@ -302,10 +302,17 @@ class NodeQuant:
             "ready",
             "reset",
             "preampenable",
+            "locked",
+            "keepalive",
+            "forcetrigger",
+            "triggered",
+            "endless",
+            "preview",
+            "findlevel"
         ]
         if self._path_parts[-1].lower() in boolean_nodes:
             return "BOOLEAN"
-        string_nodes = ["alias", "serial", "devtype", "fwrevision"]
+        string_nodes = ["alias", "serial", "devtype", "fwrevision", "revision"]
         if self._path_parts[-1].lower() in string_nodes:
             return "STRING"
         if unit == "double" or "integer" in unit:
