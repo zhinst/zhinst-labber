@@ -4,7 +4,9 @@
         "labberDelimiter": " - ",
         "LogLevel": 20,
         "ziModules": [
-            "shfqa_sweeper"
+            "shfqa_sweeper",
+            "daq",
+            "sweeper"
         ]
     },
     "common": {
@@ -145,28 +147,36 @@
         "quants": {
             "/scopes/*/wave": {
                 "add": false,
-                "indexes": ["dev"],
+                "indexes": [
+                    "dev"
+                ],
                 "conf": {
                     "datatype": "VECTOR_COMPLEX"
                 }
             },
             "/demods/*/sample": {
                 "add": false,
-                "indexes": ["dev"],
+                "indexes": [
+                    "dev"
+                ],
                 "conf": {
                     "datatype": "COMPLEX"
                 }
             },
             "/mods/*/sample": {
                 "add": false,
-                "indexes": ["dev"],
+                "indexes": [
+                    "dev"
+                ],
                 "conf": {
                     "datatype": "COMPLEX"
                 }
             },
             "/dios/*/input": {
                 "add": false,
-                "indexes": ["dev"],
+                "indexes": [
+                    "dev"
+                ],
                 "conf": {
                     "datatype": "DOUBLE"
                 }
@@ -380,25 +390,29 @@
                     "SHFSG": {
                         "path": "/sgchannels/*/awg/waveform/waves/*",
                         "indexes": [
-                            "dev", 16
+                            "dev",
+                            16
                         ]
                     },
                     "HDAWG": {
                         "path": "/awgs/*/waveform/waves/*",
                         "indexes": [
-                            "dev", 16
+                            "dev",
+                            16
                         ]
                     },
                     "UHFQA": {
                         "path": "/awgs/*/waveform/waves/*",
                         "indexes": [
-                            "dev", 16
+                            "dev",
+                            16
                         ]
                     },
                     "UHFLI": {
                         "path": "/awgs/*/waveform/waves/*",
                         "indexes": [
-                            "dev", 16
+                            "dev",
+                            16
                         ]
                     }
                 },
@@ -450,7 +464,6 @@
                     "transaction": false
                 }
             }
-
         }
     },
     "UHFQA": {
@@ -610,7 +623,6 @@
             "/oscs/*": "OSC"
         },
         "groups": {}
-
     },
     "HDAWG": {
         "generalSettings": {
@@ -629,6 +641,199 @@
         },
         "groups": {},
         "quants": {}
+    },
+    "daq": {
+        "generalSettings": {
+            "support_arm": true,
+            "support_hardware_loop": true,
+            "interface": "Other",
+            "startup": "Do nothing"
+        },
+        "ignoredNodes": {
+            "normal": [],
+            "advanced": []
+        },
+        "groups": {},
+        "sections": {
+            "/awgcontrol": "Settings",
+            "/bandwidth": "Settings",
+            "/bitmask": "Settings",
+            "/bits": "Settings",
+            "/buffercount": "Control",
+            "/buffersize": "Control",
+            "/clearhistory": "History",
+            "/count": "Settings",
+            "/delay": "Settings",
+            "/duration": "Settings",
+            "/edge": "Settings",
+            "/enable": "Control",
+            "/endless": "Control",
+            "/eventcount": "Control",
+            "/fft/*": "Settings",
+            "/findlevel": "Settings",
+            "/flags": "Settings",
+            "/forcetrigger": "Control",
+            "/historylength": "History",
+            "/holdoff/*": "Settings",
+            "/hysteresis": "Settings",
+            "/level": "Settings",
+            "/preview": "Settings",
+            "/pulse/*": "Settings",
+            "/refreshrate": "Settings",
+            "/save/*": "History",
+            "/spectrum": "Settings",
+            "/spectrum/*": "Settings",
+            "/triggered": "Control",
+            "/triggernode": "Settings",
+            "/type": "Settings"
+        },
+        "quants": {
+            "/triggernode": {
+                "add": false,
+                "conf": {},
+                "driver": {
+                    "is_node_path": true
+                }
+            },
+            "/signal/*": {
+                "add": true,
+                "indexes": [
+                    16
+                ],
+                "conf": {
+                    "datatype": "STRING",
+                    "section": "Control",
+                    "permission": "BOTH"
+                },
+                "driver": {
+                    "function": "module_subscribe",
+                    "function_path": "../../raw_module/subscribe"
+                }
+            },
+            "/result/*": {
+                "add": true,
+                "indexes": [
+                    16
+                ],
+                "conf": {
+                    "datatype": "VECTOR",
+                    "section": "Control",
+                    "permission": "READ"
+                },
+                "driver": {
+                    "function": "module_read",
+                    "function_path": "../../raw_module/read"
+                }
+            },
+            "/clear_results": {
+                "add": true,
+                "conf": {
+                    "datatype": "BOOLEAN",
+                    "section": "Control",
+                    "permission": "Both"
+                },
+                "driver": {
+                    "function": "module_clear",
+                    "function_path": "",
+                    "trigger": true
+                }
+            }
+        }
+    },
+    "sweeper": {
+        "generalSettings": {
+            "support_arm": true,
+            "support_hardware_loop": true,
+            "interface": "Other",
+            "startup": "Do nothing"
+        },
+        "ignoredNodes": {
+            "normal": [],
+            "advanced": []
+        },
+        "groups": {},
+        "sections": {
+            "/averaging": "Settings",
+            "/filtermode": "Settings",
+            "/gridnode": "Settings",
+            "/loopcount": "Settings",
+            "/maxbandwidth": "Settings",
+            "/omegasuppression": "Settings",
+            "/order": "Settings",
+            "/phaseunwrap": "Settings",
+            "/remainingtime": "Control",
+            "/samplecount": "Settings",
+            "/scan": "Settings",
+            "/settling": "Settings",
+            "/sincfilter": "Settings",
+            "/start": "Settings",
+            "/stop": "Settings",
+            "/xmapping": "Settings"
+        },
+        "quants": {
+            "/gridnode": {
+                "add": false,
+                "conf": {},
+                "driver": {
+                    "is_node_path": true
+                }
+            },
+            "/signal/*": {
+                "add": true,
+                "indexes": [
+                    16
+                ],
+                "conf": {
+                    "datatype": "STRING",
+                    "section": "Control",
+                    "permission": "BOTH"
+                },
+                "driver": {
+                    "function": "module_subscribe",
+                    "function_path": "../../raw_module/subscribe"
+                }
+            },
+            "/result/*": {
+                "add": true,
+                "indexes": [
+                    16
+                ],
+                "conf": {
+                    "datatype": "VECTOR",
+                    "section": "Control",
+                    "permission": "READ"
+                },
+                "driver": {
+                    "function": "module_read",
+                    "function_path": "../../raw_module/read"
+                }
+            },
+            "/clear_results": {
+                "add": true,
+                "conf": {
+                    "datatype": "BOOLEAN",
+                    "section": "Control",
+                    "permission": "Both"
+                },
+                "driver": {
+                    "function": "module_clear",
+                    "function_path": "",
+                    "trigger": true
+                }
+            },
+            "/enable": {
+                "add": true,
+                "conf": {
+                    "datatype": "BOOLEAN",
+                    "section": "Control",
+                    "permission": "Both"
+                },
+                "driver": {
+                    "function": "module_execute",
+                    "function_path": "../raw_module/execute"
+                }
+            }
+        }
     },
     "shfqa_sweeper": {
         "generalSettings": {
@@ -769,48 +974,86 @@
         "quants": {}
     },
     "functions": {
-        "commandtable/upload_to_device":{
-            "Args": {"ct": "../data"},
+        "commandtable/upload_to_device": {
+            "Args": {
+                "ct": "../data"
+            },
             "Returns": [],
             "call_type": "Immediately"
         },
-        "sequencer_program":{
-            "Args": {"sequencer_program": "../sequencer_program"},
+        "sequencer_program": {
+            "Args": {
+                "sequencer_program": "../sequencer_program"
+            },
             "Returns": [],
             "call_type": "Immediately"
         },
-        "wait_done":{
+        "wait_done": {
             "Args": {},
             "Returns": [],
             "call_type": "Immediately",
             "is_setting": false
         },
-        "generator/write_to_waveform_memory":{
-            "Args": {"pulses": "../pulses"},
+        "generator/write_to_waveform_memory": {
+            "Args": {
+                "pulses": "../pulses"
+            },
             "Returns": [],
             "call_type": "Immediately"
         },
-        "awg/write_to_waveform_memory":{
-            "Args": {"waveforms": ["../waves1", "../waves2", "../markers"]},
+        "awg/write_to_waveform_memory": {
+            "Args": {
+                "waveforms": [
+                    "../waves1",
+                    "../waves2",
+                    "../markers"
+                ]
+            },
             "Returns": [],
             "call_type": "Bundle"
         },
-        "generator/write_integration_weights":{
-            "Args": {"weights": "../integration_weights"},
+        "generator/write_integration_weights": {
+            "Args": {
+                "weights": "../integration_weights"
+            },
             "Returns": [],
             "call_type": "Immediately"
         },
-        "shfqa/sweeper/get_offset_freq_vector":{
+        "shfqa/sweeper/get_offset_freq_vector": {
             "Args": {},
-            "Returns": ["../offset_freq_vector"],
+            "Returns": [
+                "../offset_freq_vector"
+            ],
             "call_type": "Immediately",
             "is_setting": false
         },
-        "shfqa/sweeper/run":{
+        "shfqa/sweeper/run": {
             "Args": {},
-            "Returns": ["../result"],
+            "Returns": [
+                "../result"
+            ],
             "call_type": "Immediately",
             "is_setting": false
+        },
+        "module_subscribe": {
+            "call_type": "Bundle",
+            "is_setting": true,
+            "signals": "/signal/*"
+        },
+        "module_read": {
+            "call_type": "Immediately",
+            "is_setting": false,
+            "signals": "/signal/*",
+            "result": "/result/*"
+        },
+        "module_clear": {
+            "call_type": "Immediately",
+            "is_setting": false,
+            "result": "/result/*"
+        },
+        "module_execute": {
+            "call_type": "Bundle",
+            "is_setting": true
         }
     }
 }

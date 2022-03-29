@@ -343,8 +343,6 @@
                 }
             },
             "required": [
-                "Args",
-                "Returns",
                 "call_type"
             ]
         }

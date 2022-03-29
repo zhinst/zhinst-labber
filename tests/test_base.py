@@ -41,7 +41,7 @@ def device_driver():
 
 
 @pytest.fixture()
-def module_driver():
+def shfqa_sweeper():
     settings = {
         "data_server": {
             "host": "localhost",
@@ -62,7 +62,7 @@ def module_driver():
 
 
 @pytest.fixture()
-def session_driver():
+def daq_module():
     settings = {
         "data_server": {
             "host": "localhost",
@@ -70,7 +70,46 @@ def session_driver():
             "hf2": False,
             "shared_session": True,
         },
-        "instrument": {"base_type": "session"},
+        "instrument": {"base_type": "module", "type": "daq"},
+    }
+    # reset session cache
+    labber_driver.created_sessions = {}
+    instrument = labber_driver.BaseDevice(settings=settings)
+    instrument.comCfg = MagicMock()
+    instrument.instrCfg = MagicMock()
+    instrument.interface = MagicMock()
+    instrument.dOp = {"operation": 0}
+    return instrument
+
+@pytest.fixture()
+def sweeper_module():
+    settings = {
+        "data_server": {
+            "host": "localhost",
+            "port": 8004,
+            "hf2": False,
+            "shared_session": True,
+        },
+        "instrument": {"base_type": "module", "type": "sweeper"},
+    }
+    # reset session cache
+    labber_driver.created_sessions = {}
+    instrument = labber_driver.BaseDevice(settings=settings)
+    instrument.comCfg = MagicMock()
+    instrument.instrCfg = MagicMock()
+    instrument.interface = MagicMock()
+    instrument.dOp = {"operation": 0}
+    return instrument
+
+
+@pytest.fixture()
+def session_driver():
+    settings = {
+        "data_server": {
+            "hf2": False,
+            "shared_session": True,
+        },
+        "instrument": {"base_type": "DataServer"},
     }
     # reset session cache
     labber_driver.created_sessions = {}
@@ -104,6 +143,7 @@ def compare_waveforms(a, b):
         else:
             assert a[tar][2] == b[act][2]
 
+
 class TestBase:
     def test_logger_path(self):
         with tempfile.TemporaryDirectory() as tmpdirname:
@@ -134,22 +174,23 @@ class TestBase:
         mock_toolkit_session.assert_called_with("localhost", 8004, hf2=False)
         mock_toolkit_session.return_value.connect_device.assert_called_with("DEV1234")
 
-    def test_performOpen_module(self, mock_toolkit_session, module_driver):
-        module_driver.performOpen()
+    def test_performOpen_module(self, mock_toolkit_session, shfqa_sweeper):
+        shfqa_sweeper.performOpen()
         mock_toolkit_session.assert_called_with("localhost", 8004, hf2=False)
         assert (
-            module_driver._instrument
-            == mock_toolkit_session.return_value.modules.shfqa_sweeper
+            shfqa_sweeper._instrument
+            == mock_toolkit_session.return_value.modules.create_shfqa_sweeper.return_value
         )
 
         # Missing type property
-        del module_driver._instrument_settings["instrument"]["type"]
+        del shfqa_sweeper._instrument_settings["instrument"]["type"]
         with pytest.raises(RuntimeError):
-            module_driver.performOpen()
+            shfqa_sweeper.performOpen()
 
     def test_performOpen_session(self, mock_toolkit_session, session_driver):
+        session_driver.comCfg.getAddressString.return_value = "testee:6543"
         session_driver.performOpen()
-        mock_toolkit_session.assert_called_with("localhost", 8004, hf2=False)
+        mock_toolkit_session.assert_called_with("testee", 6543, hf2=False)
         assert session_driver._instrument == session_driver._session
 
     def test_performSet_node(self, mock_toolkit_session, device_driver):
@@ -181,7 +222,7 @@ class TestBase:
         with patch("zhinst.labber.driver.base_instrument.logger") as logger:
             device_driver.performSetValue(quant, -1)
         logger.error.assert_called_with(
-            device_driver._instrument[quant.set_cmd].side_effect
+            "%s", device_driver._instrument[quant.set_cmd].side_effect
         )
 
         # Without set command
@@ -226,10 +267,10 @@ class TestBase:
         error = RuntimeError("testee")
         device_driver._instrument.root.set_transaction().__exit__.side_effect = error
         with patch("zhinst.labber.driver.base_instrument.logger") as logger:
-            device_driver.performSetValue(quant, 0, options={"call_no": 0, "n_calls": 1})
-        logger.error.assert_called_with(
-            "Error during ending a transaction: %s", error
-        )
+            device_driver.performSetValue(
+                quant, 0, options={"call_no": 0, "n_calls": 1}
+            )
+        logger.error.assert_called_with("Error during ending a transaction: %s", error)
 
     def test_performSet_sweep(self, mock_toolkit_session, device_driver):
         device_driver.comCfg.getAddressString.return_value = "DEV1234"
@@ -389,7 +430,9 @@ class TestBase:
         compare_waveforms(target, actual)
 
         # no setting function
-        quant = create_quant_mock("qachannels - 0 - generator - wait_done", device_driver, "", "")
+        quant = create_quant_mock(
+            "qachannels - 0 - generator - wait_done", device_driver, "", ""
+        )
         device_driver.dOp["operation"] = 3
         device_driver.performSetValue(
             quant, waves2, options={"call_no": 1, "n_calls": 1}
@@ -442,6 +485,20 @@ class TestBase:
             sequencer_program="test\n123\n"
         )
 
+    def test_performSet_node_path(self, mock_toolkit_session, daq_module):
+        daq_module.comCfg.getAddressString.return_value = "DEV1234"
+        daq_module.performOpen()
+
+        quant = create_quant_mock("Triggernode", daq_module, "triggernode", "")
+        daq_module.performSetValue(quant, "test/a/b")
+        daq_module._instrument["triggernode"].assert_called_with("/dev1234/test/a/b")
+
+        daq_module.performSetValue(quant, "/test/a/b")
+        daq_module._instrument["triggernode"].assert_called_with("/dev1234/test/a/b")
+
+        daq_module.performSetValue(quant, "/dev1234/test/a/b")
+        daq_module._instrument["triggernode"].assert_called_with("/dev1234/test/a/b")
+
     def test_performGet_node(self, mock_toolkit_session, device_driver):
         device_driver.comCfg.getAddressString.return_value = "DEV1234"
         device_driver.performOpen()
@@ -454,17 +511,27 @@ class TestBase:
         )
 
         # Parser
-        device_driver._instrument[quant.get_cmd].return_value = {"x":1,"y":2}
-        assert complex (1,2) == device_driver.performGetValue(quant)
+        device_driver._instrument[quant.get_cmd].return_value = {"x": 1, "y": 2}
+        assert complex(1, 2) == device_driver.performGetValue(quant)
         device_driver._instrument[quant.get_cmd].assert_called_with(
             parse=False, enum=False
         )
 
-        device_driver._instrument[quant.get_cmd].return_value = {"dio": [1.5,4],"y":2}
+        device_driver._instrument[quant.get_cmd].return_value = {
+            "dio": [1.5, 4],
+            "y": 2,
+        }
         assert 1.5 == device_driver.performGetValue(quant)
         device_driver._instrument[quant.get_cmd].assert_called_with(
             parse=False, enum=False
         )
+
+        device_driver._instrument[quant.get_cmd].return_value = {
+            "y": 2,
+        }
+        with patch("zhinst.labber.driver.base_instrument.logger") as logger:
+            device_driver.performGetValue(quant)
+        logger.error.assert_called_with('Unknown data received %s', {'y': 2})
 
         # With exception
         device_driver._instrument[quant.get_cmd].side_effect = RuntimeError(
@@ -473,13 +540,12 @@ class TestBase:
         with patch("zhinst.labber.driver.base_instrument.logger") as logger:
             device_driver.performGetValue(quant, -1)
         logger.error.assert_called_with(
-            device_driver._instrument[quant.get_cmd].side_effect
+            "%s", device_driver._instrument[quant.get_cmd].side_effect
         )
 
         # Without set command
         quant = create_quant_mock("Test - Name", device_driver, "", "")
         device_driver.performGetValue(quant)
-
 
     def test_performGet_Get_CFG(self, mock_toolkit_session, device_driver):
         device_driver.comCfg.getAddressString.return_value = "DEV1234"
@@ -504,41 +570,190 @@ class TestBase:
         }
         assert device_driver.performGetValue(quant) == 0
 
-    def test_performGet_function(self, mock_toolkit_session, module_driver):
-        module_driver.comCfg.getAddressString.return_value = "DEV1234"
-        module_driver.performOpen()
+    def test_performGet_function(self, mock_toolkit_session, shfqa_sweeper):
+        shfqa_sweeper.comCfg.getAddressString.return_value = "DEV1234"
+        shfqa_sweeper.performOpen()
 
-        module_driver._instrument.run.return_value = {
+        shfqa_sweeper._instrument.run.return_value = {
             "vector": np.array([1, 1, 1]),
             "test": "test",
         }
-        module_driver.instrCfg.getQuantity.return_value.getTraceDict.side_effect = (
+        shfqa_sweeper.instrCfg.getQuantity.return_value.getTraceDict.side_effect = (
             lambda a, **kwarg: a
         )
 
-        quant = create_quant_mock("result", module_driver, "", "")
+        quant = create_quant_mock("result", shfqa_sweeper, "", "")
 
-        module_driver.performGetValue(quant, input)
-        set_value = module_driver.instrCfg.getQuantity.return_value.setValue
-        module_driver._instrument.run.assert_called_once()
+        shfqa_sweeper.performGetValue(quant)
+        set_value = shfqa_sweeper.instrCfg.getQuantity.return_value.setValue
+        shfqa_sweeper._instrument.run.assert_called_once()
         assert all(set_value.call_args_list[0][0][0] == np.array([1, 1, 1]))
 
+        # get config
+        shfqa_sweeper.dOp["operation"] = 4
+        assert shfqa_sweeper.performGetValue(quant) == 0
+        quant.datatype = quant.STRING
+        assert shfqa_sweeper.performGetValue(quant) == ""
+        quant.datatype = quant.PATH
+        assert shfqa_sweeper.performGetValue(quant) == ""
+
         # non existing quant
-        module_driver.instrCfg.getQuantity.side_effect = KeyError("test")
+        shfqa_sweeper.dOp["operation"] = None
+        shfqa_sweeper.instrCfg.getQuantity.side_effect = KeyError("test")
         with patch("zhinst.labber.driver.base_instrument.logger") as logger:
-            module_driver.performGetValue(quant, input)
+            shfqa_sweeper.performGetValue(quant)
         logger.debug.assert_any_call("%s does not exist", "result")
-        module_driver.instrCfg.getQuantity.side_effect = None
+        shfqa_sweeper.instrCfg.getQuantity.side_effect = None
 
         # Invalid return value
-        module_driver._instrument.run.return_value = None
+        shfqa_sweeper._instrument.run.return_value = None
         with patch("zhinst.labber.driver.base_instrument.logger") as logger:
-            module_driver.performGetValue(quant, input)
+            shfqa_sweeper.performGetValue(quant)
         logger.error.call_count == 1
 
         # Exception in function call
         error = RuntimeError("test")
-        module_driver._instrument.run.side_effect = error
+        shfqa_sweeper._instrument.run.side_effect = error
         with patch("zhinst.labber.driver.base_instrument.logger") as logger:
-            module_driver.performGetValue(quant, input)
-        logger.error.assert_called_with(error)
+            shfqa_sweeper.performGetValue(quant)
+        logger.error.assert_called_with("%s", error)
+
+    def test_module_subscribe(self, mock_toolkit_session, daq_module):
+        daq_module.comCfg.getAddressString.return_value = "DEV1234"
+        daq_module.performOpen()
+        quant = create_quant_mock("Signal - 1", daq_module, "", "")
+        daq_module.instrCfg.getQuantity.return_value.getValue.return_value = "test/a/b"
+        daq_module.performSetValue(quant, "test/a/b")
+        quant.setValue.assert_called_with("test/a/b")
+        daq_module._instrument.raw_module.subscribe.assert_called_with(
+            "/dev1234/test/a/b"
+        )
+
+        quant1 = create_quant_mock("Signal - 2", daq_module, "", "")
+        quant2 = create_quant_mock("Signal - 3", daq_module, "", "")
+        daq_module.instrCfg.getQuantity.return_value.getValue.side_effect = [
+            "test/a/b",
+            "/dev1234/test/c/d",
+            "",
+        ]
+        daq_module.performSetValue(quant1, "/dev1234/test/c/d")
+        quant.setValue.assert_called_with("test/a/b")
+        daq_module._instrument.raw_module.subscribe.assert_called_with(
+            "/dev1234/test/c/d"
+        )
+
+    def test_module_read(self, mock_toolkit_session, daq_module):
+        daq_module.comCfg.getAddressString.return_value = "DEV1234"
+        daq_module.performOpen()
+
+        daq_module.instrCfg.getQuantity.return_value.getTraceDict.side_effect = (
+            lambda a, **kwarg: a
+        )
+
+        # value as default
+        signal_quant = create_quant_mock("Signal - 1", daq_module, "", "")
+        result_quant = create_quant_mock("Result - 1", daq_module, "", "")
+        daq_module.instrCfg.getQuantity.return_value.getValue.return_value = "test/a/b"
+        daq_module._instrument.raw_module.read.return_value = {
+            "/dev1234/test/a/b": [{"value": np.array([1, 2, 3, 4])}]
+        }
+        daq_module.performGetValue(result_quant)
+        daq_module._instrument.raw_module.read.assert_called_once()
+        set_value = daq_module.instrCfg.getQuantity.return_value.setValue.call_args[0][
+            0
+        ]
+        assert all(set_value == np.array([1, 2, 3, 4]))
+
+        # r as default
+        daq_module._instrument.raw_module.read.return_value = {
+            "/dev1234/test/a/b": [{"r": np.array([1, 2, 3, 4])}]
+        }
+        daq_module.performGetValue(result_quant)
+        set_value = daq_module.instrCfg.getQuantity.return_value.setValue.call_args[0][
+            0
+        ]
+        assert all(set_value == np.array([1, 2, 3, 4]))
+
+        # abs as default
+        daq_module._instrument.raw_module.read.return_value = {
+            "/dev1234/test/a/b": [{"abs": np.array([1, 2, 3, 4])}]
+        }
+        daq_module.performGetValue(result_quant)
+        set_value = daq_module.instrCfg.getQuantity.return_value.setValue.call_args[0][
+            0
+        ]
+        assert all(set_value == np.array([1, 2, 3, 4]))
+
+        # x as default
+        daq_module._instrument.raw_module.read.return_value = {
+            "/dev1234/test/a/b": [{"x": np.array([1, 2, 3, 4])}]
+        }
+        daq_module.performGetValue(result_quant)
+        set_value = daq_module.instrCfg.getQuantity.return_value.setValue.call_args[0][
+            0
+        ]
+        assert all(set_value == np.array([1, 2, 3, 4]))
+
+        # custom signal
+        daq_module._instrument.raw_module.read.return_value = {
+            "/dev1234/test/a/b": [{"sig3": np.array([1, 2, 3, 4])}]
+        }
+        daq_module.instrCfg.getQuantity.return_value.getValue.return_value = (
+            "test/a/b::sig3"
+        )
+        daq_module.performGetValue(result_quant)
+        set_value = daq_module.instrCfg.getQuantity.return_value.setValue.call_args[0][
+            0
+        ]
+        assert all(set_value == np.array([1, 2, 3, 4]))
+
+        # invalid custom signal
+        daq_module.instrCfg.getQuantity.return_value.getValue.return_value = (
+            "test/a/b::sig4"
+        )
+        with patch("zhinst.labber.driver.base_instrument.logger") as logger:
+            daq_module.performGetValue(result_quant)
+        logger.error.assert_called_with(
+            "Valid signal for %s needed. Must be one of %s.\
+                                 Use node/path::signal to specify a signal",
+            "/signal/1",
+            ["sig3"],
+        )
+
+    def test_module_clear(self, mock_toolkit_session, daq_module):
+        daq_module.comCfg.getAddressString.return_value = "DEV1234"
+        daq_module.performOpen()
+        quant1 = create_quant_mock("Result - 1", daq_module, "", "")
+        quant2 = create_quant_mock("Result - 3", daq_module, "", "")
+        quant_clear = create_quant_mock("clear_results", daq_module, "", "")
+        daq_module.instrCfg.getQuantity.return_value.VECTOR = 4
+        daq_module.instrCfg.getQuantity.return_value.datatype = 4
+
+        daq_module.instrCfg.getQuantity.return_value.getTraceDict.side_effect = (
+            lambda a, **kwarg: a
+        )
+        assert daq_module.performSetValue(quant_clear, 1) == 0
+        assert daq_module.instrCfg.getQuantity.return_value.setValue.call_count == 2
+        assert (
+            len(daq_module.instrCfg.getQuantity.return_value.setValue.call_args[0][0])
+            == 0
+        )
+
+    def test_module_execute(self, mock_toolkit_session, sweeper_module):
+
+        sweeper_module.comCfg.getAddressString.return_value = "DEV1234"
+        sweeper_module.performOpen()
+        quant = create_quant_mock("Enable", sweeper_module, "", "")
+
+        # Execute
+        sweeper_module.instrCfg.getQuantity.return_value.getValue.return_value = 1
+        sweeper_module.performSetValue(quant, 1)
+        sweeper_module._instrument.raw_module.execute.assert_called_once()
+        # Stop
+        sweeper_module.instrCfg.getQuantity.return_value.getValue.return_value = 0
+        sweeper_module.performSetValue(quant, 0)
+        sweeper_module._instrument.raw_module.finish.assert_called_once()
+        # Get status
+        sweeper_module.dOp["operation"] = 2
+        sweeper_module.performGetValue(quant)
+        sweeper_module._instrument.raw_module.finished.assert_called_once()

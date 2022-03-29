@@ -109,7 +109,7 @@ class TransactionManager:
             if func not in self._functions[:n]
         ]
         for function in functions:
-            self._labber_instrument.call_toolkit_function(function[0], function[1])
+            self._labber_instrument.call_function(function[0], function[1])
         self._functions = None
 
     def is_running(self) -> bool:

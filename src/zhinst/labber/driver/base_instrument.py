@@ -83,9 +83,9 @@ class BaseDevice(LabberDriver):
             if self._device_type:
                 if instrument_type == "device":
                     dev_type = self._device_type.split("_")[0].rstrip(string.digits)
-                    device_info = node_info.get(dev_type).get("quants", {})
+                    device_info = node_info.get(dev_type, {}).get("quants", {})
                 else:
-                    device_info = node_info.get(self._device_type).get("quants", {})
+                    device_info = node_info.get(self._device_type, {}).get("quants", {})
                 self._node_info = {**self._node_info, **device_info}
             self._function_info = node_info.get("functions", {})
             self._path_seperator = node_info["misc"]["labberDelimiter"]
@@ -174,7 +174,7 @@ class BaseDevice(LabberDriver):
                 quant.setValue(False if node_info.get("trigger", False) else value)
                 function_path = node_info.get("function_path", ".")
                 function_path = self._quant_to_path(quant.name) / function_path
-                self.call_toolkit_function(
+                self.call_function(
                     node_info["function"],
                     function_path.resolve(),
                 )
@@ -182,6 +182,9 @@ class BaseDevice(LabberDriver):
             if not quant.set_cmd:
                 logger.info("%s: is read only and will not be set.", quant.name)
                 return self.performGetValue(quant)
+            # Add device if necessary
+            if node_info.get("is_node_path", False) and "dev" not in value.lower():
+                value, _ = self._raw_path_to_zi_node(value)
             return self._set_value_toolkit(
                 quant, value, wait_for=node_info.get("wait_for", False)
             )
@@ -209,11 +212,15 @@ class BaseDevice(LabberDriver):
             New value of the quantity.
         """
         node_info = self._get_node_info(quant.name)
+        # Get CFG => reset function values to default
+        if self.dOp["operation"] == Interface.GET_CFG and node_info.get("function", ""):
+            logger.info("%s: reset to default", quant.name)
+            return "" if quant.datatype in [quant.STRING, quant.PATH] else 0
         # Call function. (No function execution during GET_CFG)
-        if node_info.get("function", "") and self.dOp["operation"] != Interface.GET_CFG:
+        if node_info.get("function", ""):
             function_path = node_info.get("function_path", ".")
             function_path = self._quant_to_path(quant.name) / function_path
-            self.call_toolkit_function(
+            self.call_function(
                 node_info["function"],
                 function_path.resolve(),
             )
@@ -231,6 +238,8 @@ class BaseDevice(LabberDriver):
                     value = self._parse_value(self._snapshot.get_value(get_cmd))
                 except KeyError:
                     logger.error("%s not found", get_cmd)
+                except RuntimeError as error:
+                    logger.debug("%s", error)
                 logger.info("%s: get %s", quant.name, value)
                 return value if value is not None else quant.getValue()
             # clear snapshot if GET_CFG is finished
@@ -242,7 +251,7 @@ class BaseDevice(LabberDriver):
                 logger.info("%s: get %s", quant.name, value)
                 return value if value is not None else quant.getValue()
             except Exception as error:
-                logger.error(error)
+                logger.error("%s", error)
         return quant.getValue()
 
     # def performClose(self, bError: bool = False, options: t.Dict = {}) -> None:
@@ -272,6 +281,7 @@ class BaseDevice(LabberDriver):
             if "dio" in value:
                 return value["dio"][0]
             logger.error("Unknown data received %s", value)
+            return None
         return value
 
     def _get_session(
@@ -333,7 +343,11 @@ class BaseDevice(LabberDriver):
                 self.comCfg.getAddressString(),
             )
             try:
-                module = getattr(self._session.modules, instrument_info["type"].lower())
+                # create new instance of module
+                # (otherwise multiple module can not be used at the same time)
+                module = instrument_info["type"].lower()
+                module = module if module == "shfqa_sweeper" else f"{module}_module"
+                module = getattr(self._session.modules, f"create_{module}")()
                 self._session.connect_device(self.comCfg.getAddressString())
                 module.device(self.comCfg.getAddressString())
                 return module
@@ -400,7 +414,6 @@ class BaseDevice(LabberDriver):
         value: t.Any,
         *,
         wait_for: bool = False,
-        raise_error: bool = False,
     ) -> None:
         """Set a value through toolkit to a node.
 
@@ -412,8 +425,6 @@ class BaseDevice(LabberDriver):
             options: Labber options for the opperation
             wait_for: Flag if the function should block until the value is set
                 on the device.
-            raise_error: Flag if the function should raise an error or only log
-                it.
         """
         try:
             logger.info("%s: set %s", quant.name, value)
@@ -421,9 +432,7 @@ class BaseDevice(LabberDriver):
             if wait_for and not self._transaction.is_running():
                 self._instrument[quant.set_cmd].wait_for_state_change(value)
         except Exception as error:
-            logger.error(error)
-            if raise_error:
-                raise
+            logger.error("%s", error)
 
     @staticmethod
     def _csv_row_to_vector(csv_row: t.List[str]) -> t.Optional[NumpyArray]:
@@ -499,20 +508,20 @@ class BaseDevice(LabberDriver):
                 with open(Path(quant_value), "r") as file:
                     return json.loads(file.read()), call_empty
             except IOError as error:
-                logger.error(error)
+                logger.error("%s", error)
                 return {}, call_empty
         if quant_type == "TEXT":
             try:
                 with open(Path(quant_value), "r") as file:
                     return file.read(), call_empty
             except IOError as error:
-                logger.error(error)
+                logger.error("%s", error)
                 return "", call_empty
         if quant_type == "CSV":
             try:
                 return self._import_waveforms(Path(quant_value)), call_empty
             except IOError as error:
-                logger.error(error)
+                logger.error("%s", error)
                 return Waveforms(), call_empty
         return quant_value, call_empty
 
@@ -534,10 +543,8 @@ class BaseDevice(LabberDriver):
                 function = getattr(function, name.lower())
         return function
 
-    def call_toolkit_function(
-        self, name: str, path: Path, raise_error: bool = False
-    ) -> None:
-        """Call an process a toolkit function.
+    def call_function(self, name: str, path: Path) -> None:
+        """Call an process a function.
 
         If this function is called within a transaction the execution is
         delayed if the function allows it (call_type == Bundle).
@@ -561,6 +568,198 @@ class BaseDevice(LabberDriver):
             self._transaction.add_function(name, path)
             return
 
+        if name == "module_subscribe":
+            return self._call_module_subscribe(
+                Path(func_info.get("signals", "/signal/*"))
+            )
+        if name == "module_read":
+            return self._call_module_read(
+                Path(func_info.get("signals", "/signal/*")),
+                Path(func_info.get("result", "/result/*")),
+            )
+        if name == "module_clear":
+            return self._call_module_clear(Path(func_info.get("result", "/result/*")))
+        if name == "module_execute":
+            return self._call_module_execute()
+        return self._call_toolkit_function(path, func_info)
+
+    def _raw_path_to_zi_node(self, raw: str) -> t.Tuple[str, str]:
+        """Convert a raw input path value into zi node
+
+        Add the device to the path if it is missing.
+
+        Some modules require that the user specifies the actual signal that
+        should be used. E.g. the sweeper module result contains all signals
+        for the subscribed nodes. In Labber customers can use the ``::`` as a
+        delimiter to specify which signal they want to use in the result.
+
+        Args:
+            raw: Raw Input from the user field.
+
+        Returns:
+            subscribable node path, specified signal (empty if none is specified)
+        """
+        module_path = raw.split("::")
+        path = module_path[0]
+        signal = module_path[1] if len(module_path) > 1 else ""
+        if path and "dev" not in path:
+            path = path.lstrip("/")
+            path = f"/{self.comCfg.getAddressString().lower()}/{path}"
+        return path, signal
+
+    def _call_module_subscribe(self, signals: Path) -> None:
+        """Subscribe to signal nodes in module.
+
+        First all nodes will be unsubscribed and than the new ones will be
+        subscribed. (Since the module is on the client side that is not expensive)
+
+        Args:
+            signals: Wildcard path for all signal quantities that should be
+                subscribed.
+        """
+        self._instrument.raw_module.unsubscribe("*")
+        logger.info(f"unsubscribed all nodes")
+        for signal_path in fnmatch.filter(map(str, self._node_quant_map), signals):
+            quant_name = self._node_quant_map[Path(signal_path)]
+            quant_value, _ = self._raw_path_to_zi_node(
+                self.getValue(quant_name).lower()
+            )
+            if quant_value:
+                self._instrument.raw_module.subscribe(quant_value)
+                logger.info("subscribed to node %s", quant_value)
+
+    @staticmethod
+    def _get_signal_result(result: t.Dict, signal: str = None) -> t.Any:
+        """Get a specific signal out of the a result dict.
+
+        If no signal is specified it tries to uses a default value.
+        If the specified signal does not exist or no default value is found
+        None is returned.
+
+        Args:
+            result: Result dictionary.
+            signal: Signal in the result.
+        Return:
+            Data for the used signal
+        """
+        signal_result = None
+        if signal:
+            signal_result = result.get(signal, None)
+        elif "value" in result:
+            signal_result = result["value"]
+        elif "r" in result:
+            signal_result = result["r"]
+        elif "abs" in result:
+            signal_result = result["abs"]
+        elif "x" in result:
+            signal_result = result["x"]
+        return signal_result
+
+    def _call_module_read(self, signals: Path, results: Path) -> None:
+        """Read the results of a module and update the result arrays.
+
+        Calls poll on the module. The results are updated with the data that
+        matches the signal pathes. Meaning the signals must be subscribed before
+        calling this function in order to get data.
+
+        If the result does not contain data for a signal the coresponding result
+        will be left unchanged. (See _call_module_clear for clearing the results.)
+
+        Args:
+            signals: Wildcard path for all signal quantities
+            signals: Wildcard path for all result array quantities.
+        """
+        poll_result = self._instrument.raw_module.read(flat=True)
+        logger.debug("Get module results: %s", poll_result)
+        if poll_result:
+            # Loop through all signals and update values if they are available
+            signal_paths = fnmatch.filter(map(str,self._node_quant_map), signals.resolve())
+            result_paths = fnmatch.filter(map(str,self._node_quant_map), results.resolve())
+            for signal, result in zip(signal_paths, result_paths):
+                signal_quant = self._node_quant_map[Path(signal)]
+                signal_value, option = self._raw_path_to_zi_node(
+                    self.getValue(signal_quant).lower()
+                )
+                # Get result for current node.
+                signal_result = poll_result.get(signal_value, None)
+                # the Labber driver only uses the latest result
+                while isinstance(signal_result, list):
+                    signal_result = signal_result[-1]
+                if signal_result:
+                    available_options = list(signal_result.keys())
+                    signal_result = self._get_signal_result(signal_result, option)
+                    if signal_result is None:
+                        logger.error(
+                            "Valid signal for %s needed. Must be one of %s. \
+                                Use node/path::signal to specify a signal",
+                            signal,
+                            available_options,
+                        )
+                        continue
+                    # the Labber driver only uses the latest result
+                    signal_result = (
+                        signal_result[-1] if signal_result.ndim > 1 else signal_result
+                    )
+
+                    result_quant = self._node_quant_map[Path(result)]
+                    logger.info("%s: received %s", result_quant, signal_result[-10:])
+                    self.setValue(result_quant, signal_result)
+
+    def _call_module_clear(self, results: Path) -> None:
+        """Clears the data on all result quantities.
+
+        Necessary since the read function only updates the result quantities
+        when new data is available.
+
+        Args:
+            signals: Wildcard path for all result array quantities.
+        """
+        logger.info("Clear module results")
+        result_paths = fnmatch.filter(map(str,self._node_quant_map), results.resolve())
+        for result_path in result_paths:
+            quant_name = self._node_quant_map[Path(result_path)]
+            quant = self.getQuantity(quant_name)
+            if quant.datatype == quant.VECTOR:
+                self.setValue(quant_name, np.array([]))
+        return
+
+    def _call_module_execute(self) -> None:
+        """Module execute function handling.
+
+        Depending on the operation this functions this functions:
+
+        * Start module (Enable set to true)
+        * Stop module (Enable set to false)
+        * Read if finished (Read operation)
+        """
+        enable = self.getValue("Enable")
+        if self.dOp["operation"] in [Interface.GET_CFG, Interface.GET]:
+            value = not self._instrument.raw_module.finished()
+            self.setValue("Enable", value)
+            logger.info("Enable: get %s", value)
+        elif enable:
+            logger.info("Enable: set 1")
+            self._instrument.raw_module.execute()
+        else:
+            logger.info("Enable: set 0")
+            self._instrument.raw_module.finish()
+
+    def _call_toolkit_function(self, path: Path, func_info: t.Dict) -> None:
+        """Calls a toolkit function
+
+        This function can handle both input and return arguments. Both of them
+        need to be specified in the function_info. Input arguments ("Args") are
+        a dictionary of kwargs and their coresponding quantities (relative path
+        to the function path). The output arguments ("Returns") are a list
+        of relative quantities. Each of these quantities mus have a
+        ``return_value`` entry in their driver info that specifies which part
+        of the raw return value should be used as a new value for the quantity.
+
+        Args:
+            path: Path of the toolkit function.
+            func_info: Additional information from the settings.json file about
+                the function.
+        """
         kwargs = {}
         for arg_name, relative_quant_name in func_info.get("Args").items():
             if isinstance(relative_quant_name, list):
@@ -575,7 +774,7 @@ class BaseDevice(LabberDriver):
                 try:
                     kwargs[arg_name] = self._import_waveforms(**waveform_paths)
                 except IOError as error:
-                    logger.error(error)
+                    logger.error("%s", error)
                     kwargs[arg_name] = Waveforms()
             else:
                 quant_name = (path / relative_quant_name).resolve()
@@ -594,11 +793,11 @@ class BaseDevice(LabberDriver):
         try:
             return_values = function(**kwargs)
         except Exception as error:
-            logger.error(error)
-            if raise_error:
-                raise
+            logger.error("%s",error)
             return
-        logger.info("%s: returned %s", self._path_to_quant(path), return_values)
+        logger.info(
+            "%s: returned %s", self._path_to_quant(path), str(return_values)[-10:]
+        )
 
         for relative_quant_name in func_info.get("Returns"):
             quant_path = (path / relative_quant_name).resolve()
@@ -607,7 +806,7 @@ class BaseDevice(LabberDriver):
             try:
                 value = eval("return_values" + info)
             except Exception as error:
-                logger.error(error)
+                logger.error("%s", error)
                 value = self.getValue(quant_name)
             try:
                 self.setValue(quant_name, value)
