@@ -526,7 +526,22 @@
         "sections": {
             "/awgs/*": "AWG Sequencer"
         },
-        "quants": {}
+        "quants": {
+            "/qas/*/integration/weights/data": {
+                "add": true,
+                "conf": {
+                    "datatype": "PATH",
+                    "set_cmd": "*.csv",
+                    "tooltip": "Load integration weights from a file."
+                },
+                "driver": {
+                    "function": "qas/write_integration_weights",
+                    "function_path": "../../write_integration_weights",
+                    "type": "CSV",
+                    "call_empty": false
+                }
+            }
+        }
     },
     "SHFQA": {
         "generalSettings": {
@@ -1071,6 +1086,13 @@
         "generator/write_integration_weights": {
             "Args": {
                 "weights": "../integration_weights"
+            },
+            "Returns": [],
+            "call_type": "Immediately"
+        },
+        "qas/write_integration_weights": {
+            "Args": {
+                "weights": "../weights/data"
             },
             "Returns": [],
             "call_type": "Immediately"
