@@ -349,3 +349,7 @@ def test_order_labber_config():
         "foo/bar1": {"section": "section 2"},
         "foo/bar2": {"section": "section 1"},
     }
+
+    assert order_labber_config(
+        conf, {}
+    ) == conf

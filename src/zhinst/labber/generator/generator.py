@@ -314,9 +314,11 @@ def _path_to_labber_section(path: str, delim: str) -> str:
         Formatted path in Labber format with given delimited."""
     return path.strip("/").replace("/", delim)
 
-def order_labber_config(data: dict, order: t.Dict[str, t.List[str]]) -> OrderedDict:
+def order_labber_config(data: OrderedDict, order: t.Dict[str, t.List[str]]) -> OrderedDict:
     data = data.copy()
     data_ = OrderedDict()
+    if not "sections" in order:
+        return data
     while data:
         for section in order["sections"]:
             r = {k: v for k, v in data.items() if v.get("section", "").lower() == section.lower()}
