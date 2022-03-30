@@ -311,6 +311,8 @@ class NodeQuant:
             "findlevel",
             "clearwave",
             "clearweight"
+            "force"
+            "trigforce"
         ]
         if self._path_parts[-1].lower() in boolean_nodes:
             return "BOOLEAN"
