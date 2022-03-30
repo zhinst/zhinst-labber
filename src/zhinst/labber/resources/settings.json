@@ -1044,7 +1044,17 @@
             "normal": [],
             "advanced": []
         },
-        "quants": {}
+        "quants": {
+            "/scopes/*/wave": {
+                "add": true,
+                "indexes": [
+                    "dev"
+                ],
+                "conf": {
+                    "datatype": "VECTOR_COMPLEX"
+                }
+            }
+        }
     },
     "functions": {
         "commandtable/upload_to_device": {
