@@ -531,7 +531,7 @@ class BaseDevice(LabberDriver):
                 return waveform[0][0], call_empty
             except IOError as error:
                 logger.error("%s", error)
-                return np.arrays([], dtype=complex), call_empty
+                return np.array([], dtype=complex), call_empty
         return quant_value, call_empty
 
     def _get_toolkit_function(self, path_list: t.List[str]) -> t.Callable:
