@@ -1,8 +1,8 @@
 Logging and Error Handling
 ===========================
 
-All logging information inside the driver are displayed in the python output
-window that is created for each instrument when connected. By default the
+All logging information inside the driver are displayed in the Python output
+window that is created for each instrument when connected. By default, the
 logging level is set to ``INFO``(20), which means it is quite verbose and should
 help understanding what happens in the background and if a specific information
 is failing.
@@ -25,7 +25,7 @@ integer.
 * DEBUG => 10
 
 One can also specify an additional file path in the ``settings.json`` where all
-the log messages are stored permanently. The desired target file can be specfied
+the log messages are stored permanently. The desired target file can be specified
 by adding an entry called ``logger_path``.
 (e.g "logger_path": "C:\\\\Users\\\\test\\\\zhinst_labber.log", note the double
 escaped backslash which is mandatory in the json format)

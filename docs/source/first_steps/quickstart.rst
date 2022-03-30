@@ -80,7 +80,7 @@ Configuring the Instrument driver
 
 Besides the ``Zurich_Instruments_*.ini`` and ``Zurich_Instruments_*.py`` files
 the script generates also a ``settings.json``. It offers the customization of
-the drivers. It is pre filled with the information from the device used for
+the drivers. It is pre-filled with the information from the device used for
 generating the driver but can be customized if needed.
 
 The ``settings.json`` has the following structure:

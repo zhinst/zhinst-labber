@@ -1,8 +1,8 @@
 Wait Done Quantities
 =====================
 
-The Labber driver expose all node available for the device. In theory these Nodes
-is everything one needs to operate the device. Sometimes it is however handy to
+The Labber driver expose all node available for the device. In theory these nodes
+are everything one needs to operate the device. Sometimes it is however handy to
 have additional functionality. Some of them are already described in the
 previous sections. This section explains the usage and purpose of the
 ``* - Wait_Done`` quantities.
