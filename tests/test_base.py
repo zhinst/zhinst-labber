@@ -599,7 +599,7 @@ class TestBase:
         # Not existing node (in snapshot)
         device_driver._instrument.root["*"].side_effect = [{}, 1]
         quant = create_quant_mock("Test - Name", device_driver, "", "test/node")
-        assert device_driver.performGetValue(quant) == 1
+        assert device_driver.performGetValue(quant) == quant.getValue()
 
         # Not existing node (in snapshot)
         device_driver._instrument.root["*"].side_effect = [{}, KeyError("test")]

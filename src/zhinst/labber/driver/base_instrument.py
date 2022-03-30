@@ -429,6 +429,8 @@ class BaseDevice(LabberDriver):
                 on the device.
         """
         try:
+            # get enumerated value if there is one
+            value = quant.cmd_def.index(value) if quant.cmd_def else value
             logger.info("%s: set %s", quant.name, value)
             self._instrument[quant.set_cmd](value)
             if wait_for and not self._transaction.is_running():
