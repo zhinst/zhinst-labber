@@ -315,7 +315,20 @@ def _path_to_labber_section(path: str, delim: str) -> str:
     return path.strip("/").replace("/", delim)
 
 
-def conf_to_labber_format(data: dict, delim: str) -> dict:
+def order_labber_config(data: dict, order: t.Dict[str, t.List[str]]) -> OrderedDict:
+    data = data.copy()
+    data_ = OrderedDict()
+    while data:
+        for section in order["sections"]:
+            r = {k: v for k, v in data.items() if v.get("section", "").lower() == section.lower()}
+            data_.update(r)
+            [data.pop(k) for k in r.keys()]
+        data_.update(data)
+        data.clear()
+    return data_
+
+
+def conf_to_labber_format(data: dict, delim: str, order: t.Dict[str, t.List[str]]) -> dict:
     """Transform data into Labber format.
 
     * Natural sort dictionary keys
@@ -333,6 +346,7 @@ def conf_to_labber_format(data: dict, delim: str) -> dict:
 
     sorted_keys = natsort.natsorted(list(data.keys()))
     data = OrderedDict({k: data[k] for k in sorted_keys}.items())
+    data = order_labber_config(data, order)
 
     for title, quant in data.copy().items():
         title_ = str(title)
@@ -355,12 +369,12 @@ def conf_to_labber_format(data: dict, delim: str) -> dict:
     return data
 
 
-def dict_to_config(config: configparser.ConfigParser, data: dict, delim: str) -> None:
+def dict_to_config(config: configparser.ConfigParser, data: dict, delim: str, order: t.Dict[str, t.List[str]]) -> None:
     """Update config with give data.
 
     The data will be formatted and then set as config sections.
     """
-    data = conf_to_labber_format(data, delim)
+    data = conf_to_labber_format(data, delim, order)
     for title, items in data.items():
         config.add_section(title)
         for name, value in items.items():
@@ -413,7 +427,7 @@ class Filehandler:
         """Write configuration file (*.ini-format)."""
         path = self._root_dir / f"{self._config.name}.ini"
         config = configparser.ConfigParser()
-        dict_to_config(config, self._config.config(), delim=delim)
+        dict_to_config(config, self._config.config(), delim=delim, order=self._config.env_settings.quant_order)
         self.write_to_file(path, lambda x: config.write(x))
 
     def write_python_driver(self) -> None:

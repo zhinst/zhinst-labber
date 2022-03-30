@@ -67,6 +67,12 @@ class LabberConfiguration:
         return quants
 
     @property
+    def quant_order(self) -> t.Dict:
+        common = self.json_settings["common"].get("quantOrder", {}).copy()
+        common.update(self.dev_settings.get("quantOrder", {}))
+        return common
+
+    @property
     def base_name(self) -> str:
         """Base name of the device."""
         return self._dev_base
