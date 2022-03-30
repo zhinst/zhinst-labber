@@ -9,30 +9,39 @@ from zhinst.labber.generator.generator import (
     conf_to_labber_format,
     DeviceConfig,
     generate_labber_files,
+    order_labber_config,
 )
 from zhinst.toolkit.driver.devices import UHFLI, SHFQA
+
 
 @pytest.fixture
 def daq_module(data_dir, mock_connection, session):
     json_path = data_dir / "nodedoc_daq_test.json"
     with json_path.open("r", encoding="UTF-8") as file:
         nodes_json = file.read()
-    mock_connection.return_value.dataAcquisitionModule.return_value.listNodesJSON.return_value = nodes_json
+    mock_connection.return_value.dataAcquisitionModule.return_value.listNodesJSON.return_value = (
+        nodes_json
+    )
     mock_connection.return_value.getString.return_value = ""
     yield session.modules.daq
+
 
 @pytest.fixture
 def sweeper_module(data_dir, mock_connection, session):
     json_path = data_dir / "nodedoc_sweeper_test.json"
     with json_path.open("r", encoding="UTF-8") as file:
         nodes_json = file.read()
-    mock_connection.return_value.sweep.return_value.listNodesJSON.return_value = nodes_json
+    mock_connection.return_value.sweep.return_value.listNodesJSON.return_value = (
+        nodes_json
+    )
     mock_connection.return_value.getString.return_value = ""
     yield session.modules.sweeper
+
 
 @pytest.fixture
 def modules(daq_module, sweeper_module):
     yield
+
 
 @pytest.fixture
 def uhfli(data_dir, mock_connection, session, modules):
@@ -57,26 +66,6 @@ def shfqa(data_dir, mock_connection, session, modules):
 def test_conf_to_labber_format():
     conf = {
         "General Settings": {"version": "1.0"},
-        "/bar/0/foo/2/wave": {
-            "set_cmd": "/bar/0/foo/2/wave",
-            "get_cmd": "/bar/0/foo/2/wave",
-            "label": "/bar/0/foo/2/wave",
-            "section": "bar",
-            "group": "bar 0",
-            "permission": "BOTH",
-            "tooltip": "tooltip",
-            "datatype": "BOOLEAN",
-        },
-        "/bar/1/foo/0/wave": {
-            "set_cmd": "/bar/1/foo/0/wave",
-            "get_cmd": "/bar/1/foo/0/wave",
-            "label": "/bar/1/foo/0/wave",
-            "section": "bar",
-            "group": "bar 0",
-            "permission": "BOTH",
-            "tooltip": "tooltip",
-            "datatype": "BOOLEAN",
-        },
         "/bar/0/foo/1/wave": {
             "set_cmd": "/bar/0/foo/1/wave",
             "get_cmd": "/bar/0/foo/1/wave",
@@ -96,6 +85,26 @@ def test_conf_to_labber_format():
             "tooltip": "tooltip",
             "datatype": "BOOLEAN",
         },
+        "/bar/0/foo/2/wave": {
+            "set_cmd": "/bar/0/foo/2/wave",
+            "get_cmd": "/bar/0/foo/2/wave",
+            "label": "/bar/0/foo/2/wave",
+            "section": "bar",
+            "group": "bar 0",
+            "permission": "BOTH",
+            "tooltip": "tooltip",
+            "datatype": "BOOLEAN",
+        },
+        "/bar/1/foo/0/wave": {
+            "set_cmd": "/bar/1/foo/0/wave",
+            "get_cmd": "/bar/1/foo/0/wave",
+            "label": "/bar/1/foo/0/wave",
+            "section": "bar1",
+            "group": "bar 0",
+            "permission": "BOTH",
+            "tooltip": "tooltip",
+            "datatype": "BOOLEAN",
+        },
         "/bar/1/foo/1/wave": {
             "set_cmd": "/bar/1/foo/1/wave",
             "get_cmd": "/bar/1/foo/1/wave",
@@ -106,7 +115,7 @@ def test_conf_to_labber_format():
             "datatype": "BOOLEAN",
         },
     }
-    d = conf_to_labber_format(conf, delim=" - ")
+    d = conf_to_labber_format(conf, delim=" - ", order={"sections": ["bar", "bar1"]})
     assert d == OrderedDict(
         [
             (
@@ -151,7 +160,7 @@ def test_conf_to_labber_format():
                     "set_cmd": "/bar/1/foo/0/wave",
                     "get_cmd": "/bar/1/foo/0/wave",
                     "Label": "Bar - 1 - Foo - 0 - Wave",
-                    "Section": "Bar",
+                    "Section": "Bar1",
                     "Group": "Bar 0",
                     "tooltip": "tooltip",
                     "datatype": "BOOLEAN",
@@ -325,3 +334,18 @@ class TestLabberConfigSHFQA:
             "set_cmd": "QACHANNELS/3/READOUT/DISCRIMINATORS/5/THRESHOLD",
             "get_cmd": "QACHANNELS/3/READOUT/DISCRIMINATORS/5/THRESHOLD",
         }
+
+
+def test_order_labber_config():
+    conf = {
+        "foo/bar1": {"section": "section 2"},
+        "foo/bar2": {"section": "section 1"},
+        "foo/bar3": {"section": "section 0"},
+    }
+    assert order_labber_config(
+        conf, {"sections": ["section 0", "section 2", "section 1"]}
+    ) == {
+        "foo/bar3": {"section": "section 0"},
+        "foo/bar1": {"section": "section 2"},
+        "foo/bar2": {"section": "section 1"},
+    }

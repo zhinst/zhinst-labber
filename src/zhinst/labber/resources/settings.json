@@ -16,6 +16,23 @@
             "interface": "Other",
             "startup": "Do nothing"
         },
+        "quantOrder": {
+            "sections": [
+                "system", 
+                "In/Out", 
+                "Output", 
+                "EXT Refs", 
+                "QA Setup", 
+                "QA Input", 
+                "QA Result", 
+                "Scope", 
+                "DIO", 
+                "Generator", 
+                "AWG Sequencer",
+                "TU", 
+                "IA"
+            ]
+        },
         "ignoredNodes": {
             "normal": [
                 "/device",
