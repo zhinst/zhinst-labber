@@ -81,6 +81,7 @@ def daq_module():
     instrument.dOp = {"operation": 0}
     return instrument
 
+
 @pytest.fixture()
 def sweeper_module():
     settings = {
@@ -439,6 +440,48 @@ class TestBase:
         )
         device_driver._instrument.qachannels[0].generator.wait_done.assert_not_called()
 
+    def test_performSet_CSV_Envelope(self, mock_toolkit_session, device_driver):
+        device_driver.comCfg.getAddressString.return_value = "DEV1234"
+        device_driver.performOpen()
+
+        quant = create_quant_mock(
+            "qachannels - 0 - spectroscopy - envelope - wave - file",
+            device_driver,
+            "*.csv",
+            "",
+        )
+        # empty input
+        input = Path(".")
+        device_driver.instrCfg.getQuantity.return_value.getValue.return_value = input
+        assert input == device_driver.performSetValue(quant, input)
+        device_driver._instrument.qachannels[
+            0
+        ].spectroscopy.envelope.wave.assert_called()
+
+        # valid input
+        input = Path("tests/data/wave_complex.csv")
+        device_driver.instrCfg.getQuantity.return_value.getValue.return_value = input
+
+        assert input == device_driver.performSetValue(quant, input)
+        actual = device_driver._instrument.qachannels[
+            0
+        ].spectroscopy.envelope.wave.call_args[1]["value"]
+        assert all(
+            actual
+            == np.array(
+                [
+                    1.0 + 1.0j,
+                    -1.0 + 0.0j,
+                    1.0 + 0.0j,
+                    -1.0 + 0.0j,
+                    1.0 + 0.0j,
+                    -1.0 + 0.0j,
+                    1.0 + 0.0j,
+                    -1.0 + 0.0j,
+                ]
+            )
+        )
+
     def test_performSet_json(self, mock_toolkit_session, device_driver):
         device_driver.comCfg.getAddressString.return_value = "DEV1234"
         device_driver.performOpen()
@@ -531,7 +574,7 @@ class TestBase:
         }
         with patch("zhinst.labber.driver.base_instrument.logger") as logger:
             device_driver.performGetValue(quant)
-        logger.error.assert_called_with('Unknown data received %s', {'y': 2})
+        logger.error.assert_called_with("Unknown data received %s", {"y": 2})
 
         # With exception
         device_driver._instrument[quant.get_cmd].side_effect = RuntimeError(
