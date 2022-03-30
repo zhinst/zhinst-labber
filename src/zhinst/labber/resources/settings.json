@@ -18,18 +18,18 @@
         },
         "quantOrder": {
             "sections": [
-                "system", 
-                "In/Out", 
-                "Output", 
-                "EXT Refs", 
-                "QA Setup", 
-                "QA Input", 
-                "QA Result", 
-                "Scope", 
-                "DIO", 
-                "Generator", 
+                "system",
+                "In/Out",
+                "Output",
+                "EXT Refs",
+                "QA Setup",
+                "QA Input",
+                "QA Result",
+                "Scope",
+                "DIO",
+                "Generator",
                 "AWG Sequencer",
-                "TU", 
+                "TU",
                 "IA"
             ]
         },
@@ -168,7 +168,8 @@
             "*/enables/*": {
                 "add": false,
                 "indexes": [
-                    "dev", "dev"
+                    "dev",
+                    "dev"
                 ],
                 "conf": {
                     "datatype": "BOOLEAN"
@@ -471,6 +472,17 @@
                     "x_unit": "Sample"
                 }
             },
+            "/qachannels/*/spectroscopy/envelope/wave": {
+                "add": false,
+                "indexes": [
+                    "dev"
+                ],
+                "conf": {
+                    "datatype": "VECTOR_COMPLEX",
+                    "x_name": "Length",
+                    "x_unit": "Sample"
+                }
+            },
             "/qachannels/*/readout/integration/weights/*/wave": {
                 "add": false,
                 "indexes": [
@@ -559,6 +571,19 @@
         "groups": {},
         "sections": {},
         "quants": {
+            "/qachannels/*/spectroscopy/envelope/wave/file": {
+                "add": true,
+                "conf": {
+                    "datatype": "PATH",
+                    "set_cmd": "*.csv",
+                    "tooltip": "Complex waveform from a file."
+                },
+                "driver": {
+                    "function": "shfqa/sweeper/envelope",
+                    "function_path": "../../wave",
+                    "type": "CSVARRAY"
+                }
+            },
             "/qachannels/*/generator/pulses": {
                 "add": true,
                 "conf": {
@@ -923,17 +948,20 @@
         "sections": {},
         "quants": {
             "/envelope/waveform": {
-                "add": true,
-                "extend": {
-                    "suffix": "File",
-                    "datatype": "PATH",
-                    "set_cmd": ".csv",
-                    "label": "File",
-                    "tooltip": "Complex waveform from a file.",
-                    "permission": "WRITE"
-                },
+                "add": false,
                 "conf": {
-                    "datatype": "VECTOR_COMPLEX"
+                    "datatype": "VECTOR_COMPLEX",
+                    "x_name": "Length",
+                    "x_unit": "Sample"
+                }
+            },
+            "/envelope/waveform/file": {
+                "add": true,
+                "conf": {},
+                "driver": {
+                    "function": "shfqa/sweeper/envelope",
+                    "function_path": "../../waveform",
+                    "type": "CSVARRAY"
                 }
             },
             "/offset_freq_vector": {
@@ -1124,6 +1152,14 @@
             ],
             "call_type": "Immediately",
             "is_setting": false
+        },
+        "shfqa/sweeper/envelope": {
+            "Args": {
+                "value": "file"
+            },
+            "Returns": [],
+            "call_type": "Immediately",
+            "is_setting": true
         },
         "module_subscribe": {
             "call_type": "Bundle",

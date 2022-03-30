@@ -525,6 +525,13 @@ class BaseDevice(LabberDriver):
             except IOError as error:
                 logger.error("%s", error)
                 return Waveforms(), call_empty
+        if quant_type == "CSVARRAY":
+            try:
+                waveform = self._import_waveforms(Path(quant_value))
+                return waveform[0][0], call_empty
+            except IOError as error:
+                logger.error("%s", error)
+                return np.arrays([], dtype=complex), call_empty
         return quant_value, call_empty
 
     def _get_toolkit_function(self, path_list: t.List[str]) -> t.Callable:
