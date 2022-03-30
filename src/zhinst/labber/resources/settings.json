@@ -117,7 +117,7 @@
             "/tu/*": "TU",
             "/awg/channelgrouping": "AWG",
             "/awgs/*/outputs/*/modulation/carriers/*": "MF Mod",
-            "/awgs/*/outputs/*": "Output",
+            "/awgs/*/outputs/*": "AWG",
             "/awgs/*": "AWG Sequencer",
             "/dios/*": "DIO",
             "/pids/*": "PID",
