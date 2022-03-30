@@ -5,18 +5,20 @@ The following guide gives an overview of the waveform upload and usage within
 the zhinst-labber drivers. The guide is valid for all instruments that have an
 AWG core / generator.
 
+.. _csv_upload:
+
 CSV upload
 -----------
 
 The first way to upload a waveform through Labber is the upload via a CSV file.
-A generator channel support the upload of a single complex waveform and the awg channel
+A generator channel support the upload of a single complex waveform and the AWG channel
 allows the upload of 2 waves and markers.
 
 The format of CSV file is the following:
 
 * Each row represents one waveform
 * Delimiter: ``,``
-* If the waveform for the given index/slot should be ignored the respecive row
+* If the waveform for the given index/slot should be ignored the respective row
   can be empty.
 
 To upload a waveform to index 0 and index 2 the CSV file could look like that

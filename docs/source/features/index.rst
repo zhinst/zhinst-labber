@@ -11,5 +11,6 @@ following additional features.
    logging
    sequencer_code
    waveforms
+   integration_weights
    command_table
    wait_done
