@@ -308,7 +308,9 @@ class NodeQuant:
             "triggered",
             "endless",
             "preview",
-            "findlevel"
+            "findlevel",
+            "clearwave",
+            "clearweight"
         ]
         if self._path_parts[-1].lower() in boolean_nodes:
             return "BOOLEAN"
