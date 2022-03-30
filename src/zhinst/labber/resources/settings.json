@@ -160,6 +160,7 @@
             "/sgchannels/*/sines/*": "MOD",
             "/sgchannels/*/awg/*": "AWG Sequencer",
             "/sgchannels/*": "Output",
+            "/system/digitalmixer/reset/*": "Output",
             "/synthesizers/*": "MOD"
         },
         "quants": {
