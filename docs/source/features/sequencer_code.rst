@@ -11,8 +11,15 @@ a few simplifications.
 The user manuals for each device, that has a AWG available, provides detailed
 explanation of all available commands and syntax.
 
-The Labber drivers support the upload of a sequencer program from a ``*.seqc`` file.
+The Labber drivers support the upload of a sequencer program from a ``*.seqc``
+file (simple text file with *.seqc ending).
 The file path can be specified in the drivers for each AWG channel individually
 (The quantity is called ``* - Sequencer_Program``).
 Setting the file path will automatically trigger the compilation and upload of
 the code and no further steps are required.
+
+.. warning::
+
+    Please check the logs (python output window) to see if an error happened
+    during compilation.
+

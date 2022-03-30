@@ -7,7 +7,7 @@ Follow :doc:`installation` to install zhinst-labber first.
 Preparation
 -----------
 
-Before you can spin up zhinst-labber LabOne® needs to installed and running.
+Before you can spin up zhinst-labber LabOne® needs to be installed and running.
 For a complete reference see the dedicated `user manual <http://docs.zhinst.com/>`_
 page for your instrument(s).
 
@@ -19,10 +19,10 @@ Generate Instrument driver
 
 zhinst-labber does not ship with predefined Instrument drivers. Instead the
 command line can be used to generate a custom Instrument driver for all Zurich
-Instrument devices. This has the benefit that one does not pay any attention to
-the correct version or options.
+Instrument devices. This has the benefit that one does not need to pay any
+attention to the correct version or options.
 
-The command line interface (CLI) can be be accessed after ``zhinst-labber`` has
+The command line interface (CLI) can be accessed after ``zhinst-labber`` has
 been installed.
 
 .. code-block:: bash
@@ -31,7 +31,8 @@ been installed.
     Generate Zurich Instruments Labber drivers.
     ...
 
-To generate a device driver the following information's are needed:
+To generate a device driver the following information's are needed
+(use ``--help`` to see all available options):
 
 * Output file path. (Instrument Server -> Edit -> Preferences -> Folders -> Local Drivers)
 * Device ID (e.g. DEV1234)
@@ -50,11 +51,12 @@ To generate a device driver the following information's are needed:
 .. note::
 
     If the driver should be generated for an HF2 device the option ``--hf2`` must
-    be used.
+    be used. (The reason is the different data server that the HF2 device uses
+    for historically reasons)
 
 .. note::
 
-    The generated driver ist not bound to the used device but simply contains
+    The generated driver is not bound to the used device but simply contains
     all the Quantities/Nodes that this device had at the time of the generation.
     This means the drivers can be used for other instruments, if it is of the
     same type, options and firmware revision.
@@ -97,7 +99,7 @@ The ``settings.json`` has the following structure:
             "type": "UHFLI"
         }
         "logger_level": 20
-        "logger_path": "Path/to/log/output.log"
+        "logger_path": "Path\\to\\log\\output.log"
     }
 
 * **host**: Used host server. Per default set to the server used during generation.
@@ -121,7 +123,7 @@ configuration should be used:
 * The ``Name`` is not used by the driver itself and can be chosen freely.
 * The ``Interface`` **must** be set to ``Other``, regardless of the actual interface
   used for the device. The driver will automatically detect the correct
-  interface. (As a fallback The LabOne GUI can be used to connect the data
+  interface. (As a fallback the LabOne GUI can be used to connect the data
   server to device via the correct interface)
 * The ``Address`` (if available) **must** be set to one of the following:
 

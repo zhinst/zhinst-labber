@@ -3,7 +3,7 @@ Logging and Error Handling
 
 All logging information inside the driver are displayed in the python output
 window that is created for each instrument when connected. By default the
-logging level is set to ``info``, which means it is quite verbose and should
+logging level is set to ``INFO``(20), which means it is quite verbose and should
 help understanding what happens in the background and if a specific information
 is failing.
 

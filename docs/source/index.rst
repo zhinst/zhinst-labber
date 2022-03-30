@@ -7,8 +7,8 @@
 Zurich Instruments Labber driver |version| Documentation
 =========================================================
 
-The Zurich Instruments drivers for Labber (zhinst-labber) is a package of
-instrument drivers for devices produced by
+The Zurich Instruments drivers for Labber (zhinst-labber) is a package that is
+able to generate instrument drivers for devices produced by
 `Zurich Instruments <https://www.zhinst.com>`_ for Labber.
 `Labber <https://www.keysight.com/ch/de/products/software/application-sw/labber-software.html>`_
 is a instrument control and lab automation software.

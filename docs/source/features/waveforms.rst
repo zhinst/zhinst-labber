@@ -87,14 +87,14 @@ Often the waveforms for specific applications can be generated within another
 instrument in Labber (e.g. SingleQubitPulseGenerator). Since the Waveform Nodes
 of the AWG format have a special format one can not directly connect the two
 quantities directly. Also it is impractical to log the waveforms in their original
-format since one can not directly see how they look.
+format since one can not directly see the separate waves.
 
 To be able to do this zhinst-labber also provides a virtual Instrument called
 ``Zurich_Instruments_Waveform_Processor``. It converts between the native Zurich
 Instrument waveform format and Labber Arrays. All of the exposed array quantities
 can be used as input or outputs.
 
-On the one device side the following quantities exist:
+On the device side the following quantities exist:
 
 * ``Interleaved - Signal``
 * ``Complex - Signal``
@@ -107,13 +107,13 @@ On the Labber side the following counterparts exist:
 
 The following scenarios are the most useful ones (but all combinations are possible):
 
-1. Route two real Waveforms to a single device waveform channel. The two input signals
-   are routed to ``Wave 1 - Signal`` and ``Wave 2 - Signal`` and the
+1. Route two real waveforms to a single device waveform channel. The two input
+   signals are routed to ``Wave 1 - Signal`` and ``Wave 2 - Signal`` and the
    ``Interleaved - Signal`` is routed to the awg waveform quantity (e.g.
    ``AWG - Waveforms - 0 - Wave``). (The marker array can also be specified if
    needed.)
 
-2. Route two real Waveforms to a complex waveform channel. The two input signals
+2. Route two real waveforms to a complex waveform channel. The two input signals
    are routed to ``Wave 1 - Signal`` and ``Wave 2 - Signal``. The
    ``Complex - Signal`` combines these two into a complex waveform. The first
    wave is the real part and the second wave is the imaginary part.

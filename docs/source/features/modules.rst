@@ -12,10 +12,11 @@ Modules are software based functionalities that eases the use of the devices
 and take care of complex mechanisms. For more information take a look at the
 `LabOne Programming manual <http://docs.zhinst.com/manuals/labone_programming_manual/introduction_labone_modules.html./>`_.
 
-Modules create a independent session to the server. This enable the modules to
-subscribe to nodes without affecting other modules, the GUI or user based
-sessions. This and the fact that the modules are device independent is the
-reason zhinst-labber doesn`t include the modules directly into the device drivers.
+Modules create and operate on an independent session to the server. This enable
+the module to live in another thread and subscribe to nodes without affecting
+other modules, the GUI or user based sessions. This and the fact that the
+modules are device independent is the reason zhinst-labber doesn`t include the
+modules directly into the device drivers.
 
 .. note::
 
@@ -31,8 +32,8 @@ Start A Labber Module Instrument
 
 Similar to the device drivers module driver require that the device id /serial
 of the used instrument (e.g. DEV1234) is placed in the ``Address`` field. The
-``Interface`` needs to set to ``Other`` and the Name is not used by the driver
-itself and can be chosen freely.
+``Interface`` needs to set to ``Other`` and the ``Name`` is not used by the
+driver itself and can be chosen freely.
 
 Modules have the same structure than the devices, meaning all nodes available in
 the driver. The following sections explain the basic usage of the provided
@@ -52,21 +53,23 @@ continuously or in bursts based upon trigger criteria analogous to the
 functionality provided by laboratory oscilloscopes.
 
 The Labber driver defines 16 signal channels. Each channel can be set to a
-specific signal. Please see the
+specific signal that should be acquired. Please refer to the
 `user manual <http://docs.pages.zhinst.com/manuals/labone_programming_manual/data_acquisition_module.html#pm.core.modules.daq.signalsubscription/>`_
 to see how the signals are constructed. Alternatively one can use the LabOne UI
 to see the available signals and use the API Log feature to see what the
 corresponding node/signal looks like. An example of a valid signal is
-``dev1234/demods/0/sample.x`` and is equal to ``demods/0/sample.x``.
+``dev1234/demods/0/sample.x`` and is equal to ``demods/0/sample.x`` (meaning
+teh device id id not mandatory).
 
-Once all signals have been specified, the module is enable and has been triggered
-the result quantities contain the latest data.
+Once the signals have been specified (unused signals can be left empty), the
+module is enable and has been triggered the result quantities contain the latest
+data.
 
 .. note::
 
     Even though the DAQ module has a history feature the result quantities only
     contain the latest traces. It is however possible to save the results,
-    including older traces, using the save feature in the history tab.
+    including older traces, using the save feature in the history section.
 
 .. note::
 
@@ -83,13 +86,13 @@ other instrument settings are kept constant.
 
 The Labber driver defines 16 signal channels. Each channel can be set to a
 specific signal. A signal has two parts (``path::node_part``). The first
-one (path) is the streaming node itself (e.g. /dev1234/demods/sample), the second part is the
-part of the node that should be displayed (If left empty a default value will be
-used, if available). Which parts each node has depends on the node type and can
-be looked up in the LabOne UI. An example of a valid signal for the sweeper
-module is for example ``/dev1234/demods/0/sample::x``, which will subscribe to
-the node ``/dev1234/demods/0/sample`` and use the ``x`` value of it in the
-result quantity.
+one (``path``) is the streaming node itself (e.g. /dev1234/demods/sample), the
+second part (``node_part``) is the part of the node that should be displayed
+(If left empty a default value will be used, if available). Which parts each
+node has depends on the node type and can be looked up in the LabOne UI.
+An example of a valid signal for the sweeper module is for example
+``/dev1234/demods/0/sample::x``, which will subscribe to the node
+``/dev1234/demods/0/sample`` and use the ``x`` value of it in the result quantity.
 
 Available node parts (not a complete list):
 
@@ -111,10 +114,10 @@ Available node parts (not a complete list):
     * param1
 
 
-To enable a sweep the ``Enable`` quantity can be set to 1. The same node can
+To enable a sweep the ``Enable`` quantity can be set to 1. The same quantity can
 be used to disable the sweeper module (0) or to check if a sweep is in progress
 (read the current value). The result quantities contain the specified signal
-parts (can also be updated during a sweep)
+parts (can also be updated during a sweep).
 
 SHFQA Sweeper Module
 ---------------------

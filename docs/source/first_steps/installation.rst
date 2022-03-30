@@ -34,7 +34,7 @@ These distributions will be installed automatically when installing zhinst-labbe
 Install zhinst-labber
 ----------------------
 
-Use the following command to install zhinst-labber(be sure to install it within the
+Use the following command to install zhinst-labber (be sure to install it within the
 correct python environment):
 
 .. code-block:: sh
