@@ -234,7 +234,7 @@ class BaseDevice(LabberDriver):
                 else quant.get_cmd
             )
             # use a snapshot for the GET_CFG command
-            if self.dOp["operation"] == Interface.GET_CFG:
+            if self.dOp["operation"] in [Interface.GET_CFG, Interface.SET_CFG]:
                 value = None
                 try:
                     value = self._parse_value(self._snapshot.get_value(get_cmd))

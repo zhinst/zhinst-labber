@@ -42,7 +42,7 @@ class SnapshotManager:
         except KeyError:
             # node not found in snapshot
             print(f"{path} not found in snapshot")
-            return self._nodetree[path]()
+            return None
 
     def clear(self) -> None:
         """Clears the current snapshot if there is any."""
