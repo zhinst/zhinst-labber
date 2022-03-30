@@ -91,7 +91,7 @@
             "/currins/*": "In/Out",
             "/imps/*": "Impedance Analyzer",
             "/demods/*": "Demods",
-            "/oscs/*": "Oscillators",
+            "/oscs/*": "In/Out",
             "/sines/*": "MOD",
             "/auxins/*": "AUX",
             "/auxouts/*": "AUX",
