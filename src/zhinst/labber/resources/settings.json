@@ -1,0 +1,1187 @@
+{
+    "version": "0.1",
+    "misc": {
+        "labberDelimiter": " - ",
+        "LogLevel": 20,
+        "ziModules": [
+            "shfqa_sweeper",
+            "daq",
+            "sweeper"
+        ]
+    },
+    "common": {
+        "generalSettings": {
+            "support_arm": true,
+            "support_hardware_loop": true,
+            "interface": "Other",
+            "startup": "Do nothing"
+        },
+        "quantOrder": {
+            "sections": [
+                "system",
+                "In/Out",
+                "Output",
+                "EXT Refs",
+                "QA Setup",
+                "QA Input",
+                "QA Result",
+                "Scope",
+                "DIO",
+                "Generator",
+                "AWG Sequencer",
+                "TU",
+                "IA"
+            ]
+        },
+        "ignoredNodes": {
+            "normal": [
+                "/device",
+                "/preset/*",
+                "/stats/*",
+                "/status/*",
+                "/system/fwlog",
+                "/system/fwlogenable",
+                "/system/interfacespeed",
+                "/system/owner",
+                "/system/activeinterface*",
+                "/system/boardrevisions/*",
+                "/system/stall",
+                "/system/shutdown",
+                "/system/update",
+                "/system/porttcp",
+                "/system/preset/*",
+                "/system/update/*",
+                "/system/impedance/*",
+                "/system/compdelay/*",
+                "/system/calib*",
+                "/system/portudp",
+                "/system/jumbo",
+                "/system/saveports",
+                "/system/hwrevision",
+                "/system/fpgarevision",
+                "/system/nics/*",
+                "/system/powerconfigdate",
+                "/system/fx2revision",
+                "/system/fx3revision",
+                "/system/slaverevision",
+                "/system/identify",
+                "/system/xenpakenable",
+                "*/elf/*",
+                "*/rtlogger/data",
+                "*/sequencer/*",
+                "*/waveform/memoryusage*",
+                "*/waveform/descriptors",
+                "*/commandtable/status",
+                "*/commandtable/clear",
+                "*/dio/data",
+                "/qas/*/result/statistics/statemap",
+                "*/precompensation/fir/coefficients",
+                "*/generator/waveforms/*/length",
+                "/feedback/decoder/lut/tables/*",
+                "/sgchannels/*/awg/elf/*"
+            ],
+            "advanced": [
+                "/features/*",
+                "/plot/*",
+                "/zi/debug/log"
+            ]
+        },
+        "groups": {
+            "/sines/<n>/*": "Sine <n> Generator",
+            "/oscs/<n>/*": "OSC <n>",
+            "/awgs/<n>/*": "AWG <n>",
+            "/sgchannels/<n>/*": "SG Channel <n>",
+            "/dios/<n>": "DIO <n>",
+            "/qachannels/<n>/readout/*": "QA Channel <n> Readout",
+            "/qachannels/<n>/generator/clearwave": "QA Channel <n> Readout",
+            "/qachannels/<n>/generator/delay": "QA Channel <n> Readout",
+            "/qachannels/<n>/spectroscopy/*": "QA Channel <n> Spectroscopy",
+            "/qachannels/<n>/*": "QA Channel <n>",
+            "/scopes/<n>/channels/<n>/*": "Scope <n> Channel <n>",
+            "/scopes/<n>/*": "Scope <n>",
+            "/imps/<n>/*": "Imps <n>",
+            "/cnts/<n>/*": "Pulse Counter <n>",
+            "/sigouts/<n>/*": "Sigout <n>"
+        },
+        "sections": {
+            "/sigins/*": "In/Out",
+            "/sigouts/*/precompensation*": "Precompensation",
+            "/sigouts/*": "In/Out",
+            "/currins/*": "In/Out",
+            "/imps/*": "Impedance Analyzer",
+            "/demods/*": "Demods",
+            "/oscs/*": "In/Out",
+            "/sines/*": "MOD",
+            "/auxins/*": "Aux",
+            "/auxouts/*": "Aux",
+            "/extrefs/*": "EXT Refs",
+            "/mods/*": "MOD",
+            "/tu/*": "TU",
+            "/awg/channelgrouping": "AWG",
+            "/awgs/*/outputs/*/modulation/carriers/*": "MF Mod",
+            "/awgs/*/outputs/*": "AWG",
+            "/awgs/*": "AWG Sequencer",
+            "/dios/*": "DIO",
+            "/pids/*": "PID",
+            "/plls/*": "PLL",
+            "/zctrls/*": "ZSync Control",
+            "/cnts/*": "Pulse Counter",
+            "/inputpwas/*": "PWA",
+            "/outputpwas/*": "PWA",
+            "/triggers/*": "DIO",
+            "/zsyncs/*/connection/*": "Ports",
+            "/qas/*/result/*": "QA Result",
+            "/qas/*/monitor/*": "QA Input",
+            "/qas/*/*": "QA Setup",
+            "/qachannels/*/markers/*": "DIO",
+            "/qachannels/*/triggers/*": "DIO",
+            "/qachannels/*/generator/dio/*": "DIO",
+            "/qachannels/*/generator/delay": "QA Setup",
+            "/qachannels/*/generator/clearwave": "QA Setup",
+            "/qachannels/*/generator/sequencer_*": "QA Setup",
+            "/qachannels/*/generator*": "Generator",
+            "/qachannels/*/readout/result/*": "QA Result",
+            "/qachannels/*/readout/wait_done": "QA Result",
+            "/qachannels/*/readout/*": "QA Setup",
+            "/qachannels/*/spectroscopy/result/*": "QA Result",
+            "/qachannels/*/spectroscopy/wait_done": "QA Result",
+            "/qachannels/*/spectroscopy/*": "QA Setup",
+            "/qachannels/*/centerfreq": "In/Out",
+            "/qachannels/*/input*": "In/Out",
+            "/qachannels/*/output": "In/Out",
+            "/qachannels/*": "QA Setup",
+            "/scopes/trigger/*": "In/Out",
+            "/scopes/*": "Scope",
+            "/system/clocks/*": "System",
+            "/sgchannels/*/trigger/*": "DIO",
+            "/sgchannels/*/marker/*": "DIO",
+            "/sgchannels/*/awg/dio/*": "DIO",
+            "/sgchannels/*/awg/enable": "MOD",
+            "/sgchannels/*/awg/output*": "MOD",
+            "/sgchannels/*/awg/modulation/*": "MOD",
+            "/sgchannels/*/oscs/*": "MOD",
+            "/sgchannels/*/sines/*": "MOD",
+            "/sgchannels/*/awg/*": "AWG Sequencer",
+            "/sgchannels/*": "Output",
+            "/system/digitalmixer/reset/*": "Output",
+            "/synthesizers/*": "MOD"
+        },
+        "quants": {
+            "*/enables/*": {
+                "add": false,
+                "indexes": [
+                    "dev",
+                    "dev"
+                ],
+                "conf": {
+                    "datatype": "BOOLEAN"
+                }
+            },
+            "/zi/config/port": {
+                "add": false,
+                "conf": {
+                    "datatype": "STRING"
+                }
+            },
+            "/scopes/*/wave": {
+                "add": false,
+                "indexes": [
+                    "dev"
+                ],
+                "conf": {
+                    "datatype": "VECTOR_COMPLEX"
+                }
+            },
+            "/demods/*/sample": {
+                "add": false,
+                "indexes": [
+                    "dev"
+                ],
+                "conf": {
+                    "datatype": "COMPLEX"
+                }
+            },
+            "/mods/*/sample": {
+                "add": false,
+                "indexes": [
+                    "dev"
+                ],
+                "conf": {
+                    "datatype": "COMPLEX"
+                }
+            },
+            "/dios/*/input": {
+                "add": false,
+                "indexes": [
+                    "dev"
+                ],
+                "conf": {
+                    "datatype": "DOUBLE"
+                }
+            },
+            "/clearhistory": {
+                "add": false,
+                "conf": {
+                    "datatype": "BOOLEAN"
+                },
+                "extend": {}
+            },
+            "/*/imp50": {
+                "add": false,
+                "conf": {
+                    "datatype": "BOOLEAN"
+                },
+                "extend": {}
+            },
+            "/save/save": {
+                "add": false,
+                "conf": {
+                    "datatype": "BOOLEAN"
+                },
+                "extend": {}
+            },
+            "/clockbase": {
+                "add": false,
+                "conf": {
+                    "section": "System"
+                },
+                "extend": {}
+            },
+            "/*/commandtable/data": {
+                "add": false,
+                "conf": {
+                    "datatype": "PATH",
+                    "set_cmd": "*.json"
+                },
+                "driver": {
+                    "function": "commandtable/upload_to_device",
+                    "function_path": "../upload_to_device",
+                    "type": "JSON"
+                }
+            },
+            "/*/sequencer_program": {
+                "add": true,
+                "mapping": {
+                    "SHFQA": {
+                        "path": "/qachannels/*/generator/sequencer_program",
+                        "indexes": [
+                            "dev"
+                        ]
+                    },
+                    "HDAWG": {
+                        "path": "/awgs/*/sequencer_program",
+                        "indexes": [
+                            "dev"
+                        ]
+                    },
+                    "SHFSG": {
+                        "path": "/sgchannels/*/awg/sequencer_program",
+                        "indexes": [
+                            "dev"
+                        ]
+                    },
+                    "UHFQA": {
+                        "path": "/awgs/*/sequencer_program",
+                        "indexes": [
+                            "dev"
+                        ]
+                    },
+                    "UHFLI": {
+                        "path": "/awgs/*/sequencer_program",
+                        "indexes": [
+                            "dev"
+                        ]
+                    }
+                },
+                "conf": {
+                    "datatype": "PATH",
+                    "set_cmd": "*.seqc",
+                    "tooltip": "Filepath to the Sequencer program to be loaded."
+                },
+                "driver": {
+                    "function": "sequencer_program",
+                    "function_path": "../load_sequencer_program",
+                    "type": "TEXT",
+                    "call_empty": false
+                }
+            },
+            "/*/waves1": {
+                "add": true,
+                "mapping": {
+                    "SHFSG": {
+                        "path": "/sgchannels/*/awg/waves1",
+                        "indexes": [
+                            "dev"
+                        ]
+                    },
+                    "HDAWG": {
+                        "path": "/awgs/*/waves1",
+                        "indexes": [
+                            "dev"
+                        ]
+                    },
+                    "UHFQA": {
+                        "path": "/awgs/*/waves1",
+                        "indexes": [
+                            "dev"
+                        ]
+                    },
+                    "UHFLI": {
+                        "path": "/awgs/*/waves1",
+                        "indexes": [
+                            "dev"
+                        ]
+                    }
+                },
+                "conf": {
+                    "datatype": "PATH",
+                    "set_cmd": "*.csv",
+                    "tooltip": "Array with data of waveform 1."
+                },
+                "driver": {
+                    "function": "awg/write_to_waveform_memory",
+                    "function_path": "../write_to_waveform_memory",
+                    "type": "CSV"
+                }
+            },
+            "/*/waves2": {
+                "add": true,
+                "mapping": {
+                    "SHFSG": {
+                        "path": "/sgchannels/*/awg/waves2",
+                        "indexes": [
+                            "dev"
+                        ]
+                    },
+                    "HDAWG": {
+                        "path": "/awgs/*/waves2",
+                        "indexes": [
+                            "dev"
+                        ]
+                    },
+                    "UHFQA": {
+                        "path": "/awgs/*/waves2",
+                        "indexes": [
+                            "dev"
+                        ]
+                    },
+                    "UHFLI": {
+                        "path": "/awgs/*/waves2",
+                        "indexes": [
+                            "dev"
+                        ]
+                    }
+                },
+                "conf": {
+                    "datatype": "PATH",
+                    "set_cmd": "*.csv",
+                    "tooltip": "Array with data of waveform 2."
+                },
+                "driver": {
+                    "function": "awg/write_to_waveform_memory",
+                    "function_path": "../write_to_waveform_memory",
+                    "type": "CSV"
+                }
+            },
+            "/*/markers": {
+                "add": true,
+                "mapping": {
+                    "SHFSG": {
+                        "path": "/sgchannels/*/awg/markers",
+                        "indexes": [
+                            "dev"
+                        ]
+                    },
+                    "HDAWG": {
+                        "path": "/awgs/*/markers",
+                        "indexes": [
+                            "dev"
+                        ]
+                    },
+                    "UHFQA": {
+                        "path": "/awgs/*/markers",
+                        "indexes": [
+                            "dev"
+                        ]
+                    },
+                    "UHFLI": {
+                        "path": "/awgs/*/markers",
+                        "indexes": [
+                            "dev"
+                        ]
+                    }
+                },
+                "conf": {
+                    "datatype": "PATH",
+                    "set_cmd": "*.csv",
+                    "tooltip": "Array with marker data."
+                },
+                "driver": {
+                    "function": "awg/write_to_waveform_memory",
+                    "function_path": "../write_to_waveform_memory",
+                    "type": "CSV"
+                }
+            },
+            "/*/waveform/waves/*": {
+                "add": true,
+                "mapping": {
+                    "SHFSG": {
+                        "path": "/sgchannels/*/awg/waveform/waves/*",
+                        "indexes": [
+                            "dev",
+                            16
+                        ]
+                    },
+                    "HDAWG": {
+                        "path": "/awgs/*/waveform/waves/*",
+                        "indexes": [
+                            "dev",
+                            16
+                        ]
+                    },
+                    "UHFQA": {
+                        "path": "/awgs/*/waveform/waves/*",
+                        "indexes": [
+                            "dev",
+                            16
+                        ]
+                    },
+                    "UHFLI": {
+                        "path": "/awgs/*/waveform/waves/*",
+                        "indexes": [
+                            "dev",
+                            16
+                        ]
+                    }
+                },
+                "conf": {
+                    "datatype": "VECTOR",
+                    "x_name": "Length",
+                    "x_unit": "Sample",
+                    "permission": "READ",
+                    "show_in_measurement_dlg": "True"
+                }
+            },
+            "/qachannels/*/generator/waveforms/*/wave": {
+                "add": false,
+                "indexes": [
+                    "dev",
+                    "dev"
+                ],
+                "conf": {
+                    "datatype": "VECTOR_COMPLEX",
+                    "x_name": "Length",
+                    "x_unit": "Sample"
+                }
+            },
+            "/qachannels/*/spectroscopy/envelope/wave": {
+                "add": false,
+                "indexes": [
+                    "dev"
+                ],
+                "conf": {
+                    "datatype": "VECTOR_COMPLEX",
+                    "x_name": "Length",
+                    "x_unit": "Sample"
+                }
+            },
+            "/qachannels/*/readout/integration/weights/*/wave": {
+                "add": false,
+                "indexes": [
+                    "dev",
+                    "dev"
+                ],
+                "conf": {
+                    "datatype": "VECTOR_COMPLEX",
+                    "x_name": "Length",
+                    "x_unit": "Sample"
+                }
+            },
+            "/system/identify": {
+                "add": false,
+                "conf": {},
+                "driver": {
+                    "transaction": false
+                }
+            },
+            "/system/shutdown": {
+                "add": false,
+                "conf": {},
+                "driver": {
+                    "transaction": false
+                }
+            },
+            "/system/stall": {
+                "add": false,
+                "conf": {},
+                "driver": {
+                    "transaction": false
+                }
+            },
+            "/system/update": {
+                "add": false,
+                "conf": {},
+                "driver": {
+                    "transaction": false
+                }
+            }
+        }
+    },
+    "UHFQA": {
+        "generalSettings": {
+            "support_arm": true,
+            "support_hardware_loop": true,
+            "interface": "Other",
+            "startup": "Do nothing"
+        },
+        "ignoredNodes": {
+            "normal": [],
+            "advanced": []
+        },
+        "groups": {},
+        "sections": {
+            "/awgs/*": "AWG Sequencer"
+        },
+        "quants": {
+            "/qas/*/integration/weights/data": {
+                "add": true,
+                "conf": {
+                    "datatype": "PATH",
+                    "set_cmd": "*.csv",
+                    "tooltip": "Load integration weights from a file."
+                },
+                "driver": {
+                    "function": "qas/write_integration_weights",
+                    "function_path": "../../write_integration_weights",
+                    "type": "CSV",
+                    "call_empty": false
+                }
+            }
+        }
+    },
+    "SHFQA": {
+        "generalSettings": {
+            "support_arm": true,
+            "support_hardware_loop": true,
+            "interface": "Other",
+            "startup": "Do nothing"
+        },
+        "ignoredNodes": {
+            "normal": [],
+            "advanced": []
+        },
+        "groups": {},
+        "sections": {},
+        "quants": {
+            "/qachannels/*/spectroscopy/envelope/wave/file": {
+                "add": true,
+                "conf": {
+                    "datatype": "PATH",
+                    "set_cmd": "*.csv",
+                    "tooltip": "Complex waveform from a file."
+                },
+                "driver": {
+                    "function": "shfqa/sweeper/envelope",
+                    "function_path": "../../wave",
+                    "type": "CSVARRAY"
+                }
+            },
+            "/qachannels/*/generator/pulses": {
+                "add": true,
+                "conf": {
+                    "datatype": "PATH",
+                    "set_cmd": "*.csv",
+                    "tooltip": "Writes selected pulses to the waveform memory."
+                },
+                "driver": {
+                    "function": "generator/write_to_waveform_memory",
+                    "function_path": "../write_to_waveform_memory",
+                    "type": "CSV"
+                }
+            },
+            "/qachannels/*/generator/wait_done": {
+                "add": true,
+                "indexes": [
+                    "dev"
+                ],
+                "conf": {
+                    "datatype": "BOOLEAN",
+                    "tooltip": "Wait until the generator execution is finished."
+                },
+                "driver": {
+                    "function": "wait_done",
+                    "function_path": "../wait_done",
+                    "trigger": true
+                }
+            },
+            "/qachannels/*/readout/result/enable": {
+                "add": true,
+                "conf": {
+                    "datatype": "BOOLEAN"
+                },
+                "driver": {
+                    "wait_for": true
+                }
+            },
+            "/qachannels/*/readout/wait_done": {
+                "add": true,
+                "conf": {
+                    "datatype": "BOOLEAN",
+                    "tooltip": "Wait until the readout is finished."
+                },
+                "driver": {
+                    "function": "wait_done",
+                    "function_path": "../wait_done",
+                    "trigger": true
+                }
+            },
+            "/qachannels/*/readout/integration_weights": {
+                "add": true,
+                "conf": {
+                    "datatype": "PATH",
+                    "set_cmd": "*.csv",
+                    "tooltip": "Configure the weighted integration from a file."
+                },
+                "driver": {
+                    "function": "generator/write_integration_weights",
+                    "function_path": "../write_integration_weights",
+                    "type": "CSV",
+                    "call_empty": false
+                }
+            },
+            "/qachannels/*/spectroscopy/result/enable": {
+                "add": true,
+                "conf": {
+                    "datatype": "BOOLEAN"
+                },
+                "driver": {
+                    "wait_for": true
+                }
+            },
+            "/qachannels/*/spectroscopy/wait_done": {
+                "add": true,
+                "conf": {
+                    "datatype": "BOOLEAN",
+                    "tooltip": "Wait until the spectroscopy is finished."
+                },
+                "driver": {
+                    "function": "wait_done",
+                    "function_path": "../wait_done",
+                    "trigger": true
+                }
+            },
+            "/scopes/*/enable": {
+                "add": true,
+                "conf": {
+                    "datatype": "BOOLEAN"
+                },
+                "driver": {
+                    "wait_for": true
+                }
+            },
+            "/scopes/*/wait_done": {
+                "add": true,
+                "conf": {
+                    "datatype": "BOOLEAN",
+                    "tooltip": "Wait until the scope recording is finished."
+                },
+                "driver": {
+                    "function": "wait_done",
+                    "function_path": "../wait_done",
+                    "trigger": true
+                }
+            }
+        }
+    },
+    "UHFLI": {
+        "generalSettings": {
+            "support_arm": true,
+            "support_hardware_loop": true,
+            "interface": "Other",
+            "startup": "Do nothing"
+        },
+        "ignoredNodes": {
+            "normal": [],
+            "advanced": []
+        },
+        "sections": {
+            "/aucarts/*": "AU",
+            "/aupolars/*": "AU",
+            "/awgs/*": "AWG",
+            "/boxcars/*": "Boxcars",
+            "/oscs/*": "OSC"
+        },
+        "groups": {}
+    },
+    "HDAWG": {
+        "generalSettings": {
+            "support_arm": true,
+            "support_hardware_loop": true,
+            "interface": "Other",
+            "startup": "Do nothing"
+        },
+        "ignoredNodes": {
+            "normal": [],
+            "advanced": []
+        },
+        "sections": {
+            "/sines/*": "Output",
+            "/sigouts/*": "Output"
+        },
+        "groups": {},
+        "quants": {}
+    },
+    "daq": {
+        "generalSettings": {
+            "support_arm": true,
+            "support_hardware_loop": true,
+            "interface": "Other",
+            "startup": "Do nothing"
+        },
+        "ignoredNodes": {
+            "normal": [],
+            "advanced": []
+        },
+        "groups": {},
+        "sections": {
+            "/awgcontrol": "Settings",
+            "/bandwidth": "Settings",
+            "/bitmask": "Settings",
+            "/bits": "Settings",
+            "/buffercount": "Control",
+            "/buffersize": "Control",
+            "/clearhistory": "History",
+            "/count": "Settings",
+            "/delay": "Settings",
+            "/duration": "Settings",
+            "/edge": "Settings",
+            "/enable": "Control",
+            "/endless": "Control",
+            "/eventcount": "Control",
+            "/fft/*": "Settings",
+            "/findlevel": "Settings",
+            "/flags": "Settings",
+            "/forcetrigger": "Control",
+            "/historylength": "History",
+            "/holdoff/*": "Settings",
+            "/hysteresis": "Settings",
+            "/level": "Settings",
+            "/preview": "Settings",
+            "/pulse/*": "Settings",
+            "/refreshrate": "Settings",
+            "/save/*": "History",
+            "/spectrum": "Settings",
+            "/spectrum/*": "Settings",
+            "/triggered": "Control",
+            "/triggernode": "Settings",
+            "/type": "Settings"
+        },
+        "quants": {
+            "/forcetrigger": {
+                "add": false,
+                "conf": {},
+                "driver": {
+                    "trigger": true
+                }
+            },
+            "/triggernode": {
+                "add": false,
+                "conf": {},
+                "driver": {
+                    "is_node_path": true
+                }
+            },
+            "/signal/*": {
+                "add": true,
+                "indexes": [
+                    16
+                ],
+                "conf": {
+                    "datatype": "STRING",
+                    "section": "Control",
+                    "permission": "BOTH"
+                },
+                "driver": {
+                    "function": "module_subscribe",
+                    "function_path": "../../raw_module/subscribe"
+                }
+            },
+            "/result/*": {
+                "add": true,
+                "indexes": [
+                    16
+                ],
+                "conf": {
+                    "datatype": "VECTOR",
+                    "section": "Control",
+                    "permission": "READ",
+                    "x_name": "Length",
+                    "x_unit": "Sample"
+                },
+                "driver": {
+                    "function": "module_read",
+                    "function_path": "../../raw_module/read"
+                }
+            },
+            "/clear_results": {
+                "add": true,
+                "conf": {
+                    "datatype": "BOOLEAN",
+                    "section": "Control",
+                    "permission": "Both"
+                },
+                "driver": {
+                    "function": "module_clear",
+                    "function_path": "",
+                    "trigger": true
+                }
+            }
+        }
+    },
+    "sweeper": {
+        "generalSettings": {
+            "support_arm": true,
+            "support_hardware_loop": true,
+            "interface": "Other",
+            "startup": "Do nothing"
+        },
+        "ignoredNodes": {
+            "normal": [],
+            "advanced": []
+        },
+        "groups": {},
+        "sections": {
+            "/averaging": "Settings",
+            "/filtermode": "Settings",
+            "/gridnode": "Settings",
+            "/loopcount": "Settings",
+            "/maxbandwidth": "Settings",
+            "/omegasuppression": "Settings",
+            "/order": "Settings",
+            "/phaseunwrap": "Settings",
+            "/remainingtime": "Control",
+            "/samplecount": "Settings",
+            "/scan": "Settings",
+            "/settling": "Settings",
+            "/sincfilter": "Settings",
+            "/start": "Settings",
+            "/stop": "Settings",
+            "/xmapping": "Settings"
+        },
+        "quants": {
+            "/gridnode": {
+                "add": false,
+                "conf": {},
+                "driver": {
+                    "is_node_path": true
+                }
+            },
+            "/signal/*": {
+                "add": true,
+                "indexes": [
+                    16
+                ],
+                "conf": {
+                    "datatype": "STRING",
+                    "section": "Control",
+                    "permission": "BOTH"
+                },
+                "driver": {
+                    "function": "module_subscribe",
+                    "function_path": "../../raw_module/subscribe"
+                }
+            },
+            "/result/*": {
+                "add": true,
+                "indexes": [
+                    16
+                ],
+                "conf": {
+                    "datatype": "VECTOR",
+                    "section": "Control",
+                    "permission": "READ",
+                    "x_name": "Length",
+                    "x_unit": "Sample"
+                },
+                "driver": {
+                    "function": "module_read",
+                    "function_path": "../../raw_module/read"
+                }
+            },
+            "/clear_results": {
+                "add": true,
+                "conf": {
+                    "datatype": "BOOLEAN",
+                    "section": "Control",
+                    "permission": "Both"
+                },
+                "driver": {
+                    "function": "module_clear",
+                    "function_path": "",
+                    "trigger": true
+                }
+            },
+            "/enable": {
+                "add": true,
+                "conf": {
+                    "datatype": "BOOLEAN",
+                    "section": "Control",
+                    "permission": "Both"
+                },
+                "driver": {
+                    "function": "module_execute",
+                    "function_path": "../raw_module/execute"
+                }
+            }
+        }
+    },
+    "shfqa_sweeper": {
+        "generalSettings": {
+            "support_arm": true,
+            "support_hardware_loop": true,
+            "interface": "Other",
+            "startup": "Do nothing"
+        },
+        "ignoredNodes": {
+            "normal": [],
+            "advanced": []
+        },
+        "groups": {},
+        "sections": {},
+        "quants": {
+            "/envelope/waveform": {
+                "add": false,
+                "conf": {
+                    "datatype": "VECTOR_COMPLEX",
+                    "x_name": "Length",
+                    "x_unit": "Sample"
+                }
+            },
+            "/envelope/waveform/file": {
+                "add": true,
+                "conf": {},
+                "driver": {
+                    "function": "shfqa/sweeper/envelope",
+                    "function_path": "../../waveform",
+                    "type": "CSVARRAY"
+                }
+            },
+            "/offset_freq_vector": {
+                "add": true,
+                "conf": {
+                    "datatype": "VECTOR",
+                    "label": "Result",
+                    "permission": "READ"
+                },
+                "driver": {
+                    "function": "shfqa/sweeper/get_offset_freq_vector",
+                    "function_path": "../get_offset_freq_vector",
+                    "return_value": ""
+                }
+            },
+            "/result": {
+                "add": true,
+                "conf": {
+                    "datatype": "VECTOR_COMPLEX",
+                    "label": "Result",
+                    "permission": "READ"
+                },
+                "driver": {
+                    "function": "shfqa/sweeper/run",
+                    "function_path": "../run",
+                    "return_value": "['vector']"
+                }
+            }
+        }
+    },
+    "PQSC": {
+        "generalSettings": {},
+        "ignoredNodes": {
+            "normal": [],
+            "advanced": []
+        },
+        "groups": {},
+        "sections": {
+            "/execution/*": "Ports",
+            "/triggers/*": "Ports",
+            "/zsync/*/connection/*": "Ports"
+        },
+        "quants": {}
+    },
+    "DataServer": {
+        "generalSettings": {
+            "support_arm": true,
+            "support_hardware_loop": true,
+            "interface": "Other",
+            "startup": "Do nothing"
+        },
+        "groups": {},
+        "sections": {},
+        "ignoredNodes": {
+            "normal": [
+                "/zi/about/commit",
+                "/zi/about/fwrevision",
+                "/zi/debug/level",
+                "/zi/devices/connected",
+                "/zi/devices/visible",
+                "/zi/devices/discover",
+                "/zi/system/usagedata"
+            ],
+            "advanced": []
+        },
+        "quants": {}
+    },
+    "SHFSG": {
+        "generalSettings": {
+            "support_arm": true,
+            "support_hardware_loop": true,
+            "interface": "Other",
+            "startup": "Do nothing"
+        },
+        "groups": {},
+        "sections": {},
+        "ignoredNodes": {
+            "normal": [],
+            "advanced": []
+        },
+        "quants": {}
+    },
+    "MFLI": {
+        "generalSettings": {
+            "support_arm": true,
+            "support_hardware_loop": true,
+            "interface": "Other",
+            "startup": "Do nothing"
+        },
+        "groups": {},
+        "sections": {},
+        "ignoredNodes": {
+            "normal": [],
+            "advanced": []
+        },
+        "quants": {}
+    },
+    "HF2LI": {
+        "generalSettings": {
+            "support_arm": true,
+            "support_hardware_loop": true,
+            "interface": "Other",
+            "startup": "Do nothing"
+        },
+        "groups": {},
+        "sections": {},
+        "ignoredNodes": {
+            "normal": [],
+            "advanced": []
+        },
+        "quants": {
+            "/scopes/*/wave": {
+                "add": true,
+                "indexes": [
+                    "dev"
+                ],
+                "conf": {
+                    "datatype": "VECTOR_COMPLEX"
+                }
+            }
+        }
+    },
+    "functions": {
+        "commandtable/upload_to_device": {
+            "Args": {
+                "ct": "../data"
+            },
+            "Returns": [],
+            "call_type": "Immediately"
+        },
+        "sequencer_program": {
+            "Args": {
+                "sequencer_program": "../sequencer_program"
+            },
+            "Returns": [],
+            "call_type": "Immediately"
+        },
+        "wait_done": {
+            "Args": {},
+            "Returns": [],
+            "call_type": "Immediately",
+            "is_setting": false
+        },
+        "generator/write_to_waveform_memory": {
+            "Args": {
+                "pulses": "../pulses"
+            },
+            "Returns": [],
+            "call_type": "Immediately"
+        },
+        "awg/write_to_waveform_memory": {
+            "Args": {
+                "waveforms": [
+                    "../waves1",
+                    "../waves2",
+                    "../markers"
+                ]
+            },
+            "Returns": [],
+            "call_type": "Bundle"
+        },
+        "generator/write_integration_weights": {
+            "Args": {
+                "weights": "../integration_weights"
+            },
+            "Returns": [],
+            "call_type": "Immediately"
+        },
+        "qas/write_integration_weights": {
+            "Args": {
+                "weights": "../weights/data"
+            },
+            "Returns": [],
+            "call_type": "Immediately"
+        },
+        "shfqa/sweeper/get_offset_freq_vector": {
+            "Args": {},
+            "Returns": [
+                "../offset_freq_vector"
+            ],
+            "call_type": "Immediately",
+            "is_setting": false
+        },
+        "shfqa/sweeper/run": {
+            "Args": {},
+            "Returns": [
+                "../result"
+            ],
+            "call_type": "Immediately",
+            "is_setting": false
+        },
+        "shfqa/sweeper/envelope": {
+            "Args": {
+                "value": "file"
+            },
+            "Returns": [],
+            "call_type": "Immediately",
+            "is_setting": true
+        },
+        "module_subscribe": {
+            "call_type": "Bundle",
+            "is_setting": true,
+            "signals": "/signal/*"
+        },
+        "module_read": {
+            "call_type": "Immediately",
+            "is_setting": false,
+            "signals": "/signal/*",
+            "result": "/result/*"
+        },
+        "module_clear": {
+            "call_type": "Immediately",
+            "is_setting": false,
+            "result": "/result/*"
+        },
+        "module_execute": {
+            "call_type": "Bundle",
+            "is_setting": true
+        }
+    }
+}

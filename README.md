@@ -1,85 +1,73 @@
+![CI](https://github.com/zhinst/zhinst-labber/workflows/CI/badge.svg?branch=main)
+[![Coverage](https://codecov.io/gh/zhinst/zhinst-labber/branch/main/graph/badge.svg?token=VUDDFQE20M)](https://codecov.io/gh/zhinst/zhinst-labber)
+[![PyPI version](https://badge.fury.io/py/zhinst-labber.svg)](https://badge.fury.io/py/zhinst-labber)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
+[![Twitter URL](https://img.shields.io/twitter/url/https/twitter.com/fold_left.svg?style=social&label=Follow%20%40zhinst)](https://twitter.com/zhinst)
+
 # Zurich Instruments Labber Drivers
 
-The Zurich Instruments Labber Drivers are a collection of instrument drivers for
-the scientific measurement software [Labber](http://labber.org/). They provide
-a high-level interface of Zurich Instruments devices such as
-
-* the PQSC Programmable Quantum System Controller
-* the HDAWG Arbitrary Waveform Generator
-* the UHFQA and SHFQA Quantum Analyzers
-* the MFLI and UHFLI Lock-In Amplifiers
+The Zurich Instruments Labber Drivers is a python package that is able to
+automatically generate and update instrument drivers for all Zurich Instruments
+devices for the scientific measurement software [Labber](http://labber.org/).
 
 The Labber drivers are based on the
 [Zurich Instruments Toolkit](https://github.com/zhinst/zhinst-toolkit)
-(*zhinst-toolkit*), an extension of our Python API *ziPython* for high-level
-instrument control.
+(*zhinst-toolkit*), a high level driver of our Python API *ziPython*.
 
+> **WARNING**
+>
+> Upgrading from zhinst-labber versions lower than 0.3 needs some special attention
+> since version 0.3 breaks the API in many ways and measurements need to be adapted.
+> If you need more Information on the upgrading process or need assistance feel
+> free to contact the Zurich Instruments support at any time. (support@zhinst.com)
 
 # Status
 
 The Zurich Instruments Labber Drivers are well tested and considered stable
 enough for general usage. The interfaces may have some incompatible changes
-between releases. Please check the changelog if you are upgrading.
+between releases. Please check the changelog if you are upgrading to the latest version.
 
+## LabOne software
+As a prerequisite, the LabOne software version 22.02 or later must be installed.
+It can be downloaded for free at
+[https://www.zhinst.com/labone](https://www.zhinst.com/labone). Follow the
+installation instructions specific to your platform. Verify that you can
+connect to your instrument(s) using the web interface of LabOne. If you are
+upgrading from an older version, be sure to update the firmware of all
+Zurich Instruments devices in use by using the web interface.
+
+In principle LabOne can be installed in a remote machine, but we highly
+recommend to install it on a local machine where you intend to run the experiment.
 
 # Getting Started
 
-## LabOne
+Labber comes with its own Python distribution that is used by default.
+If not specified otherwise (Preferences -> Advanced -> Python distribution) the
+following command needs to be executed within this distribution.
+(C:\\Program Files\\Labber\\python-labber\\Scripts\\pip.exe or similar).
 
-As prerequisite, the LabOne software version 20.01 or later must be installed.
-It can be downloaded for free at https://www.zhinst.com/labone. Follow the
-installation instructions specific to your platform. Verify that you can connect
-to your instrument(s) using the web interface of LabOne. If you are upgrading
-from an older version, be sure to update the firmware of al your devices using
-the web interface before continuing. In principle LabOne can be installed in a
-remote machine, but we highly recommend to install on the local machine where
-you intend to run the experiment.
-
-
-## Labber Drivers
-
-Download this repository as ZIP folder and unpack its content. It contains a set of
-folders with the names *'Zurich_Instruments_XXXX'* that define the instrument
-drivers. In order to make the drivers available in Labber, the folders
-*'Zurich_Instruments_XXXX'* need to be copied to your *local* Labber Drivers
-folder. It is located in *'C:\Users\USERNAME\Labber\Drivers'* or similar. Once
-the driver folders are copied to your local Labber Drivers folder, they are
-available to be selected in the *Labber Instrument Server*.
-
-## Install dependencies (e.g. `zhinst-toolkit`)
-
-The Zurich Instruments Labber Drivers are based on the
-[Zurich Instruments Toolkit](https://github.com/zhinst/zhinst-toolkit) and a small set of third party packages.
-A complete list can be found inside the [requirements.txt](requirements.txt)[]().
-There are two ways to install these dependencies:
-
-### Using Labber's Python distribution
-
-Labber comes with its own Python distribution that is used by default. The required  packages needs to be installed with to this Python distribution,
-which is done using Labber's own `pip` package manager. It is located
-(on Windows) under C:\Program Files
-*'(x86)\Labber\python-labber\Scripts\pip.exe'* or similar.
-
-From within the unpacked project folder run:
-``` bash
-<path to Labber Scripts folder>\pip install -r requirements.txt
+```
+pip install zhinst-labber
 ```
 
-### Use your own Anaconda distribution
+The drivers for an device can now be generated using the command line interface.
 
-Alternatively, Labber can also configured to use your own Python distribution. Under *Instrument Server -> Preferences -> Advanced -> Python Distribution* you can
-point Labber to a different Python distribution, for example your *Anaconda*
-environment. If you chose for example you *base* Anaconda environment, install the required packages as followed.
+For example the following command generated the driver for the Device DEV1234
+inside the Labber driver folder of the ZI user.
 
-From within the unpacked project folder run:
 ```
-conda activate base
-pip install -r requirements.txt
+zhinst-labber setup "C:\Users\ZI\Labber\Drivers" DEV1234 localhost
 ```
 
-## Try It Out
+## Documentation
+For a full documentation see [here](https://docs.zhinst.com/zhinst-labber/en/latest).
 
-To see if your installation was successful, try to connect to your device. Add
-the instrument driver of your model to the *Instrument Server* with the serial
-number (e.g. *'dev1234'*) in the *Address* field and start the instrument. If
-the window turns green and no error emssage appears, you are ready to go!
+## Contributing
+We welcome contributions by the community, either as bug reports, fixes and new
+code. Please use the GitHub issue tracker to report bugs or submit patches.
+Before developing something new, please get in contact with us.
+
+## License
+This software is licensed under the terms of the MIT license.
+See [LICENSE](LICENSE) for more detail.

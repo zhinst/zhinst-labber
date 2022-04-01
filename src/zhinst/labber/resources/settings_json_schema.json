@@ -1,0 +1,376 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Labber configuration",
+    "description": "Labber configuration JSON",
+    "definitions": {
+        "misc": {
+            "description": "Miscellaneous settings",
+            "properties": {
+                "labberDelimiter": {
+                    "type": "string",
+                    "description": "Labber delimiter between words."
+                },
+                "ziModules": {
+                    "description": "Array of included ZIPython modules",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "LogLevel": {
+                    "description": "Log level in Python logging format.",
+                    "type": "number"
+                }
+            },
+            "required": [
+                "labberDelimiter",
+                "ziModules",
+                "LogLevel"
+            ]
+        },
+        "common": {
+            "properties": {
+                "generalSettings": {
+                    "$ref": "#/definitions/generalSettings"
+                },
+                "ignoredNodes": {
+                    "$ref": "#/definitions/ignoredNodes"
+                },
+                "groups": {
+                    "$ref": "#/definitions/groups"
+                },
+                "sections": {
+                    "$ref": "#/definitions/sections"
+                },
+                "quants": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/commonQuants"
+                    }
+                }
+            },
+            "required": [
+                "generalSettings",
+                "ignoredNodes",
+                "groups",
+                "sections",
+                "quants"
+            ]
+        },
+        "commonQuants": {
+            "type": "object",
+            "properties": {
+                "add": {
+                    "type": "boolean"
+                },
+                "conf": {
+                    "type": "object"
+                },
+                "extend": {
+                    "type": "object"
+                },
+                "mapping": {
+                    "$ref": "#/definitions/mapping"
+                },
+                "driver": {
+                    "$ref": "#/definitions/driver"
+                }
+            },
+            "required": [
+                "add",
+                "conf"
+            ]
+        },
+        "driver": {
+            "type": "object",
+            "properties": {
+                "function": {
+                    "type": "string"
+                },
+                "function_path": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "return_value": {
+                    "type": "string"
+                },
+                "wait_for": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "commonTKQuant": {
+            "properties": {
+                "generalSettings": {
+                    "$ref": "#/definitions/generalSettings"
+                },
+                "ignoredNodes": {
+                    "$ref": "#/definitions/ignoredNodes"
+                },
+                "groups": {
+                    "$ref": "#/definitions/groups"
+                },
+                "sections": {
+                    "$ref": "#/definitions/sections"
+                },
+                "quants": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/commonQuants"
+                    }
+                }
+            },
+            "required": [
+                "generalSettings",
+                "ignoredNodes",
+                "groups",
+                "sections",
+                "quants"
+            ]
+        },
+        "sections": {
+            "type": "object",
+            "description": "Path sections.",
+            "additionalProperties": {
+                "type": "string",
+                "description": "Path."
+            }
+        },
+        "groups": {
+            "type": "object",
+            "description": "Path groups.",
+            "additionalProperties": {
+                "type": "string",
+                "description": "Path."
+            }
+        },
+        "generalSettings": {
+            "type": "object",
+            "description": "Labber General settings section",
+            "additionalProperties": {
+                "type": [
+                    "string",
+                    "boolean"
+                ]
+            }
+        },
+        "indexes": {
+            "type": "array",
+            "description": "How the quant indexes are calculated.",
+            "items": {
+                "oneOf": [
+                    {
+                        "type": "number"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Calculate number of indexes from device.",
+                        "enum": [
+                            "dev"
+                        ]
+                    }
+                ]
+            }
+        },
+        "TKQuant": {
+            "type": "object",
+            "properties": {
+                "add": {
+                    "description": "True if quant should be added regardless if it exists in the calling device.",
+                    "type": "boolean"
+                },
+                "indexes": {
+                    "$ref": "#/definitions/indexes"
+                },
+                "conf": {
+                    "$ref": "#/definitions/conf"
+                },
+                "extend": {
+                    "$ref": "#/definitions/conf"
+                },
+                "driver": {
+                    "$ref": "#/definitions/driver"
+                }
+            },
+            "required": [
+                "add",
+                "conf"
+            ]
+        },
+        "LabberDatatype": {
+            "type": "string",
+            "enum": [
+                "DOUBLE",
+                "BOOLEAN",
+                "STRING",
+                "COMPLEX",
+                "VECTOR",
+                "VECTOR_COMPLEX",
+                "PATH",
+                "BUTTON"
+            ]
+        },
+        "conf": {
+            "type": "object",
+            "properties": {
+                "suffix": {
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "unit": {
+                    "type": "string"
+                },
+                "datatype": {
+                    "type": "string",
+                    "enum": [
+                        "DOUBLE",
+                        "BOOLEAN",
+                        "STRING",
+                        "COMPLEX",
+                        "VECTOR",
+                        "VECTOR_COMPLEX",
+                        "PATH",
+                        "BUTTON"
+                    ]
+                },
+                "tooltip": {
+                    "type": "string"
+                },
+                "low_lim": {
+                    "type": "string"
+                },
+                "high_lim": {
+                    "type": "string"
+                },
+                "x_name": {
+                    "type": "string"
+                },
+                "x_unit": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "section": {
+                    "type": "string"
+                }
+            }
+        },
+        "mapping": {
+            "type": "object",
+            "description": "Mapping of the path and indexes.",
+            "properties": {
+                "path": {
+                    "type": "string",
+                    "description": "Quant node-like path."
+                },
+                "indexes": {
+                    "$ref": "#/definitions/indexes"
+                }
+            }
+        },
+        "ignoredNodes": {
+            "type": "object",
+            "description": "Defined nodes to be ignored.",
+            "properties": {
+                "normal": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "advanced": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            },
+            "required": [
+                "normal"
+            ]
+        },
+        "deviceProperty": {
+            "type": "object",
+            "properties": {
+                "ignoredNodes": {
+                    "$ref": "#/definitions/ignoredNodes"
+                },
+                "generalSettings": {
+                    "$ref": "#/definitions/generalSettings"
+                },
+                "groups": {
+                    "$ref": "#/definitions/groups"
+                },
+                "sections": {
+                    "$ref": "#/definitions/sections"
+                },
+                "quants": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/TKQuant"
+                    }
+                }
+            },
+            "required": [
+                "generalSettings"
+            ]
+        },
+        "functions": {
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "#/definitions/functionObject"
+            }
+        },
+        "functionObject": {
+            "type": "object",
+            "properties": {
+                "Args": {
+                    "type": "object"
+                },
+                "Returns": {
+                    "type": "array"
+                },
+                "call_type": {
+                    "type": "string"
+                },
+                "is_setting": {
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "call_type"
+            ]
+        }
+    },
+    "properties": {
+        "$schema": {
+            "type": "string"
+        },
+        "version": {
+            "type": "string"
+        },
+        "misc": {
+            "$ref": "#/definitions/misc"
+        },
+        "common": {
+            "$ref": "#/definitions/common"
+        },
+        "functions": {
+            "$ref": "#/definitions/functions"
+        }
+    },
+    "additionalProperties": {
+        "$ref": "#/definitions/deviceProperty"
+    },
+    "required": [
+        "version",
+        "misc",
+        "common",
+        "functions"
+    ]
+}
