@@ -241,7 +241,7 @@ class NodeQuant:
         defs = {}
         for idx, (k, v) in enumerate(self._node_info["Options"].items(), 1):
             value, _ = self._enum_description(v)
-            defs[f"cmd_def_{idx}"] = value if value else str(k)
+            defs[f"cmd_def_{idx}"] = str(k)
             defs[f"combo_def_{idx}"] = value if value else str(k)
         return defs
 

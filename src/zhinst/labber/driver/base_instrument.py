@@ -240,7 +240,13 @@ class BaseDevice(LabberDriver):
                     value = self._parse_value(self._snapshot.get_value(get_cmd))
                 except RuntimeError as error:
                     logger.debug("%s", error)
+                if quant.cmd_def:
+                    try:
+                        value = quant.cmd_def[value]
+                    except IndexError:
+                        ...
                 logger.info("%s: get %s", quant.name, value)
+
                 return value if value is not None else quant.getValue()
             # clear snapshot if GET_CFG is finished
             self._snapshot.clear()
@@ -428,7 +434,8 @@ class BaseDevice(LabberDriver):
         """
         try:
             # get enumerated value if there is one
-            value = quant.cmd_def.index(value) if quant.cmd_def else value
+            if quant.cmd_def:
+                value = quant.cmd_def[quant.combo_defs.index(value)]
             logger.info("%s: set %s", quant.name, value)
             self._instrument[quant.set_cmd](value)
             if wait_for and not self._transaction.is_running():
