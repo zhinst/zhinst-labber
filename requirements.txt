@@ -1,8 +1,8 @@
-zhinst-toolkit>=0.3.2
-numpy>=1.16.5
-click >= 8.0
-Jinja2 >= 3.0
-natsort >= 8.1
-black>=22.1
-autoflake>=1.4
+zhinst-toolkit
+numpy
+click
+Jinja2
+natsort
+black
+autoflake
 jsonschema
