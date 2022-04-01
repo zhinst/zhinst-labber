@@ -7,17 +7,17 @@ Follow :doc:`installation` to install zhinst-labber first.
 Preparation
 -----------
 
-Before you can spin up zhinst-labber LabOne® needs to be installed and running.
+Before using zhinst-labber, LabOne® needs to be installed and running.
 For a complete reference see the dedicated `user manual <http://docs.zhinst.com/>`_
 page for your instrument(s).
 
-Before you continue make sure a LabOne® data server is running in your network and
+Before continuing, make sure a LabOne® data server is running in your network and
 all of your devices are visible.
 
 Generate Instrument driver
 ---------------------------
 
-zhinst-labber does not ship with predefined Instrument drivers. Instead the
+zhinst-labber does not include predefined Instrument drivers. Instead the
 command line can be used to generate a custom Instrument driver for all Zurich
 Instrument devices. This has the benefit that one does not need to pay any
 attention to the correct version or options.
@@ -74,6 +74,10 @@ existing drivers.
 
     >>> zhinst-labber setup "C:\Users\ZI\Labber\Drivers" DEV1234 localhost --upgrade
 
+.. note::
+
+    After upgrading existing instrument drivers, the driver definition needs to be 
+    reloaded in Labber UI. The new drivers take place only after reload.
 
 Configuring the Instrument driver
 ----------------------------------
@@ -133,4 +137,27 @@ configuration should be used:
     used.
 
 
+Same device, different options
+------------------------------
 
+If multiple devices of the same type are used and have different options,
+multiple different Labber drivers can be generated for each device.
+
+The driver name structure is following: 
+
+``Zurich_Instruments_<device name>_<option 1>_<option 2>_<option n>``
+
+Example use case
+~~~~~~~~~~~~~~~~
+
+2 Zurich Instruments MFLI devices
+
+  * MFLI without options
+  * MFLI with DIG, and IA options
+
+After generating the Labber drivers for both device, 2 drivers would exist:
+
+  * Zurich_Instruments_MFLI
+  * Zurich_Instruments_MFLI_DIG_IA
+
+Now the correct driver can be used for whichever device is used.
