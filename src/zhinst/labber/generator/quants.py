@@ -125,19 +125,19 @@ class NodeQuant:
 
     def _validate_node_info(self, node_info: t.Dict) -> None:
         """Validate Node info.
-    
+
         Generally nodes that requires polling are ignored due to limited
         Labber functionality. This can change in the future.
-        
+
         Args:
             node_info: Node info in ZIPython format.
         Raises:
             ValueError: Value(s) are not supported.
         """
         not_allowed_types = [
-            "ZIPWAWave", 
-            "ZITriggerSample", 
-            "ZICntSample", 
+            "ZIPWAWave",
+            "ZITriggerSample",
+            "ZICntSample",
             "ZIScopeWave",
             "ZIAuxInSample",
             "ZIImpedanceSample"
@@ -310,9 +310,9 @@ class NodeQuant:
             "preview",
             "findlevel",
             "clearwave",
-            "clearweight"
-            "force"
-            "trigforce"
+            "clearweight",
+            "force",
+            "trigforce",
         ]
         if self._path_parts[-1].lower() in boolean_nodes:
             return "BOOLEAN"
@@ -351,7 +351,7 @@ class NodeQuant:
     def as_dict(self) -> t.Dict[str, t.Dict]:
         """Python dictionary representation of the node quant.
 
-        Due to some problems with Labber, some modification for READ-only nodes are 
+        Due to some problems with Labber, some modification for READ-only nodes are
         needed:
 
             If datatype is COMBO and permission is READ:
