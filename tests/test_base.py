@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, Mock
 import sys
 import tempfile
 from pathlib import Path
@@ -9,7 +9,7 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parent / "labber"))
 import zhinst.labber.driver.base_instrument as labber_driver
 from zhinst.labber.driver.base_instrument import logger
-
+from labber.BaseDriver import InstrumentQuantity
 
 @pytest.fixture()
 def mock_toolkit_session():
@@ -123,10 +123,12 @@ def session_driver():
 
 
 def create_quant_mock(name, instrument, set_cmd, get_cmd):
-    quant = MagicMock()
+    quant = Mock(spec=InstrumentQuantity)
     quant.name = name
     quant.set_cmd = set_cmd
     quant.get_cmd = get_cmd
+    quant.cmd_def = []
+    quant.datatype = ""
     instrument._node_quant_map[instrument._quant_to_path(name)] = name
     return quant
 
@@ -604,8 +606,7 @@ class TestBase:
         # Not existing node (in snapshot)
         device_driver._instrument.root["*"].side_effect = [{}, KeyError("test")]
         with patch("zhinst.labber.driver.base_instrument.logger") as logger:
-            device_driver.performGetValue(quant)
-        logger.error.assert_called_with("%s not found", "test/node")
+            assert quant.getValue() == device_driver.performGetValue(quant)
         # existing node
         device_driver._instrument.root["*"].side_effect = None
         device_driver._instrument.root["*"].return_value = {

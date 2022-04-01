@@ -238,8 +238,6 @@ class BaseDevice(LabberDriver):
                 value = None
                 try:
                     value = self._parse_value(self._snapshot.get_value(get_cmd))
-                except KeyError:
-                    logger.error("%s not found", get_cmd)
                 except RuntimeError as error:
                     logger.debug("%s", error)
                 logger.info("%s: get %s", quant.name, value)
