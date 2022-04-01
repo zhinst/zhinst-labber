@@ -10,7 +10,7 @@ def generate_labber_device_driver_code(
     classname: str, settings_file: t.Union[Path, str]
 ) -> str:
     """Generate labber device driver code.
-    
+
     Generates a Python file based on:
     `zhinst/labber/code_generator/templates/device_template.py.j2`
     """

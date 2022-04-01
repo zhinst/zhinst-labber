@@ -1,11 +1,12 @@
-import typing as t
-import sys
 import logging
+import sys
+import typing as t
 from logging.handlers import RotatingFileHandler
 
 
 def configure_logger(
-    logger_: logging.Logger, level: int, filepath: t.Optional[str] = None) -> None:
+    logger_: logging.Logger, level: int, filepath: t.Optional[str] = None
+) -> None:
     """Configure logger.
 
     Setup formatter

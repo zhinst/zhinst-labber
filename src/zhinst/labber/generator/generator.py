@@ -1,9 +1,9 @@
 import configparser
+import fnmatch
 import json
 import typing as t
 from collections import OrderedDict
 from pathlib import Path
-import fnmatch
 
 import natsort
 from zhinst.toolkit import Session
@@ -314,14 +314,21 @@ def _path_to_labber_section(path: str, delim: str) -> str:
         Formatted path in Labber format with given delimited."""
     return path.strip("/").replace("/", delim)
 
-def order_labber_config(data: OrderedDict, order: t.Dict[str, t.List[str]]) -> OrderedDict:
+
+def order_labber_config(
+    data: OrderedDict, order: t.Dict[str, t.List[str]]
+) -> OrderedDict:
     data = data.copy()
     data_ = OrderedDict()
     if not "sections" in order:
         return data
     while data:
         for section in order["sections"]:
-            r = {k: v for k, v in data.items() if v.get("section", "").lower() == section.lower()}
+            r = {
+                k: v
+                for k, v in data.items()
+                if v.get("section", "").lower() == section.lower()
+            }
             data_.update(r)
             [data.pop(k) for k in r.keys()]
         data_.update(data)
@@ -329,7 +336,9 @@ def order_labber_config(data: OrderedDict, order: t.Dict[str, t.List[str]]) -> O
     return data_
 
 
-def conf_to_labber_format(data: dict, delim: str, order: t.Dict[str, t.List[str]]) -> dict:
+def conf_to_labber_format(
+    data: dict, delim: str, order: t.Dict[str, t.List[str]]
+) -> dict:
     """Transform data into Labber format.
 
     * Natural sort dictionary keys
@@ -370,7 +379,12 @@ def conf_to_labber_format(data: dict, delim: str, order: t.Dict[str, t.List[str]
     return data
 
 
-def dict_to_config(config: configparser.ConfigParser, data: dict, delim: str, order: t.Dict[str, t.List[str]]) -> None:
+def dict_to_config(
+    config: configparser.ConfigParser,
+    data: dict,
+    delim: str,
+    order: t.Dict[str, t.List[str]],
+) -> None:
     """Update config with give data.
 
     The data will be formatted and then set as config sections.
@@ -422,16 +436,19 @@ class Filehandler:
     def write_settings_file(self) -> None:
         """Write settings file (.*json-format)."""
         path = self._root_dir / self._config.settings_filename
-        self.write_to_file(path, lambda x: json.dump(self._config.settings, x, indent=2))
+        self.write_to_file(
+            path, lambda x: json.dump(self._config.settings, x, indent=2)
+        )
 
     def write_config_file(self, delim: str) -> None:
         """Write configuration file (*.ini-format)."""
         path = self._root_dir / f"{self._config.name}.ini"
         config = configparser.ConfigParser()
         dict_to_config(
-            config, self._config.config(),
-            delim=delim, 
-            order=self._config.env_settings.quant_order
+            config,
+            self._config.config(),
+            delim=delim,
+            order=self._config.env_settings.quant_order,
         )
         self.write_to_file(path, lambda x: config.write(x))
 

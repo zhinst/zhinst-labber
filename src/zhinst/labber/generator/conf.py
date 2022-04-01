@@ -1,5 +1,5 @@
-import typing as t
 import string
+import typing as t
 
 from zhinst.labber.generator.helpers import tooltip
 

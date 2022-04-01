@@ -5,7 +5,7 @@ import typing as t
 
 def _replace_characters(s: str) -> str:
     """Replace characters that are not suitable to present in Labber.
- 
+
     Returns:
         Labber compatible string.
     """
@@ -22,6 +22,7 @@ def _replace_characters(s: str) -> str:
     for c in chars:
         s = s.replace(c[0], c[1])
     return s
+
 
 def _to_html_list(x: t.List[str]) -> str:
     """Convert list items to an HTML list.
@@ -61,7 +62,7 @@ def tooltip(
 
 def delete_device_from_node_path(path: str) -> str:
     """Delete device prefix from path.
-    
+
     Returns:
         Path where 'DEVXXXX' prefix is subtracted.
     """
@@ -70,7 +71,7 @@ def delete_device_from_node_path(path: str) -> str:
 
 def match_in_dict_keys(target: str, data: dict) -> t.Tuple[str, t.Any]:
     """Find matches for target in data keys.
-    
+
     Returns:
         Key, value pair of the data if the target matches a key in data.
         Otherwise empty string and None

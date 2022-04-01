@@ -91,8 +91,8 @@ def setup(driver_directory, device_id, server_host, server_port, hf2, mode, upgr
     )
     if not upgrade and not generated:
         click.echo(
-            "Error: It appears that the driver already exists. " \
-            "Please delete the files manually or " \
+            "Error: It appears that the driver already exists. "
+            "Please delete the files manually or "
             "use --upgrade options to overwrite the existing drivers."
         )
     for file in generated:

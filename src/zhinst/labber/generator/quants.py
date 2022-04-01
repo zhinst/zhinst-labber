@@ -140,7 +140,7 @@ class NodeQuant:
             "ZICntSample",
             "ZIScopeWave",
             "ZIAuxInSample",
-            "ZIImpedanceSample"
+            "ZIImpedanceSample",
         ]
         if node_info.get("Type", None) in not_allowed_types:
             raise ValueError(f"Node type {node_info.get('Type', None)} not allowed.")
@@ -263,7 +263,7 @@ class NodeQuant:
             else:
                 items.append(f"{value if value else k}: {desc}")
         if self.permission == "READ" and self.datatype in ["STRING", "COMBO"]:
-                description = "<p><b>READ-ONLY!</p></b>" + description
+            description = "<p><b>READ-ONLY!</p></b>" + description
         return helpers.tooltip(
             description,
             enum=items,

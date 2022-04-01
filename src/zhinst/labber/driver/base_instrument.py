@@ -4,11 +4,11 @@ import fnmatch
 import json
 import logging
 import os
+import re
 import string
 import typing as t
 from itertools import repeat
 from pathlib import Path
-import re
 
 import numpy as np
 from BaseDriver import LabberDriver
@@ -17,8 +17,8 @@ from zhinst.toolkit import Session, Waveforms
 from zhinst.toolkit.driver.devices import DeviceType
 from zhinst.toolkit.driver.modules import ModuleType
 
-from zhinst.labber.driver.snapshot_manager import SnapshotManager, TransactionManager
 from zhinst.labber.driver.logger import configure_logger
+from zhinst.labber.driver.snapshot_manager import SnapshotManager, TransactionManager
 
 Quantity = t.TypeVar("Quantity")
 NumpyArray = t.TypeVar("NumpyArray")
@@ -628,7 +628,9 @@ class BaseDevice(LabberDriver):
         """
         self._instrument.raw_module.unsubscribe("*")
         logger.info(f"unsubscribed all nodes")
-        for signal_path in fnmatch.filter(map(str, self._node_quant_map), signals.resolve()):
+        for signal_path in fnmatch.filter(
+            map(str, self._node_quant_map), signals.resolve()
+        ):
             quant_name = self._node_quant_map[Path(signal_path)]
             quant_value, _ = self._raw_path_to_zi_node(
                 self.getValue(quant_name).lower()
@@ -682,8 +684,12 @@ class BaseDevice(LabberDriver):
         logger.debug("Get module results: %s", poll_result)
         if poll_result:
             # Loop through all signals and update values if they are available
-            signal_paths = fnmatch.filter(map(str,self._node_quant_map), signals.resolve())
-            result_paths = fnmatch.filter(map(str,self._node_quant_map), results.resolve())
+            signal_paths = fnmatch.filter(
+                map(str, self._node_quant_map), signals.resolve()
+            )
+            result_paths = fnmatch.filter(
+                map(str, self._node_quant_map), results.resolve()
+            )
             for signal, result in zip(signal_paths, result_paths):
                 signal_quant = self._node_quant_map[Path(signal)]
                 signal_value, option = self._raw_path_to_zi_node(
@@ -724,7 +730,7 @@ class BaseDevice(LabberDriver):
             signals: Wildcard path for all result array quantities.
         """
         logger.info("Clear module results")
-        result_paths = fnmatch.filter(map(str,self._node_quant_map), results.resolve())
+        result_paths = fnmatch.filter(map(str, self._node_quant_map), results.resolve())
         for result_path in result_paths:
             quant_name = self._node_quant_map[Path(result_path)]
             quant = self.getQuantity(quant_name)
@@ -802,7 +808,7 @@ class BaseDevice(LabberDriver):
         try:
             return_values = function(**kwargs)
         except Exception as error:
-            logger.error("%s",error)
+            logger.error("%s", error)
             return
         logger.info(
             "%s: returned %s", self._path_to_quant(path), str(return_values)[-10:]
