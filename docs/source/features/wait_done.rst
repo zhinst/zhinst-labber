@@ -18,7 +18,7 @@ Especially in the measurement editor this can be used to ensure that a
 measurement is finished before the results are logged.
 
 All of the wait done quantities have a timeout that prevents the measurement from
-being blocked for to long.
+being blocked for too long.
 
-At after the measurement is finish the quantity is reset automatically to 0 so
+After the measurement is finished the quantity is reset automatically to 0 so
 it can be called again.

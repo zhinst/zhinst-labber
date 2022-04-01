@@ -1,10 +1,10 @@
 # zhinst-labber Changelog
 
 
-## Verison 0.3.0
-* Adapt drivers to toolkit 0.3 which is a major refactoring and improves
+## Version 0.3.0
+* Adapt drivers to ``zhinst-toolkit`` 0.3.x which is a major refactoring and improves
   speed, stability and feature availability.
-* Introduce python package zhint-labber which is able to automatically generate
+* Introduce python package ``zhint-labber`` which is able to automatically generate
   the Labber driver for each Zurich Instruments device (including HF2).
 * Easy to access CLI for zhinst-labber.
 * Node naming aligned with LabOne.

@@ -59,7 +59,7 @@ to see how the signals are constructed. Alternatively one can use the LabOne UI
 to see the available signals and use the API Log feature to see what the
 corresponding node/signal looks like. An example of a valid signal is
 ``dev1234/demods/0/sample.x`` and is equal to ``demods/0/sample.x`` (meaning
-teh device id is not mandatory).
+the device ID is not mandatory).
 
 Once the signals have been specified (unused signals can be left empty), the
 module is enabled and triggered and the result quantities contain the latest
@@ -69,7 +69,7 @@ data.
 
     Even though the DAQ module has a history feature the result quantities only
     contain the latest traces. It is however possible to save the results,
-    including older traces, using the save feature in the history section.
+    including older traces by using the save feature in the history section.
 
 .. note::
 
@@ -81,7 +81,7 @@ Sweeper Module
 
 The Sweeper Module allows the user to perform sweeps as in the Sweeper Tab of the
 LabOne User Interface. In general, the Sweeper can be used to obtain data when
-measuring a DUT's response to varying (or sweeping) one instrument setting while
+measuring a DUT's response to varying (or sweeping) instrument setting while
 other instrument settings are kept constant.
 
 The Labber driver defines 16 signal channels. Each channel can be set to a
