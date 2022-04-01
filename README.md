@@ -15,6 +15,13 @@ The Labber drivers are based on the
 [Zurich Instruments Toolkit](https://github.com/zhinst/zhinst-toolkit)
 (*zhinst-toolkit*), a high level driver of our Python API *ziPython*.
 
+> **WARNING**
+>
+> Upgrading from zhinst-labber versions lower than 0.3 needs some special attention
+> since version 0.3 breaks the API in many ways and measurements need to be adapted.
+> If you need more Information on the upgrading process or need assistance feel
+> free to contact the Zurich Instruments support at any time. (support@zhinst.com)
+
 # Status
 
 The Zurich Instruments Labber Drivers are well tested and considered stable
