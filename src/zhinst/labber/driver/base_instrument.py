@@ -237,14 +237,9 @@ class BaseDevice(LabberDriver):
             if self.dOp["operation"] in [Interface.GET_CFG, Interface.SET_CFG]:
                 value = None
                 try:
-                    value = self._parse_value(self._snapshot.get_value(get_cmd))
+                    value = self._parse_value(quant, self._snapshot.get_value(get_cmd))
                 except RuntimeError as error:
                     logger.debug("%s", error)
-                if quant.cmd_def:
-                    try:
-                        value = quant.cmd_def[value]
-                    except IndexError:
-                        ...
                 logger.info("%s: get %s", quant.name, value)
 
                 return value if value is not None else quant.getValue()
@@ -252,6 +247,7 @@ class BaseDevice(LabberDriver):
             self._snapshot.clear()
             try:
                 value = self._parse_value(
+                    quant,
                     self._instrument[get_cmd](parse=False, enum=False)
                 )
                 logger.info("%s: get %s", quant.name, value)
@@ -272,10 +268,11 @@ class BaseDevice(LabberDriver):
     #     """Perform the instrument arm operation"""
     #     pass
 
-    def _parse_value(self, value: t.Any) -> t.Any:
+    def _parse_value(self, quant: Quantity, value: t.Any) -> t.Any:
         """Parse the value received from toolkit for a node.
 
         Args:
+            quant: Labber quantity
             value: Received value
 
         Returns:
@@ -288,6 +285,9 @@ class BaseDevice(LabberDriver):
                 return value["dio"][0]
             logger.error("Unknown data received %s", value)
             return None
+        # Labber handles enums as strings
+        if quant.cmd_def:
+            value = str(value)
         return value
 
     def _get_session(
