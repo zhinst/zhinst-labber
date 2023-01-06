@@ -225,6 +225,7 @@ class DeviceConfig(LabberConfig):
                 "shared_session": True,
             },
             "instrument": {"base_type": "device", "type": self._name},
+            "vector_quantity_value_map_array_keys": ["y"],
         }
         version = f"{session.about.version()}#{__version__}#{self.env_settings.version}"
         self._general_settings = {

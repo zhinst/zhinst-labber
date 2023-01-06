@@ -102,6 +102,7 @@ The ``settings.json`` has the following structure:
             "base_type": "device",
             "type": "UHFLI"
         }
+        "vector_quantity_value_map_array_keys": ["y"],
         "logger_level": 20
         "logger_path": "Path\\to\\log\\output.log"
     }
@@ -113,6 +114,8 @@ The ``settings.json`` has the following structure:
 * **shared_session**: If true the instrument reuses a session to a data server.
   Sharing a session is enabled by default and increases the setup speed as well
   as resource consumption.
+* **vector_quantity_value_map_array_keys**: If vector quantity value is a dictionary instead of an array,
+  the values in the list defines the key from where the vector can be found. First matching key is used.
 * **logger_level**: Used logger level. If not specified the default logger level
   (Info = 20) from zhinst-labber is used.
 * **logger_path**: Optional path for storing the logger output to a path. (In

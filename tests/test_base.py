@@ -11,6 +11,7 @@ import zhinst.labber.driver.base_instrument as labber_driver
 from zhinst.labber.driver.base_instrument import logger
 from labber.BaseDriver import InstrumentQuantity
 
+
 @pytest.fixture()
 def mock_toolkit_session():
     with patch(
@@ -29,6 +30,7 @@ def device_driver():
             "shared_session": True,
         },
         "instrument": {"base_type": "device", "type": "SHFQA"},
+        "vector_quantity_value_map_array_keys": ["y"],
     }
     # reset session cache
     labber_driver.created_sessions = {}
@@ -122,13 +124,13 @@ def session_driver():
     return instrument
 
 
-def create_quant_mock(name, instrument, set_cmd, get_cmd):
+def create_quant_mock(name, instrument, set_cmd, get_cmd, datatype=""):
     quant = Mock(spec=InstrumentQuantity)
     quant.name = name
     quant.set_cmd = set_cmd
     quant.get_cmd = get_cmd
     quant.cmd_def = []
-    quant.datatype = ""
+    quant.datatype = datatype
     instrument._node_quant_map[instrument._quant_to_path(name)] = name
     return quant
 
@@ -801,3 +803,48 @@ class TestBase:
         sweeper_module.dOp["operation"] = 2
         sweeper_module.performGetValue(quant)
         sweeper_module._instrument.raw_module.finished.assert_called_once()
+
+    @pytest.mark.parametrize(
+        "datatype, set_cmd, set_value, expected_set",
+        [
+            (
+                4,
+                "/DEV1234/TEST/PATH",
+                {"x": 123, "y": np.array([1, 2])},
+                np.array([1, 2]),
+            ),
+            (4, "/DEV1234/TEST/PATH", np.array([1, 2]), np.array([1, 2])),
+            (4, "/DEV1234/TEST/PATH", [1, 2], [1, 2]),
+            (
+                "VECTOR_COMPLEX",
+                "/DEV1234/TEST/PATH",
+                np.array([1 + 2j, 2 + 1j]),
+                np.array([1 + 2j, 2 + 1j]),
+            ),
+            (0, "/DEV1234/TEST/PATH", 1.1, 1.1),
+            (1, "/DEV1234/TEST/PATH", 1 + 2j, 1 + 2j),
+        ],
+    )
+    def test_performSetValue_types(
+        self,
+        mock_toolkit_session,
+        device_driver,
+        datatype,
+        set_cmd,
+        set_value,
+        expected_set,
+    ):
+        device_driver.comCfg.getAddressString.return_value = "DEV1234"
+        device_driver.performOpen()
+
+        quant = create_quant_mock(
+            "Test - Name",
+            device_driver,
+            set_cmd,
+            "",
+            datatype=datatype,
+        )
+        device_driver.performSetValue(quant, set_value)
+        np.testing.assert_array_equal(
+            expected_set, device_driver._instrument[quant.set_cmd].call_args[0][0]
+        )

@@ -1,5 +1,9 @@
 # zhinst-labber Changelog
 
+## Version 0.3.1
+
+* Added support for `dict` type in `values` key when `Quantity` datatype is `VECTOR`. The settings value
+  `vector_quantity_value_map_array_keys` points to the correct key in the `dict`.
 
 ## Version 0.3.0
 * Adapt drivers to ``zhinst-toolkit`` 0.3.x which is a major refactoring and improves
