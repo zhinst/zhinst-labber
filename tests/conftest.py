@@ -31,6 +31,11 @@ def session(nodedoc_zi_json, mock_connection):
 @pytest.fixture()
 def mock_connection():
     with patch(
-        "zhinst.toolkit.session.ziPython.ziDAQServer", autospec=True
+        "zhinst.toolkit.session.core.ziDAQServer", autospec=True
     ) as connection:
-        yield connection
+        with patch(
+        "zhinst.toolkit.driver.modules.shfqa_sweeper.ziDAQServer", autospec=True
+        ) as _:
+            connection.return_value.host = "localhost"
+            connection.return_value.port = 8004
+            yield connection

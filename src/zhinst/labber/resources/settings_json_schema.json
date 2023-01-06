@@ -11,7 +11,7 @@
                     "description": "Labber delimiter between words."
                 },
                 "ziModules": {
-                    "description": "Array of included ZIPython modules",
+                    "description": "Array of included LabOne modules",
                     "type": "array",
                     "items": {
                         "type": "string"

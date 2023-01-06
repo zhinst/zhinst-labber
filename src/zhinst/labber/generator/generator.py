@@ -4,6 +4,7 @@ import json
 import typing as t
 from collections import OrderedDict
 from pathlib import Path
+from distutils.dir_util import copy_tree
 
 import natsort
 from zhinst.toolkit import Session
@@ -531,4 +532,16 @@ def generate_labber_files(
         filegen.write_settings_file()
         generated_files += filegen.created_files
         upgraded_files += filegen.upgraded_files
+
+    # static files
+    existing_files = [path for path in Path(driver_directory).rglob("*")]
+    static_files = copy_tree(
+        (Path(__file__).parents[1] / "static_drivers").absolute(), driver_directory
+    )
+    for static_file in static_files:
+        if Path(static_file) in existing_files:
+            upgraded_files.append(Path(static_file))
+        else:
+            generated_files.append(Path(static_file))
+
     return generated_files, upgraded_files

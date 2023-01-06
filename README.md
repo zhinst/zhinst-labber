@@ -13,7 +13,7 @@ devices for the scientific measurement software [Labber](http://labber.org/).
 
 The Labber drivers are based on the
 [Zurich Instruments Toolkit](https://github.com/zhinst/zhinst-toolkit)
-(*zhinst-toolkit*), a high level driver of our Python API *ziPython*.
+(*zhinst-toolkit*), a high level driver of our Python core API.
 
 > **WARNING**
 >

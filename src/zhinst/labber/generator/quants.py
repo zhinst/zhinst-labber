@@ -130,7 +130,7 @@ class NodeQuant:
         Labber functionality. This can change in the future.
 
         Args:
-            node_info: Node info in ZIPython format.
+            node_info: Node info in LabOne format.
         Raises:
             ValueError: Value(s) are not supported.
         """

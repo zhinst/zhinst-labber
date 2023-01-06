@@ -13,6 +13,8 @@ from zhinst.labber.generator.generator import (
 )
 from zhinst.toolkit.driver.devices import UHFLI, SHFQA
 
+NUM_STATIC_Files = 3
+
 
 @pytest.fixture
 def daq_module(data_dir, mock_connection, session):
@@ -217,7 +219,7 @@ def test_generate_labber_drivers_amt_uhfli(
     # Dataserver + device + amount of zimodules. Times 3 (.json file, .ini, file, .py file)
     assert len(settings_json["misc"]["ziModules"]) == 3
     # No SHFQA_Sweeper: Minus 1 from ziModules lengths
-    assert len(created) == (1 + len(settings_json["misc"]["ziModules"]) - 1 + 1) * 3
+    assert len(created) == (1 + len(settings_json["misc"]["ziModules"])) * 3 + NUM_STATIC_Files
 
 
 @patch("zhinst.labber.generator.generator.Session")
@@ -231,7 +233,7 @@ def test_generate_labber_drivers_amt_shfqa(gen_ses, shfqa, session, settings_jso
     # Dataserver + device + amount of zimodules. Times 3 (.json file, .ini, file, .py file)
     assert len(settings_json["misc"]["ziModules"]) == 3
     # SHFQA_Sweeper included
-    assert len(created) == (1 + len(settings_json["misc"]["ziModules"])) * 3
+    assert len(created) == (1 + len(settings_json["misc"]["ziModules"])) * 3 + NUM_STATIC_Files
     files = [
         Path(tmpdirname)
         / "Zurich_Instruments_SHFQA4_FOO_BAR"
@@ -247,6 +249,12 @@ def test_generate_labber_drivers_amt_shfqa(gen_ses, shfqa, session, settings_jso
         Path(tmpdirname)
         / "Zurich_Instruments_DataServer"
         / "Zurich_Instruments_DataServer.ini",
+        Path(tmpdirname)
+        / "Zurich_Instruments_Waveform_Processor"
+        / "Zurich_Instruments_Waveform_Processor.ini",
+        Path(tmpdirname)
+        / "Zurich_Instruments_Waveform_Processor"
+        / "Zurich_Instruments_Waveform_Processor.py",
     ]
     for file in files:
         assert file in created
@@ -296,6 +304,12 @@ def test_generate_labber_drivers_exists_upgrade_shfqa(gen_ses, shfqa, session):
         Path(tmpdirname)
         / "Zurich_Instruments_DataServer"
         / "Zurich_Instruments_DataServer.ini",
+        Path(tmpdirname)
+        / "Zurich_Instruments_Waveform_Processor"
+        / "Zurich_Instruments_Waveform_Processor.ini",
+        Path(tmpdirname)
+        / "Zurich_Instruments_Waveform_Processor"
+        / "Zurich_Instruments_Waveform_Processor.py",
     ]
     for file in files:
         assert file in generated
