@@ -247,8 +247,7 @@ class BaseDevice(LabberDriver):
             self._snapshot.clear()
             try:
                 value = self._parse_value(
-                    quant,
-                    self._instrument[get_cmd](parse=False, enum=False)
+                    quant, self._instrument[get_cmd](parse=False, enum=False)
                 )
                 logger.info("%s: get %s", quant.name, value)
                 return value if value is not None else quant.getValue()
@@ -436,6 +435,15 @@ class BaseDevice(LabberDriver):
             # get enumerated value if there is one
             if quant.cmd_def:
                 value = quant.cmd_def[quant.combo_defs.index(value)]
+            # VECTOR datatype value can also be a dictionary, where the value of the quant is "y" key.
+            if quant.datatype == 4:  # VECTOR enum value
+                if isinstance(value, dict):
+                    for vector_key in self._instrument_settings.get(
+                        "vector_quantity_value_map_array_keys", ["y"]
+                    ):
+                        if vector_key in value:
+                            value = value[vector_key]
+                            break
             logger.info("%s: set %s", quant.name, value)
             self._instrument[quant.set_cmd](value)
             if wait_for and not self._transaction.is_running():
