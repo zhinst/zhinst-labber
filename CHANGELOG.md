@@ -2,6 +2,8 @@
 
 ## Version 0.3.1
 
+* Added automatic Zurich Instruments static driver generation when generating new drivers.
+  Current static driver(s): Zurich Instrument Waveform Processor
 * Added support for `dict` type in `values` key when `Quantity` datatype is `VECTOR`. The settings value
   `vector_quantity_value_map_array_keys` points to the correct key in the `dict`.
 
