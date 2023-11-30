@@ -234,6 +234,26 @@ class TestBase:
         quant = create_quant_mock("Test - Name", device_driver, "", "")
         assert device_driver.performSetValue(quant, 0) == quant.getValue()
 
+    def test_performSet_enumerated_node(self, mock_toolkit_session, device_driver):
+        def _create_quant_mock(name, instrument, set_cmd, get_cmd, datatype=""):
+            quant = Mock(spec=InstrumentQuantity)
+            quant.name = name
+            quant.set_cmd = set_cmd
+            quant.get_cmd = get_cmd
+            quant.cmd_def = ["0", "1"]
+            quant.combo_defs = ["option1", "option2"]
+            quant.datatype = datatype
+            instrument._node_quant_map[instrument._quant_to_path(name)] = name
+            return quant
+
+        device_driver.comCfg.getAddressString.return_value = "DEV1234"
+        device_driver.performOpen()
+
+        # Standart node set
+        quant = _create_quant_mock("Test - Name", device_driver, "test/node", "")
+        device_driver.performSetValue(quant, "option2")
+        device_driver._instrument[quant.set_cmd].assert_called_with(1)
+
     def test_performSet_transaction_node(self, mock_toolkit_session, device_driver):
         device_driver.comCfg.getAddressString.return_value = "DEV1234"
         device_driver.performOpen()
