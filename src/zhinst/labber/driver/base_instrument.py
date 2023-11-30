@@ -434,7 +434,7 @@ class BaseDevice(LabberDriver):
         try:
             # get enumerated value if there is one
             if quant.cmd_def:
-                value = quant.cmd_def[quant.combo_defs.index(value)]
+                value = int(quant.cmd_def[quant.combo_defs.index(value)])
             # VECTOR datatype value can also be a dictionary, where the value of the quant is "y" key.
             if quant.datatype == 4:  # VECTOR enum value
                 if isinstance(value, dict):
