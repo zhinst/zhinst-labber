@@ -479,6 +479,8 @@ class BaseDevice(LabberDriver):
         Returns:
             Waveform object.
         """
+        if waves1 is None:
+            return Waveforms()
         wave0_reader = csv.reader(
             waves1.open("r", newline=""), delimiter=",", quotechar="|"
         )
