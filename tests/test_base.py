@@ -499,7 +499,7 @@ class TestBase:
         assert input == device_driver.performSetValue(quant, input)
         device_driver._instrument.awgs[
             0
-        ].commandtable.upload_to_device.assert_called_with(ct={})
+        ].commandtable.upload_to_device.assert_not_called()
 
         # valid input
         input = Path("tests/data/test.json")
