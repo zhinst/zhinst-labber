@@ -256,7 +256,8 @@
                 "driver": {
                     "function": "commandtable/upload_to_device",
                     "function_path": "../upload_to_device",
-                    "type": "JSON"
+                    "type": "JSON",
+                    "call_empty": false
                 }
             },
             "/*/sequencer_program": {
