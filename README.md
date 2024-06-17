@@ -7,6 +7,16 @@
 
 # Zurich Instruments Labber Drivers
 
+> **END OF LIFE**
+>
+> LabOne 24.10 will be the last LabOne version officially supported by the
+> Zurich Instruments Labber drivers. After LabOne 24.10 we do no longer
+> test and maintain the drivers.
+> 
+> Zurich Instruments continues to support the existing users of Labber drivers
+> until the end of 2025.
+
+
 The Zurich Instruments Labber Drivers is a python package that is able to
 automatically generate and update instrument drivers for all Zurich Instruments
 devices for the scientific measurement software [Labber](http://labber.org/).

@@ -1,4 +1,5 @@
 """Generic Labber base driver for all drivers from Zurich Instruments."""
+
 import csv
 import fnmatch
 import json
@@ -19,6 +20,7 @@ from zhinst.toolkit.driver.modules import ModuleType
 
 from zhinst.labber.driver.logger import configure_logger
 from zhinst.labber.driver.snapshot_manager import SnapshotManager, TransactionManager
+from zhinst.labber.helper import check_compatibility
 
 Quantity = t.TypeVar("Quantity")
 NumpyArray = t.TypeVar("NumpyArray")
@@ -320,6 +322,7 @@ class BaseDevice(LabberDriver):
                 if target_host == host and target_port == port:
                     return session
         new_session = Session(target_host, target_port, hf2=target_hf2)
+        check_compatibility(new_session)
         created_sessions[(target_host, target_port)] = new_session
         return new_session
 
