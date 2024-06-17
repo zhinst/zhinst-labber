@@ -2,7 +2,8 @@ import csv
 import typing as t
 from pathlib import Path
 
-from zhinst.toolkit import Waveforms
+from packaging import version
+from zhinst.toolkit import Session, Waveforms
 
 
 def _write_csv_file(lines: t.List, file: Path) -> None:
@@ -57,3 +58,23 @@ def export_waveforms(waveforms: Waveforms, output_dir: Path) -> None:
         _write_csv_file(wave_2, output_dir / "wave2.csv")
     if markers_present:
         _write_csv_file(markers, output_dir / "markers.csv")
+
+
+def check_compatibility(session: Session) -> None:
+    """Check the compatibility of LabOne.
+
+    Args:
+        session: active toolkit session.
+    Raised:
+        RuntimeError: If LabOne is not compatible with the Labber driver.
+    """
+    LAST_SUPPORTED_VERSION = version.Version("24.10")
+    try:
+        current_version = version.Version(session.about.version())
+    except Exception:
+        current_version = LAST_SUPPORTED_VERSION
+    if current_version > LAST_SUPPORTED_VERSION:
+        raise RuntimeError(
+            f"LabOne version {current_version} is not supported by the Labber driver. "
+            f"Please use LabOne version {LAST_SUPPORTED_VERSION} or lower."
+        )

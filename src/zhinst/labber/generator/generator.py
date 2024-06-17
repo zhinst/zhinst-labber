@@ -12,6 +12,7 @@ from zhinst.toolkit.nodetree import Node
 
 from zhinst.labber import __version__
 from zhinst.labber.code_generator.drivers import generate_labber_device_driver_code
+from zhinst.labber.helper import check_compatibility
 from zhinst.labber.generator.conf import LabberConfiguration
 from zhinst.labber.generator.helpers import (
     delete_device_from_node_path,
@@ -504,6 +505,7 @@ def generate_labber_files(
         hf2: If the device is HF2.
     """
     session = Session(server_host=server_host, server_port=server_port, hf2=hf2)
+    check_compatibility(session)
     dev = session.connect_device(device_id)
 
     # Files generated to echo
