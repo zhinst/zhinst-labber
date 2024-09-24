@@ -1,5 +1,12 @@
 # zhinst-labber Changelog
 
+## Version 0.3.3
+
+- Add `interface` option to cli to allow specifying the interface of the target device.
+  This is mostly necessary for the hf2, mf and uhf device family since they require an
+  interface to be explicitly specified, if the device it not already connected to the data
+  server.
+
 ## Version 0.3.2
 
 - Fixed issue where an empty command table was sent to the device when the node has no value defined in Labber UI,

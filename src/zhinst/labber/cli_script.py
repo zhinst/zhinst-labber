@@ -33,6 +33,12 @@ def main():
     type=int,
     help="Zurich Instruments Data Server port",
 )
+@click.option(
+    "--interface",
+    required=False,
+    type=str,
+    help="Optional interface that should be used to connect to the device.",
+)
 @click.option("--hf2", required=False, is_flag=True, help="HF2 Dataserver")
 @click.option(
     "--mode",
@@ -62,7 +68,9 @@ def main():
     functionality or nodes.
     """,
 )
-def setup(driver_directory, device_id, server_host, server_port, hf2, mode, upgrade):
+def setup(
+    driver_directory, device_id, server_host, server_port, interface, hf2, mode, upgrade
+):
     """Generate Zurich Instruments Labber drivers.
 
     This script generates the necessary files to control Zurich Instruments
@@ -84,6 +92,7 @@ def setup(driver_directory, device_id, server_host, server_port, hf2, mode, upgr
         driver_directory=driver_directory,
         device_id=device_id,
         server_host=server_host,
+        interface=interface,
         mode=mode.upper(),
         upgrade=upgrade,
         server_port=server_port,

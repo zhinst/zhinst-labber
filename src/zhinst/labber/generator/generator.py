@@ -3,12 +3,10 @@ import fnmatch
 import json
 import typing as t
 from collections import OrderedDict
-from pathlib import Path
 from distutils.dir_util import copy_tree
+from pathlib import Path
 
 import natsort
-from zhinst.toolkit import Session
-from zhinst.toolkit.nodetree import Node
 
 from zhinst.labber import __version__
 from zhinst.labber.code_generator.drivers import generate_labber_device_driver_code
@@ -20,6 +18,9 @@ from zhinst.labber.generator.helpers import (
     match_in_list,
 )
 from zhinst.labber.generator.quants import NodeQuant, Quant, QuantGenerator
+from zhinst.labber.helper import check_compatibility
+from zhinst.toolkit import Session
+from zhinst.toolkit.nodetree import Node
 
 
 class LabberConfig:
@@ -487,6 +488,7 @@ def generate_labber_files(
     mode: str,
     device_id: str,
     server_host: str,
+    interface: t.Optional[str] = None,
     upgrade: bool = False,
     server_port: t.Optional[int] = None,
     hf2: t.Optional[bool] = None,
@@ -500,13 +502,14 @@ def generate_labber_files(
             Advanced has most of the nodes available.
         device_id: Zurich Instruments device ID. (e.g: dev1234)
         server_host: DataServer host
+        interface: Interface the device should be connected to.
         upgrade: Overwrite existing drivers
         server_port: DataServer port
         hf2: If the device is HF2.
     """
     session = Session(server_host=server_host, server_port=server_port, hf2=hf2)
     check_compatibility(session)
-    dev = session.connect_device(device_id)
+    dev = session.connect_device(device_id, interface=interface)
 
     # Files generated to echo
     generated_files = []

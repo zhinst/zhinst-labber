@@ -33,6 +33,19 @@ def test_cli_script_setup_help():
             {
                 "device_id": "dev1234",
                 "server_host": "localhost",
+                "interface": None,
+                "mode": "NORMAL",
+                "upgrade": False,
+                "server_port": None,
+                "hf2": False,
+            },
+        ),
+        (
+            ["dev1234", "localhost", "--interface=USB"],
+            {
+                "device_id": "dev1234",
+                "server_host": "localhost",
+                "interface": "USB",
                 "mode": "NORMAL",
                 "upgrade": False,
                 "server_port": None,
@@ -51,6 +64,7 @@ def test_cli_script_setup_help():
             {
                 "device_id": "dev1234",
                 "server_host": "localhost",
+                "interface": None,
                 "mode": "ADVANCED",
                 "upgrade": True,
                 "server_port": 812,
@@ -62,6 +76,7 @@ def test_cli_script_setup_help():
             {
                 "device_id": "dev1234",
                 "server_host": "localhost",
+                "interface": None,
                 "mode": "NORMAL",
                 "upgrade": False,
                 "server_port": 812,
